@@ -1,0 +1,141 @@
+<div id="container">
+  <div id="innercontainer">
+    <span id="host">
+      <span id="target"></span>
+    </span>
+  </div>
+</div>
+
+<div id="container2">
+  <div>
+    <span id="host2" jsaction="clickaction">
+      <span id="target2"></span>
+    </span>
+  </div>
+</div>
+
+<div id="container3">
+  <div>
+    <span id="host3"
+         jsaction="clickaction;foo:fooaction;bar:baraction"
+         jsprops="foo:'bar'">
+      <span id="target3"></span>
+    </span>
+  </div>
+</div>
+
+<div id="container4">
+  <div>
+    <span id="host41" jsaction="clickaction_parent">
+      <span id="host42" jsaction="clickaction_child">
+        <span id="target4"></span>
+      </span>
+    </span>
+  </div>
+</div>
+
+<div id="outercontainer5">
+  <div id="container5" jsnamespace="namespace5">
+    <div id="innercontainer5">
+      <span id="host5" jsaction="clickaction"></span>
+    </div>
+  </div>
+</div>
+
+<div id="container6">
+  <a href="#bla" jsaction="myaction">
+    <span id="inside_anchor6"></span>
+  </a>
+</div>
+
+<!-- Only access when HTML attributes are not cached. -->
+<div id="container7">
+  <div id="namespace7" jsnamespace="namespace7">
+    <div id="action7inner" jsaction="namespace7inner.qualifiedaction7">
+      <span id="action7" jsaction="action7"></span>
+    </div>
+  </div>
+</div>
+
+<div id="container8">
+  <div jsaction="action8">
+    <span id="action8-1"></span>
+  </div>
+  <div jsaction="clickmod:action8">
+    <span id="action8-2"></span>
+  </div>
+  <div jsaction="keypress:action8;keydown:action8">
+    <span id="action8-3"></span>
+  </div>
+  <div jsaction="action8;clickonly:action9">
+    <span id="action8-4"></span>
+  </div>
+</div>
+
+<div id="container9">
+  <div jsaction="mouseenter:action9">
+    <span id="action9-1"></span>
+  </div>
+  <div jsaction="mouseleave:action9">
+    <span id="action9-2"></span>
+  </div>
+</div>
+
+<div id="container10">
+  <div jsaction="action10">
+    <span id="action10-1"></span>
+  </div>
+</div>
+
+<div id="owned">
+</div>
+
+<div id="outercontainer11">
+  <div id="outeraction11" jsaction="outer">
+    <div id="innercontainer11">
+      <span id="inneraction11" jsaction="inner"></span>
+    </div>
+  </div>
+</div>
+
+<div id="container12">
+  <div jsaction="click:shouldNeverMatch">
+    <div jsaction="click:action12">
+      <span id="action12-1"></span>
+    </div>
+  </div>
+  <div jsaction="click:action12">
+    <span id="action12-2">
+      <input type="text" id="text12">
+      <input type="password" id="password12">
+      <input type="search" id="search12">
+      <textarea id="textarea12"></textarea>
+    </span>
+  </div>
+  <div jsaction="click:action12;touchstart:action12">
+    <span id="action12-3"></span>
+  </div>
+  <div jsaction="clickonly:action12">
+    <span id="action12-4"></span>
+  </div>
+</div>
+
+<div id="container13">
+  <div id="host13" jsaction="foo:fooaction;bar:baraction">
+    <span id="target13"></span>
+  </div>
+</div>
+
+<div id="container14">
+  <div id="pathitem14" jsaction="click:action14">
+    <div id="target14">
+    </div>
+  </div>
+</div>
+
+<div id="container15">
+  <div id="pathitem15">
+    <div id="target15" jsaction="click:action15">
+    </div>
+  </div>
+</div>
