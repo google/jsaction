@@ -416,7 +416,7 @@ jsaction.Dispatcher.prototype.unregisterGlobalHandler = function(
  * name. This returns true if there is a namespace handler, even
  * if it can not yet handle the event.
  *
- * TODO(user): Remove this when canDispatch is used everywhere.
+ * TODO(chrishenry): Remove this when canDispatch is used everywhere.
  *
  * @param {string} name Action name.
  * @return {boolean} Whether the name is registered.

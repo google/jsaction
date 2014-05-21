@@ -47,7 +47,7 @@ jsaction.isKeyboardEvent_ = function(eventType) {
  * @private
  */
 jsaction.isMouseEvent_ = function(eventType) {
-  // TODO(user): Verify if Drag events should be bound here.
+  // TODO(ruilopes): Verify if Drag events should be bound here.
   return eventType == goog.events.EventType.CLICK ||
       eventType == goog.events.EventType.DBLCLICK ||
       eventType == goog.events.EventType.MOUSEDOWN ||
@@ -157,7 +157,7 @@ jsaction.createKeyboardEvent = function(original, opt_eventType) {
     // Thus, we must fallback to a generic DOM event to trigger a keyboard
     // event.  See details at
     // http://my.opera.com/community/forums/topic.dml?id=185375.
-    // TODO(user): Revisit this once logs show we don't need to support
+    // TODO(ruilopes): Revisit this once logs show we don't need to support
     // older Opera versions.
     //
     // We also have to fall back to a generic event for Safari, which has the
@@ -327,9 +327,9 @@ jsaction.createGenericEvent_ = function(original, opt_eventType) {
 
 /**
  * Creates an event object for replaying through the DOM.
- * NOTE(user): This function is visible just for testing.  Please don't use
+ * NOTE(ruilopes): This function is visible just for testing.  Please don't use
  * it outside JsAction internal testing.
- * TODO(user): Add support for FocusEvent and WheelEvent.
+ * TODO(ruilopes): Add support for FocusEvent and WheelEvent.
  * @param {!Event} original The event to create a new event from.
  * @param {string=} opt_eventType The type this event is being handled as by
  *     jsaction. E.g. a keypress is handled as click in some cases.

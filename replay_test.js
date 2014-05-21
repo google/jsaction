@@ -1,4 +1,5 @@
 // Copyright 2012 Google Inc. All Rights Reserved.
+// Author: ruilopes@google.com (Rui do Nascimento Dias Lopes)
 
 /** @suppress {extraProvide} */
 goog.provide('jsaction.replayEventTest');

@@ -588,7 +588,7 @@ jsaction.EventContract.getAttr_ = function(node, attribute) {
   // fact been removed from the DOM before eventContract begins
   // handling - where a parentNode does not have getAttribute
   // defined.
-  // NOTE(user): We must use the 'in' operator instead of the regular dot
+  // NOTE(ruilopes): We must use the 'in' operator instead of the regular dot
   // notation, since the latter fails in IE8 if the getAttribute method is not
   // defined. See b/7139109.
   if ('getAttribute' in node) {
