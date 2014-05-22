@@ -338,6 +338,9 @@ jsaction.event.isGecko = typeof navigator != 'undefined' &&
  * @private
  */
 jsaction.event.isValidActionKeyTarget_ = function(element) {
+  if (!('getAttribute' in element)) {
+    return false;
+  }
   var tagName = (
       element.getAttribute('role') || element.type || element.tagName).
       toUpperCase();
