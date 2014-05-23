@@ -17,6 +17,34 @@ may late load the implementations, while the app is always able to respond to
 user actions marked up through JsAction. This can help in greatly reducing page
 load time, in particular for server side rendered apps.
 
+# Building
+
+JsAction is built using the
+[Closure Compiler](http://github.com/google/closure-compiler).
+You can obtain a recent compiler from the site.
+
+JsAction depends on the
+[Closure Library](http://github.com/google/closure-library).
+You can obtain a copy of the library from the GitHub repository.
+
+The compiler is able to handle dependency ordering automatically with
+the `--only_closure_dependencies` flag. It needs to be provided with
+the sources and any entry points.
+
+See the files dispatch_auto.js, eventcontract_auto.js, and
+eventcontract_example.js for typical entry points.
+
+Here is a typical command line for building JsAction's dispatch_auto.js:
+
+<pre>
+java -jar compiler.jar  \
+    --jsdir=./path/to/closure-library/**.js \
+    --jsdir=./path/to/jsaction/**.js \
+    --output_wrapper="(function(){%output%})();" \
+    --only_closure_dependencies \
+    --closure_entry_point=jsaction.DispatchAuto
+</pre>
+
 # Usage
 ## In the DOM
 Actions are indicated with the `jsaction` attribute. They are separated by `;`,
