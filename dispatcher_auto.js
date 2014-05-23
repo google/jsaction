@@ -3,6 +3,8 @@
  * instance of jsaction.EventContract that it receives from the main HTML page.
  */
 
+goog.provide('jsaction.DispatcherAuto');
+
 goog.require('jsaction.Dispatcher');
 
 
