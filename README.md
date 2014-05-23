@@ -42,7 +42,7 @@ java -jar compiler.jar  \
     --jsdir=./path/to/jsaction/**.js \
     --output_wrapper="(function(){%output%})();" \
     --only_closure_dependencies \
-    --closure_entry_point=jsaction.DispatchAuto
+    --closure_entry_point=jsaction.dispatcherAuto
 </pre>
 
 # Usage
