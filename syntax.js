@@ -452,7 +452,7 @@ jsaction.UrlParam = {
   /**
    * Contains more structured data registered during the execution of
    * the jsaction handler and registered with the ActionFlow
-   * instance. Among these data is informaiton about impressions that
+   * instance. Among these data is information about impressions that
    * were generated during the handling of the jsaction.
    */
   CLICK_ADDITIONAL_DATA: 'cad',

@@ -28,7 +28,7 @@ goog.require('jsaction.dom');
  * referenced by string literals rather than property literals
  * throughout the code.
  *
- * 'targetElement' is the element the action occured on, 'actionElement'
+ * 'targetElement' is the element the action occurred on, 'actionElement'
  * is the element that has the jsaction handler.
  *
  * A null 'actionElement' identifies an EventInfo instance that didn't match a
@@ -94,10 +94,10 @@ jsaction.EventHandlerInfo;
 
 
 /**
- * A function used to initialze containers in
+ * A function used to initialize containers in
  * EventContract.addContainer(). Such a function is passed an HTML DOM
  * Element and registers a specific event handler onm it. The
- * EventHandlerInfo that is needed to eventually deregister the evetn
+ * EventHandlerInfo that is needed to eventually deregister the event
  * handler is returned by that function.
  * @typedef {function(!Element):jsaction.EventHandlerInfo}
  */
