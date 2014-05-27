@@ -512,25 +512,31 @@ jsaction.EventContract.createEventInfo_ = function(eventType, e, container) {
       jsaction.event.preventDefault(e);
     }
 
+    // We attempt to handle the mouseenter/mouseleave events here by
+    // detecting whether the mouseover/mouseout events correspond to
+    // entering/leaving an element.
     if (jsaction.EventContract.MOUSE_SPECIAL_SUPPORT &&
         (eventType == jsaction.EventType.MOUSEENTER ||
          eventType == jsaction.EventType.MOUSELEAVE)) {
       // We attempt to handle the mouseenter/mouseleave events here by
       // detecting whether the mouseover/mouseout events correspond to
       // entering/leaving an element.
-      if (jsaction.event.isMouseSpecialEvent(e, element)) {
+      if (jsaction.event.isMouseSpecialEvent(e, eventType, element)) {
         // If both mouseover/mouseout and mouseenter/mouseleave events are
         // enabled, two separate handlers for mouseover/mouseout are
         // registered. Both handlers will see the same event instance
         // so we create a copy to avoid interfering with the dispatching of
         // the mouseover/mouseout event.
         var copiedEvent = jsaction.event.createMouseSpecialEvent(
-            e, /** @type {!Element} */(element));
-        eventInfo['event'] = /** @type {!Event} */(copiedEvent);
+            e, /** @type {!Element} */ (element));
+        eventInfo['event'] = /** @type {!Event} */ (copiedEvent);
         // Since the mouseenter/mouseleave events do not bubble, the target
         // of the event is technically the node on which the jsaction is
         // specified (the actionElement).
         eventInfo['targetElement'] = element;
+      } else {
+        eventInfo['action'] = '';
+        eventInfo['actionElement'] = null;
       }
     }
     return eventInfo;
