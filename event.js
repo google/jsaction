@@ -387,7 +387,7 @@ jsaction.event.shouldCallPreventDefaultOnNativeHtmlControl = function(e) {
   var elementName = (el.getAttribute('role') || el.tagName).toUpperCase();
   var type = el.type;
   return elementName == 'BUTTON' || !!type &&
-      !goog.array.contains(jsaction.event.PROCESS_SPACE, type.toUpperCase());
+      !(type.toUpperCase() in jsaction.event.PROCESS_SPACE);
 };
 
 
@@ -575,6 +575,10 @@ jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING = {
 
 /**
  * HTML controls for which to not call preventDefault when space is pressed.
- * @const {!Array.<!string>}
+ * @const {!Object.<string, number>}
  */
-jsaction.event.PROCESS_SPACE = ['CHECKBOX', 'OPTION', 'RADIO'];
+jsaction.event.PROCESS_SPACE = {
+  'CHECKBOX': 1,
+  'OPTION': 1,
+  'RADIO': 1
+};
