@@ -432,16 +432,22 @@ jsaction.event.isSpaceKeyEvent = function(e) {
  * special event has occurred, otherwise it hasn't.
  *
  * @param {!Event} e The mouseover/mouseout event.
- * @param {!Element} target The element on which the jsaction for the
+ * @param {string} type The type of the mouse special event.
+ * @param {!Element} element The element on which the jsaction for the
  *     mouseenter/mouseleave event is defined.
  * @return {boolean} True if the event is a mouseenter/mouseleave event.
  */
-jsaction.event.isMouseSpecialEvent = function(e, target) {
-  var related = /** @type {!Node} */(e.relatedTarget);
-  return (e.type == jsaction.EventType.MOUSEOVER ||
-      e.type == jsaction.EventType.MOUSEOUT) &&
-      (!related || !(related == target ||
-      jsaction.dom.contains(target, related)));
+jsaction.event.isMouseSpecialEvent = function(e, type, element) {
+  var target = /** @type {!Node} */ (e.target || e.srcElement);
+  var related = /** @type {!Node} */ (e.relatedTarget);
+
+  return ((e.type == jsaction.EventType.MOUSEOVER &&
+           type == jsaction.EventType.MOUSEENTER) ||
+          (e.type == jsaction.EventType.MOUSEOUT &&
+           type == jsaction.EventType.MOUSELEAVE)) &&
+          related && related != target &&
+          jsaction.dom.contains(element, target) &&
+          !jsaction.dom.contains(element, related);
 };
 
 

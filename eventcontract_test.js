@@ -791,6 +791,7 @@ function testEventContractMaybeCreateEventInfoMouseenter() {
   var element = document.getElementById('action9-1');
   var event = new goog.testing.events.Event(
       jsaction.EventType.MOUSEOVER, element);
+  event.relatedTarget = container;
 
   var eventInfo = jsaction.EventContract.createEventInfo_(
       jsaction.EventType.MOUSEENTER, event, container);
@@ -803,6 +804,7 @@ function testEventContractMaybeCreateEventInfoNotMouseenter() {
   var element = document.getElementById('action9-1');
   var event = new goog.testing.events.Event(
       jsaction.EventType.MOUSEOVER, container);
+  event.relatedTarget = element;
 
   assertNull(jsaction.EventContract.createEventInfo_(
       jsaction.EventType.MOUSEENTER, event, container).actionElement);
@@ -814,6 +816,7 @@ function testEventContractMaybeCreateEventInfoMouseleave() {
   var element = document.getElementById('action9-2');
   var event = new goog.testing.events.Event(
       jsaction.EventType.MOUSEOUT, element);
+  event.relatedTarget = container;
 
   var eventInfo = jsaction.EventContract.createEventInfo_(
       jsaction.EventType.MOUSELEAVE, event, container);
@@ -826,6 +829,7 @@ function testEventContractMaybeCreateEventInfoNotMouseleave() {
   var element = document.getElementById('action9-2');
   var event = new goog.testing.events.Event(
       jsaction.EventType.MOUSEOUT, container);
+  event.relatedTarget = element;
 
   assertNull(jsaction.EventContract.createEventInfo_(
       jsaction.EventType.MOUSELEAVE, event, container).actionElement);

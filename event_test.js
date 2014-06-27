@@ -244,75 +244,125 @@ function testIsActionKeyEventNotInMap() {
 
 function testIsMouseSpecialEventMouseenter() {
   var root = document.createElement('div');
-  var child = document.createElement('child');
+  var child = document.createElement('div');
   root.appendChild(child);
 
   var event = {
     relatedTarget: root,
     type: jsaction.EventType.MOUSEOVER,
-    target: document.createElement('div')
+    target: child
   };
 
-  assertTrue(jsaction.event.isMouseSpecialEvent(event, child));
+  assertTrue(jsaction.event.isMouseSpecialEvent(event,
+      jsaction.EventType.MOUSEENTER, child));
 }
 
 function testIsMouseSpecialEventNotMouseenter() {
   var root = document.createElement('div');
-  var child = document.createElement('child');
+  var child = document.createElement('div');
   root.appendChild(child);
 
   var event = {
     relatedTarget: child,
     type: jsaction.EventType.MOUSEOVER,
-    target: document.createElement('div')
+    target: root
   };
 
-  assertFalse(jsaction.event.isMouseSpecialEvent(event, root));
-  assertFalse(jsaction.event.isMouseSpecialEvent(event, child));
+  assertFalse(jsaction.event.isMouseSpecialEvent(event,
+      jsaction.EventType.MOUSEENTER, root));
+  assertFalse(jsaction.event.isMouseSpecialEvent(event,
+      jsaction.EventType.MOUSEENTER, child));
+}
+
+function testIsMouseSpecialEventMouseover() {
+  var root = document.createElement('div');
+  var child = document.createElement('div');
+  root.appendChild(child);
+  var subchild = document.createElement('div');
+  child.appendChild(subchild);
+
+  var event = {
+    relatedTarget: child,
+    type: jsaction.EventType.MOUSEOVER,
+    target: subchild
+  };
+
+  assertFalse(jsaction.event.isMouseSpecialEvent(event,
+      jsaction.EventType.MOUSEENTER, root));
+  assertFalse(jsaction.event.isMouseSpecialEvent(event,
+      jsaction.EventType.MOUSEENTER, child));
+  assertTrue(jsaction.event.isMouseSpecialEvent(event,
+      jsaction.EventType.MOUSEENTER, subchild));
 }
 
 function testIsMouseSpecialEventMouseleave() {
   var root = document.createElement('div');
-  var child = document.createElement('child');
+  var child = document.createElement('div');
   root.appendChild(child);
 
   var event = {
     relatedTarget: root,
     type: jsaction.EventType.MOUSEOUT,
-    target: document.createElement('div')
+    target: child
   };
 
-  assertTrue(jsaction.event.isMouseSpecialEvent(event, child));
+  assertTrue(jsaction.event.isMouseSpecialEvent(event,
+      jsaction.EventType.MOUSELEAVE, child));
 }
 
 function testIsMouseSpecialEventNotMouseleave() {
   var root = document.createElement('div');
-  var child = document.createElement('child');
+  var child = document.createElement('div');
   root.appendChild(child);
 
   var event = {
     relatedTarget: child,
     type: jsaction.EventType.MOUSEOUT,
-    target: document.createElement('div')
+    target: root
   };
 
-  assertFalse(jsaction.event.isMouseSpecialEvent(event, root));
-  assertFalse(jsaction.event.isMouseSpecialEvent(event, child));
+  assertFalse(jsaction.event.isMouseSpecialEvent(event,
+      jsaction.EventType.MOUSELEAVE, root));
+  assertFalse(jsaction.event.isMouseSpecialEvent(event,
+      jsaction.EventType.MOUSELEAVE, child));
+}
+
+function testIsMouseSpecialEventMouseout() {
+  var root = document.createElement('div');
+  var child = document.createElement('div');
+  root.appendChild(child);
+  var subchild = document.createElement('div');
+  child.appendChild(subchild);
+
+  var event = {
+    relatedTarget: child,
+    type: jsaction.EventType.MOUSEOUT,
+    target: subchild
+  };
+
+  assertFalse(jsaction.event.isMouseSpecialEvent(event,
+      jsaction.EventType.MOUSELEAVE, root));
+  assertFalse(jsaction.event.isMouseSpecialEvent(event,
+      jsaction.EventType.MOUSELEAVE, child));
+  assertTrue(jsaction.event.isMouseSpecialEvent(event,
+      jsaction.EventType.MOUSELEAVE, subchild));
 }
 
 function testIsMouseSpecialEventNotMouse() {
   var root = document.createElement('div');
-  var child = document.createElement('child');
+  var child = document.createElement('div');
   root.appendChild(child);
 
   var event = {
     relatedTarget: root,
     type: jsaction.EventType.CLICK,
-    target: document.createElement('div')
+    target: child
   };
 
-  assertFalse(jsaction.event.isMouseSpecialEvent(event, child));
-  assertFalse(jsaction.event.isMouseSpecialEvent(event, child));
+  assertFalse(jsaction.event.isMouseSpecialEvent(event,
+      jsaction.EventType.MOUSELEAVE, child));
+  assertFalse(jsaction.event.isMouseSpecialEvent(event,
+      jsaction.EventType.MOUSELEAVE, child));
 }
 
 function testCreateMouseSpecialEventMouseenter() {
