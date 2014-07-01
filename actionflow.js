@@ -31,7 +31,7 @@ goog.require('jsaction.event');
  * @param {string} flowType For a ActionFlow that tracks a jsaction,
  *     this is the name of the jsaction, including the
  *     namespace. Otherwise it is whatever name the client application
- *     choses to track its actions by.
+ *     chooses to track its actions by.
  * @param {Element} opt_node The node.
  * @param {Event} opt_event The event.
  * @param {number} opt_startTime The time at which the flow started,
@@ -139,7 +139,7 @@ jsaction.ActionFlow = function(flowType, opt_node, opt_event, opt_startTime) {
 
   /**
    * Collects the data for jsaction tracking related to this ActionFlow
-   * instance that are extraced from the DOM context of the
+   * instance that are extracted from the DOM context of the
    * jsaction. Added by action().
    * @type {!Object}
    * @private
@@ -671,7 +671,7 @@ jsaction.ActionFlow.prototype.timers = function() {
 
 
 /**
- * Returns the branchs registry. Mostly for testing.
+ * Returns the branches registry. Mostly for testing.
  * @return {!Object} Branches.
  */
 jsaction.ActionFlow.prototype.branches = function() {
@@ -1412,7 +1412,7 @@ jsaction.ActionFlow.EventType = {
   /**
    * Fired whenever an error occurs. Can be handled even in production
    * to obtain error reports from deployed code. Specifically, it's
-   * called when the following conditions ooccur:
+   * called when the following conditions occur:
    *
    * - branch/done/tick/addActionData/action/impression are called
    *   after the flow finished, or
