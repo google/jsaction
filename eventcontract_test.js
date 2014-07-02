@@ -168,6 +168,33 @@ function testDispatchCallbackGetsEventInfo() {
 }
 
 
+function testCustomEvent() {
+  var container = elem('container16');
+  var targetElement = elem('target16');
+
+  var eventInfo = null;
+  var dispatchCallback = function(ei) {
+    eventInfo = ei;
+  };
+
+  var e = new jsaction.EventContract;
+  e.addContainer(container);
+  e.addEvent('event-16');
+  e.dispatchTo(dispatchCallback);
+
+  if (!document.createEvent) {
+    // We don't care about ie8 because this feature is primarily used by
+    // Polymer, which doesn't support ie8
+    return;
+  }
+
+  var event = document.createEvent('Event');
+  event.initEvent('event-16', true, true);
+  targetElement.dispatchEvent(event);
+  assertEquals('action16', eventInfo.action);
+}
+
+
 function testJsPropertiesParsedOnActionNode() {
   var container = elem('container3');
   var targetElement = elem('target3');
