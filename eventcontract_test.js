@@ -195,38 +195,6 @@ function testCustomEvent() {
 }
 
 
-function testJsPropertiesParsedOnActionNode() {
-  var container = elem('container3');
-  var targetElement = elem('target3');
-
-  var dispatcherCalled = false;
-  var actionElement = null;
-  var dispatchCallback = function(eventInfo) {
-    dispatcherCalled = true;
-    actionElement = eventInfo.actionElement;
-  };
-
-  mockControl_.$replayAll();
-
-  var e = new jsaction.EventContract;
-  e.addContainer(container);
-  e.addEvent('click');
-  e.dispatchTo(dispatchCallback);
-
-  // Replay a fake event to trigger a DOM event on the target element.
-  jsaction.replayEvent({
-    targetElement: targetElement,
-    event: jsaction.createEvent({type: 'click'})
-  });
-
-  assertNotNull(actionElement);
-  // Check that the jsprops have been parsed.
-  assertEquals('bar', actionElement['foo']);
-
-  mockControl_.$verifyAll();
-}
-
-
 function testFindActionStopAtMatch() {
   var container = elem('container4');
   var target = elem('target4');
