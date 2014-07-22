@@ -142,7 +142,6 @@ jsaction.EventContract.isIos_ = typeof navigator != 'undefined' &&
     /iPhone|iPad|iPod/.test(navigator.userAgent);
 
 
-
 /**
  * @define {boolean} Support for jsnamespace attribute.  This flag can be
  *     overriden in a build rule to trim down the EventContract's binary size.
