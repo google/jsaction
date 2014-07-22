@@ -39,7 +39,6 @@ goog.require('jsaction.event');
 
 
 
-
 /**
  * EventContract intercepts events in the bubbling phase at the
  * boundary of a container element, and maps them to generic actions
@@ -501,8 +500,6 @@ jsaction.EventContract.createEventInfo_ = function(eventType, e, container) {
   }
 
   if (actionInfo && actionInfo.action) {
-
-
     // Prevent scrolling if the Space key was pressed and prevent the browser's
     // default action for native HTML controls.
     if (jsaction.EventContract.A11Y_CLICK_SUPPORT &&
