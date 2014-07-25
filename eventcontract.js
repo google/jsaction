@@ -309,13 +309,14 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
     var eventTypeForDispatch = eventType;
     if (jsaction.EventContract.CUSTOM_EVENT_SUPPORT &&
         eventTypeForDispatch == jsaction.EventType.CUSTOM) {
+      var detail = e['detail'];
       // For custom events, use a secondary dispatch based on the internal
       // custom type of the event.
-      if (!e.detail || !e.detail['_type']) {
+      if (!detail || !detail['_type']) {
         // This should never happen.
         return;
       }
-      eventTypeForDispatch = e.detail['_type'];
+      eventTypeForDispatch = detail['_type'];
     }
 
     var eventInfo = jsaction.EventContract.createEventInfo_(
