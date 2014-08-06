@@ -15,6 +15,8 @@ goog.require('goog.events.EventType');
 goog.require('goog.functions');
 goog.require('goog.userAgent');
 goog.require('goog.userAgent.product');
+goog.require('jsaction');
+goog.require('jsaction.EventType');
 
 
 /**
@@ -337,13 +339,23 @@ jsaction.createGenericEvent_ = function(original, opt_eventType) {
  */
 jsaction.createEvent = function(original, opt_eventType) {
   var event;
-  var eventType = opt_eventType || original.type;
+  var eventType;
+  if (original.type == jsaction.EventType.CUSTOM) {
+    eventType = jsaction.EventType.CUSTOM;
+  } else {
+    eventType = opt_eventType || original.type;
+  }
+
   if (jsaction.isKeyboardEvent_(eventType)) {
     event = jsaction.createKeyboardEvent(original, opt_eventType);
   } else if (jsaction.isMouseEvent_(eventType)) {
     event = jsaction.createMouseEvent(original, opt_eventType);
   } else if (jsaction.isFocusEvent_(eventType)) {
     event = jsaction.createFocusEvent(original, opt_eventType);
+  } else if (eventType == jsaction.EventType.CUSTOM) {
+    goog.asserts.assert(opt_eventType);
+    event = jsaction.createCustomEvent(
+        opt_eventType, original['detail']['data']);
   } else {
     // This ensures we don't send an undefined event object to the replayer.
     event = jsaction.createGenericEvent_(original, opt_eventType);

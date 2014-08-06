@@ -8,16 +8,12 @@ goog.require('jsaction.EventType');
 
 
 /**
- * Fires a custom event with an optional payload. Only intended to be consumed
- * by jsaction itself. Supported in Firefox 6+, IE 9+, and all Chrome versions.
- *
- * TODO(user): Investigate polyfill options.
- *
- * @param {!Element} target The target element.
+ * Create a custom event with the specified data.
  * @param {string} type The type of the action, e.g. 'submit'.
  * @param {!Object.<string, *>=} opt_data An optional data payload.
+ * @return {!Event} The new custom event.
  */
-jsaction.fireCustomEvent = function(target, type, opt_data) {
+jsaction.createCustomEvent = function(type, opt_data) {
   var event;
 
   // We use '_type' for the event contract, which lives in a separate
@@ -37,5 +33,22 @@ jsaction.fireCustomEvent = function(target, type, opt_data) {
     event.initEvent(jsaction.EventType.CUSTOM, true, false);
     event['detail'] = detail;
   }
+
+  return event;
+};
+
+
+/**
+ * Fires a custom event with an optional payload. Only intended to be consumed
+ * by jsaction itself. Supported in Firefox 6+, IE 9+, and all Chrome versions.
+ *
+ * TODO(user): Investigate polyfill options.
+ *
+ * @param {!Element} target The target element.
+ * @param {string} type The type of the action, e.g. 'submit'.
+ * @param {!Object.<string, *>=} opt_data An optional data payload.
+ */
+jsaction.fireCustomEvent = function(target, type, opt_data) {
+  var event = jsaction.createCustomEvent(type, opt_data);
   target.dispatchEvent(event);
 };
