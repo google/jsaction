@@ -922,8 +922,14 @@ jsaction.EventContract.containerHandlerInstaller_ = function(name, handler) {
  * If the event is already registered, this does nothing.
  *
  * @param {string} name Event name.
+ * @param {string=} opt_prefixedName If supplied, this event is used in
+ *     the actual browser event registration instead of the name that is
+ *     exposed to jsaction. Use this if you e.g. want users to be able
+ *     to subscribe to jsaction="transitionEnd:foo" while the underlying
+ *     event is webkitTransitionEnd in one browser and mozTransitionEnd
+ *     in another.
  */
-jsaction.EventContract.prototype.addEvent = function(name) {
+jsaction.EventContract.prototype.addEvent = function(name, opt_prefixedName) {
   if (this.events_.hasOwnProperty(name)) {
     return;
   }
@@ -938,7 +944,7 @@ jsaction.EventContract.prototype.addEvent = function(name) {
 
   // Install the callback which handles events on the container.
   var installer = jsaction.EventContract.containerHandlerInstaller_(
-      name, handler);
+      opt_prefixedName || name, handler);
 
   // Store the callback to allow us to replay events.
   this.events_[name] = handler;

@@ -73,12 +73,14 @@ function testAddContainerInstallsHandlersForRegisteredEvents() {
   mockAddEvent(container, jsaction.EventType.TOUCHEND, isFunction_);
   mockAddEvent(container, jsaction.EventType.TOUCHMOVE, isFunction_);
   mockAddEvent(container, 'mousemove', isFunction_);
+  mockAddEvent(container, 'webkitTransitionEnd', isFunction_);
 
   mockControl_.$replayAll();
 
   var e = new jsaction.EventContract;
   e.addEvent(jsaction.EventType.CLICK);
   e.addEvent('mousemove');
+  e.addEvent('transitionEnd', 'webkitTransitionEnd');
   e.addContainer(container);
 
   mockControl_.$verifyAll();
@@ -349,6 +351,33 @@ function testFindActionStopAtMatchOnSelf_EventPath() {
     event: event
   });
   assertEquals('action15', eventInfo.action);
+
+  mockControl_.$verifyAll();
+}
+
+
+function testFindActionAliased() {
+  var container = elem('container17');
+  var target = elem('target17');
+
+  var eventInfo = null;
+  var dispatchCallback = function(ei) {
+    eventInfo = ei;
+  };
+
+  mockControl_.$replayAll();
+
+  var e = new jsaction.EventContract;
+  e.addContainer(container);
+  e.addEvent('transitionEnd', 'webkitTransitionEnd');
+  e.dispatchTo(dispatchCallback);
+
+  // Replay a fake event to trigger a DOM event on the target element.
+  jsaction.replayEvent({
+    targetElement: target,
+    event: jsaction.createEvent({type: 'webkitTransitionEnd'})
+  });
+  assertEquals('transitionIsOver', eventInfo.action);
 
   mockControl_.$verifyAll();
 }
