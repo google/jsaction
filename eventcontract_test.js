@@ -369,15 +369,17 @@ function testFindActionAliased() {
 
   var e = new jsaction.EventContract;
   e.addContainer(container);
-  e.addEvent('transitionEnd', 'webkitTransitionEnd');
+  // A better examples is e.addEvent('animationend', 'webkitanimationend');
+  // but IE8 doesn't like that, so we don't use it for this test.
+  e.addEvent('clickAlias', 'click');
   e.dispatchTo(dispatchCallback);
 
   // Replay a fake event to trigger a DOM event on the target element.
   jsaction.replayEvent({
     targetElement: target,
-    event: jsaction.createEvent({type: 'webkitTransitionEnd'})
+    event: jsaction.createEvent({type: 'click'})
   });
-  assertEquals('transitionIsOver', eventInfo.action);
+  assertEquals('clicked', eventInfo.action);
 
   mockControl_.$verifyAll();
 }
