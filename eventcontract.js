@@ -302,7 +302,7 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
    * @param {!Event} e Event.
    * @this {!Element}
    */
-  return function(e) {
+  var handler = function(e) {
     var container = this;
     // Store eventType's value in a local variable so that multiple calls do not
     // modify the shared eventType variable.
@@ -370,6 +370,7 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
       eventContract.queue_.push(eventInfo);
     }
   };
+  return handler;
 };
 
 
