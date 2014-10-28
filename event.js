@@ -271,13 +271,25 @@ jsaction.event.preventDefault = function(e) {
 
 
 /**
- * Gets the target of the event.  In IE8 and older the 'target' property
- * is not support and the 'srcElement' property has to be used instead.
+ * Gets the target Element of the event. In IE8 and older the 'target' property
+ * is not supported and the 'srcElement' property has to be used instead. In
+ * Firefox, a text node may appear as the target of the event, in which case
+ * we return the parent element of the text node.
  * @param {!Event} e The event to get the target of.
  * @return {!Element} The target element.
  */
 jsaction.event.getTarget = function(e) {
-  return /** @type {!Element} */ (e.target || e.srcElement);
+  // In IE8 and older the 'target' property is not supported and the
+  // 'srcElement' property has to be used instead.
+  var el = e.target || e.srcElement;
+
+  // In Firefox, the event may have a text node as its target. We always
+  // want the parent Element the text node belongs to, however.
+  if (!el.getAttribute && el.parentNode) {
+    el = el.parentNode;
+  }
+
+  return /** @type {!Element} */ (el);
 };
 
 
