@@ -231,9 +231,20 @@ jsaction.EventContract.defaultEventType_ = jsaction.EventType.CLICK;
 
 
 /**
- * An element that received a touchstart event that we might want to translate
- * into a click event if a touchend event arrives.
- * @private {Element}
+ * Information about an element that received a touchstart event
+ * that we might want to translate into a click event once a touchend
+ * event arrives.
+ *
+ * - node is the target element of the event.
+ * - x and y are clientX and clientY of the event, respectively.
+ *
+ * The fields of this Object are unquoted.
+ *
+ * This object is reset when either touchend arrives within a short period of
+ * time or when "fast click" is canceled due to touchmove or expiration. See
+ * "resetFastClickNode_" method for more detail.
+ *
+ * @private {?{node: !Element, x: number, y: number}}
  */
 jsaction.EventContract.fastClickNode_;
 
@@ -460,7 +471,8 @@ jsaction.EventContract.createEventInfo_ = function(eventType, e, container) {
       actionInfo = jsaction.EventContract.getAction_(
           element, eventType, e, container);
       eventInfo = jsaction.EventContract.createEventInfoInternal_(
-          actionInfo.eventType, e, target, actionInfo.action || '', element,
+          actionInfo.eventType, actionInfo.event || e, target,
+          actionInfo.action || '', element,
           eventInfo['timeStamp']);
 
       // TODO(user): If we can get rid of the break on actionInfo.ignore
@@ -485,7 +497,8 @@ jsaction.EventContract.createEventInfo_ = function(eventType, e, container) {
       actionInfo = jsaction.EventContract.getAction_(
           element, eventType, e, container);
       eventInfo = jsaction.EventContract.createEventInfoInternal_(
-          actionInfo.eventType, e, target, actionInfo.action || '', element,
+          actionInfo.eventType, actionInfo.event || e, target,
+          actionInfo.action || '', element,
           eventInfo['timeStamp']);
 
       // Stop walking the DOM prematurely if we will ignore this event.  This is
@@ -668,22 +681,25 @@ jsaction.EventContract.getAction_ = function(node, eventType, event,
     }
   }
 
+  var overrideEvent = null;
   if (jsaction.EventContract.FAST_CLICK_SUPPORT &&
       // Don't want fast click behavior? Just bind clickonly instead.
       actionMap[jsaction.EventType.CLICK]) {
-    var fastType = jsaction.EventContract.getFastClickEventType_(node,
-        eventType, event, actionMap);
-    if (!fastType) {
+    var fastEvent = jsaction.EventContract.getFastClickEvent_(node,
+        event, actionMap);
+    if (!fastEvent) {
       // Null means to stop looking for further events, as the logic event
       // has already been handled or the event started a sequence that may
       // eventually lead to a logic click event.
       return {
         eventType: eventType,
         action: '',
+        event: null,
         ignore: true
       };
-    } else {
-      eventType = fastType;
+    } else if (fastEvent != event) {
+      overrideEvent = fastEvent;
+      eventType = fastEvent.type;
     }
   }
 
@@ -694,6 +710,7 @@ jsaction.EventContract.getAction_ = function(node, eventType, event,
   return {
     eventType: eventType,
     action: actionName,
+    event: overrideEvent,
     ignore: false
   };
 };
@@ -742,35 +759,45 @@ jsaction.EventContract.getQualifiedName_ = function(name, start, container) {
 
 /**
  * Converts a sequence of touchstart and touchend events into a click event
- * and will then ignore a subsequent click event (within 400ms).
+ * and ignores a subsequent click event (within 400ms).
+ *
+ * This method returns the original or a synthesized event instance, or null if
+ * the event should be ignored. The original event indicates that the original
+ * event should proceed as planned. If the event should be ignored (e.g. to
+ * issue a new event later), the returned value is null. However, if the
+ * "fast click" event is determined, a newly synthesized event instance is
+ * returned. The "click" event has to be synthesized to imitate an actual
+ * "click" event based on "touchend". This includes filling in type, target,
+ * clientX/Y, etc, which are expected from a "click" event. The original Event
+ * instance cannot simply be modified, because the DOM Event Spec defines Event
+ * properties to be immutable, and some browsers (specifically Safari in iOS/8)
+ * enforce this.
+ *
  * @param {!Element} node The current node with a jsaction annotation.
- * @param {string} eventType
  * @param {!Event} event The current browser event.
  * @param {!Object.<string, string>} actionMap
- * @return {?string} The mapped event type or null if the event should be
- *     ignored.
+ * @return {Event}
  * @private
  */
-jsaction.EventContract.getFastClickEventType_ = function(node, eventType, event,
-    actionMap) {
+jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
   // TODO(user): Disable fast click emulation for browsers that don't need
   // it (Currently Chrome 32 and IE10 with layer.style.msTouchAction == 'none').
   var fastClickNode = jsaction.EventContract.fastClickNode_;
   // A click event is being emitted onto what was previously the target of
   // a fast click: Ignore this click.
-  if (eventType == jsaction.EventType.CLICK) {
+  if (event.type == jsaction.EventType.CLICK) {
     for (var i = 0; i < jsaction.EventContract.fastClickedNodes_.length; ++i) {
       if (jsaction.EventContract.fastClickedNodes_[i] == node) {
         jsaction.EventContract.fastClickedNodes_.splice(i, 1);
         return null;
       }
     }
-    return eventType;
+    return event;
   }
 
   if (event.targetTouches && event.targetTouches.length > 1) {
     // Click emulation does not make sense for multi touch.
-    return eventType;
+    return event;
   }
   var target = event.target;
   if (target) {
@@ -779,41 +806,54 @@ jsaction.EventContract.getFastClickEventType_ = function(node, eventType, event,
     var type = (target.type || target.tagName || '').toUpperCase();
     if (type == 'TEXTAREA' || type == 'TEXT' || type == 'PASSWORD' ||
         type == 'SEARCH') {
-      return eventType;
+      return event;
     }
   }
 
   // When a touchstart is fired, remember the action node in a global variable.
   // When a subsequent touchend arrives, it'll be interpreted as a click.
-  if (eventType == jsaction.EventType.TOUCHSTART &&
+  if (event.type == jsaction.EventType.TOUCHSTART &&
       // If the jsaction binds touchstart or touchend explicitly, we don't do
       // anything special with it
       !actionMap[jsaction.EventType.TOUCHSTART] &&
       !actionMap[jsaction.EventType.TOUCHEND]) {
-    jsaction.EventContract.fastClickNode_ = node;
+    var touch = jsaction.event.getTouchData(event);
+    jsaction.EventContract.fastClickNode_ = {
+            node: node,
+            x: touch ? touch.clientX : 0,
+            y: touch ? touch.clientY : 0};
     clearTimeout(jsaction.EventContract.fastClickTimeout_);
 
     // If touchend doesn't arrive within a reasonable amount of time, this is
-    // a long click and not a click, so we throw the state away and will ignore
+    // a long click and not a click, so we throw away and will ignore
     // a later touchend.
     jsaction.EventContract.fastClickTimeout_ = setTimeout(
         jsaction.EventContract.resetFastClickNode_, 400);
     return null;
   }
+
   // If a touchend was fired on what had a previous touchstart, count the event
   // as a click.
-  else if (eventType == jsaction.EventType.TOUCHEND &&
-      fastClickNode == node) {
-    jsaction.EventContract.patchTouchEventToBeClickLike_(event);
-    eventType = jsaction.EventType.CLICK;
+  else if (event.type == jsaction.EventType.TOUCHEND &&
+              fastClickNode && fastClickNode.node == node) {
+    var newEvent = /** @type {!Event} */ (jsaction.event.
+            recreateTouchEventAsClick(event));
     jsaction.EventContract.fastClickedNodes_.push(node);
+    return newEvent;
   }
+
   // Touchmove is fired when the user scrolls. In this case a previous
   // touchstart is ignored.
-  else if (eventType == jsaction.EventType.TOUCHMOVE && fastClickNode) {
-    jsaction.EventContract.resetFastClickNode_();
+  else if (event.type == jsaction.EventType.TOUCHMOVE && fastClickNode) {
+    // Ignore jitters: iOS often sends +/- 2px touchmove events. Thus we will
+    // ignore any moves with the Manhattan distance 4 pixels or less.
+    var touch = jsaction.event.getTouchData(event);
+    if (touch && (Math.abs(touch.clientX - fastClickNode.x) +
+            Math.abs(touch.clientY - fastClickNode.y)) > 4) {
+      jsaction.EventContract.resetFastClickNode_();
+    }
   }
-  return eventType;
+  return event;
 };
 
 
@@ -824,31 +864,6 @@ jsaction.EventContract.getFastClickEventType_ = function(node, eventType, event,
  */
 jsaction.EventContract.resetFastClickNode_ = function() {
   jsaction.EventContract.fastClickNode_ = null;
-};
-
-
-/**
- * To be called after it was decided that a click event should be synthesized
- * from a touchend event.
- * Takes a touch event, adds common fields found in mouse events and changes the
- * type to 'click', so that the resulting event looks more like a real click
- * event.
- * @param {!Event} event A touch event.
- * @private
- */
-jsaction.EventContract.patchTouchEventToBeClickLike_ = function(event) {
-  event['originalEventType'] = event.type;
-  event.type = jsaction.EventType.CLICK;
-  var touch = (event.changedTouches && event.changedTouches[0]) ||
-      (event.touches && event.touches[0]);
-  if (touch) {
-    event.clientX = touch.clientX;
-    event.clientY = touch.clientY;
-    event.screenX = touch.screenX;
-    event.screenY = touch.screenY;
-    event.pageX = touch.pageX;
-    event.pageY = touch.pageY;
-  }
 };
 
 

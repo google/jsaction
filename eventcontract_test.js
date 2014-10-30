@@ -870,12 +870,13 @@ function testEventContractMaybeCreateEventInfoFastClick() {
   // Touch somewhere else, but that sequence will never terminate.
   assertNull(sendEvent(
       jsaction.EventType.TOUCHSTART, otherElement, container).actionElement);
-  assertEquals(otherElement.parentNode, jsaction.EventContract.fastClickNode_);
+  assertEquals(otherElement.parentNode,
+      jsaction.EventContract.fastClickNode_.node);
 
   // Touch an element.
   assertNull(sendEvent(
       jsaction.EventType.TOUCHSTART, element, container).actionElement);
-  assertEquals(actionNode, jsaction.EventContract.fastClickNode_);
+  assertEquals(actionNode, jsaction.EventContract.fastClickNode_.node);
   var eventInfo = sendEvent(jsaction.EventType.TOUCHEND, element, container);
   assertEquals(jsaction.EventType.CLICK, eventInfo.eventType);
   assertEquals(jsaction.EventType.CLICK, eventInfo.event.type);
@@ -899,13 +900,14 @@ function testEventContractMaybeCreateEventInfoFastClick_interleaved() {
 
   assertNull(sendEvent(
       jsaction.EventType.TOUCHSTART, element, container).actionElement);
-  assertEquals(element.parentNode, jsaction.EventContract.fastClickNode_);
+  assertEquals(element.parentNode, jsaction.EventContract.fastClickNode_.node);
   assertNotNull(sendEvent(
       jsaction.EventType.TOUCHEND, element, container).actionElement);
 
   assertNull(sendEvent(
       jsaction.EventType.TOUCHSTART, otherElement, container).actionElement);
-  assertEquals(otherElement.parentNode, jsaction.EventContract.fastClickNode_);
+  assertEquals(otherElement.parentNode,
+      jsaction.EventContract.fastClickNode_.node);
   assertNotNull(sendEvent(
       jsaction.EventType.TOUCHEND, otherElement, container).actionElement);
 
@@ -931,13 +933,49 @@ function testEventContractMaybeCreateEventInfoFastClick_needsClickEvent() {
   assertNull(jsaction.EventContract.fastClickNode_);
 }
 
+function testEventContractMaybeCreateEventInfoFastClick_touchmoveTolerates() {
+  var container = elem('container12');
+  var element = elem('action12-1');
+
+  // touchstart
+  var event = new goog.testing.events.Event('touchstart', element);
+  event.touches = [{
+    clientX: 100,
+    clientY: 100
+  }, {}];
+  jsaction.EventContract.createEventInfo_(event.type, event, container);
+  assertEquals(element.parentNode, jsaction.EventContract.fastClickNode_.node);
+
+  // touchmove: less than 4px Manhattan move is tolerated
+  var event = new goog.testing.events.Event('touchmove', element);
+  event.touches = [{
+    clientX: 102,
+    clientY: 102
+  }, {}];
+  jsaction.EventContract.createEventInfo_(event.type, event, container);
+  assertNotNull(jsaction.EventContract.fastClickNode_);
+}
+
 function testEventContractMaybeCreateEventInfoFastClick_touchmoveCancels() {
   var container = elem('container12');
   var element = elem('action12-1');
-  sendEvent(jsaction.EventType.TOUCHSTART, element, container);
-  assertEquals(element.parentNode, jsaction.EventContract.fastClickNode_);
-  assertNull(sendEvent(
-      jsaction.EventType.TOUCHMOVE, element, container).actionElement);
+
+  // touchstart
+  var event = new goog.testing.events.Event('touchstart', element);
+  event.touches = [{
+    clientX: 100,
+    clientY: 100
+  }, {}];
+  jsaction.EventContract.createEventInfo_(event.type, event, container);
+  assertEquals(element.parentNode, jsaction.EventContract.fastClickNode_.node);
+
+  // touchmove: over 4px Manhattan move cancels fast click
+  var event = new goog.testing.events.Event('touchmove', element);
+  event.touches = [{
+    clientX: 103,
+    clientY: 102
+  }, {}];
+  jsaction.EventContract.createEventInfo_(event.type, event, container);
   assertNull(jsaction.EventContract.fastClickNode_);
 }
 
@@ -945,7 +983,7 @@ function testEventContractMaybeCreateEventInfoFastClick_timesout() {
   var container = elem('container12');
   var element = elem('action12-1');
   sendEvent(jsaction.EventType.TOUCHSTART, element, container);
-  assertEquals(element.parentNode, jsaction.EventContract.fastClickNode_);
+  assertEquals(element.parentNode, jsaction.EventContract.fastClickNode_.node);
   mockClock_.tick(400);
   assertNull(jsaction.EventContract.fastClickNode_);
   assertNull(sendEvent(
@@ -965,55 +1003,6 @@ function testEventContractMaybeCreateEventInfoFastClick_specialElements() {
   assertNotNull(
       sendEvent(jsaction.EventType.TOUCHSTART, elem('password12'), container));
   assertNull(jsaction.EventContract.fastClickNode_);
-}
-
-function testPatchTouchEventToBeClickLike() {
-  var event = new goog.testing.events.Event('touchend', elem('text12'));
-  event.touches = [{
-    clientX: 1,
-    clientY: 2,
-    screenX: 3,
-    screenY: 4,
-    pageX: 5,
-    pageY: 6
-  }, {}];
-  jsaction.EventContract.patchTouchEventToBeClickLike_(event);
-  assertEquals('click', event.type);
-  assertEquals(1, event.clientX);
-  assertEquals(2, event.clientY);
-  assertEquals(3, event.screenX);
-  assertEquals(4, event.screenY);
-  assertEquals(5, event.pageX);
-  assertEquals(6, event.pageY);
-
-  event = new goog.testing.events.Event('touchend', elem('text12'));
-  event.changedTouches = [{
-    clientX: 'other',
-    clientY: 2,
-    screenX: 3,
-    screenY: 4,
-    pageX: 5,
-    pageY: 6
-  }];
-  assertEquals('touchend', event.type);
-  jsaction.EventContract.patchTouchEventToBeClickLike_(event);
-  assertEquals('click', event.type);
-  assertEquals('other', event.clientX);
-  assertEquals(2, event.clientY);
-  assertEquals(3, event.screenX);
-  assertEquals(4, event.screenY);
-  assertEquals(5, event.pageX);
-  assertEquals(6, event.pageY);
-  assertEquals('touchend', event.originalEventType);
-
-  event = new goog.testing.events.Event('touchend', elem('text12'));
-  event.changedTouches = [];
-  event.touches = [{
-    clientX: 1
-  }, {}];
-  jsaction.EventContract.patchTouchEventToBeClickLike_(event);
-  assertEquals('click', event.type);
-  assertEquals(1, event.clientX);
 }
 
 function sendEvent(type, target, container) {

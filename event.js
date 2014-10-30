@@ -64,9 +64,13 @@ jsaction.EventInfo;
  * jsaction attribute.  This allows us to execute global event handlers with the
  * appropriate event type (including a11y clicks and custom events).
  *
+ * ActionInfo can override the original event with the one provided here (field
+ * "event"). If it's not provided, the original event is used.
+ *
  * @typedef {{
  *   eventType: string,
  *   action: string,
+ *   event: (Event|undefined|null),
  *   ignore: boolean
  * }}
  */
@@ -96,8 +100,8 @@ jsaction.EventHandlerInfo;
 /**
  * A function used to initialze containers in
  * EventContract.addContainer(). Such a function is passed an HTML DOM
- * Element and registers a specific event handler onm it. The
- * EventHandlerInfo that is needed to eventually deregister the evetn
+ * Element and registers a specific event handler on it. The
+ * EventHandlerInfo that is needed to eventually deregister the event
  * handler is returned by that function.
  * @typedef {function(!Element):jsaction.EventHandlerInfo}
  */
@@ -506,6 +510,65 @@ jsaction.event.createMouseSpecialEvent = function(e, target) {
   copy['target'] = copy['srcElement'] = target;
   copy['bubbles'] = false;
   return copy;
+};
+
+
+/**
+ * Returns touch data extracted from the touch event: clientX, clientY, screenX
+ * and screenY. If the event has no touch information at all, the returned
+ * value is null.
+ *
+ * The fields of this Object are unquoted.
+ *
+ * @param {!Event} event A touch event.
+ * @return {?{clientX: number, clientY: number, screenX: number,
+ *     screenY: number}}
+ */
+jsaction.event.getTouchData = function(event) {
+  var touch = (event.changedTouches && event.changedTouches[0]) ||
+      (event.touches && event.touches[0]);
+  if (!touch) {
+    return null;
+  }
+  return {
+    clientX: touch['clientX'],
+    clientY: touch['clientY'],
+    screenX: touch['screenX'],
+    screenY: touch['screenY']
+  };
+};
+
+
+/**
+ * Creates a new EventLike object for a "click" event that's derived from the
+ * original corresponding "touchend" event for a fast-click implementation.
+ *
+ * It takes a touch event, adds common fields found in a click event and
+ * changes the type to 'click', so that the resulting event looks more like
+ * a real click event.
+ *
+ * @param {!Event} event A touch event.
+ * @return {!Object} A modified event-like object copied from the event object
+ *     passed into this function.
+ */
+jsaction.event.recreateTouchEventAsClick = function(event) {
+  var click = {};
+  click['originalEventType'] = event.type;
+  click['type'] = jsaction.EventType.CLICK;
+  for (var p in event) {
+    var v = event[p];
+    if (p != 'type' && p != 'srcElement' && !goog.isFunction(v)) {
+      click[p] = v;
+    }
+  }
+  var touch = jsaction.event.getTouchData(event);
+  if (touch) {
+    click['clientX'] = touch.clientX;
+    click['clientY'] = touch.clientY;
+    click['screenX'] = touch.screenX;
+    click['screenY'] = touch.screenY;
+  }
+  return click;
 };
 
 

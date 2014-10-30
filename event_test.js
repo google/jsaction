@@ -381,7 +381,84 @@ function testCreateMouseSpecialEventMouseleave() {
   assertEquals(jsaction.EventType.MOUSELEAVE, copiedEvent['type']);
   assertEquals(div, copiedEvent['target']);
   assertEquals(false, copiedEvent['bubbles']);
+}
 
+function testRecreateTouchEventAsClick() {
+  var div = document.createElement('div');
+  var origEvent = new goog.testing.events.Event('touchend', div);
+  origEvent.touches = [{
+    clientX: 1,
+    clientY: 2,
+    screenX: 3,
+    screenY: 4,
+    pageX: 5,
+    pageY: 6
+  }, {}];
+  var event = jsaction.event.recreateTouchEventAsClick(origEvent);
+  assertEquals('click', event.type);
+  assertEquals(1, event.clientX);
+  assertEquals(2, event.clientY);
+  assertEquals(3, event.screenX);
+  assertEquals(4, event.screenY);
+
+  origEvent = new goog.testing.events.Event('touchend', div);
+  origEvent.changedTouches = [{
+    clientX: 'other',
+    clientY: 2,
+    screenX: 3,
+    screenY: 4,
+    pageX: 5,
+    pageY: 6
+  }];
+  assertEquals('touchend', origEvent.type);
+  event = jsaction.event.recreateTouchEventAsClick(origEvent);
+  assertEquals('click', event.type);
+  assertEquals('other', event.clientX);
+  assertEquals(2, event.clientY);
+  assertEquals(3, event.screenX);
+  assertEquals(4, event.screenY);
+  assertEquals('touchend', event.originalEventType);
+
+  origEvent = new goog.testing.events.Event('touchend', div);
+  origEvent.changedTouches = [];
+  origEvent.touches = [{
+    clientX: 1
+  }, {}];
+  event = jsaction.event.recreateTouchEventAsClick(origEvent);
+  assertEquals('click', event.type);
+  assertEquals(1, event.clientX);
+}
+
+function testRecreateTouchEventAsClick_hasTouchData() {
+  var div = document.createElement('div');
+  var event = new goog.testing.events.Event(jsaction.EventType.TOUCHEND, div);
+  event['touches'] = [{
+    'clientX': 101,
+    'clientY': 102,
+    'screenX': 201,
+    'screenY': 202
+  }];
+  var copiedEvent = jsaction.event.recreateTouchEventAsClick(event);
+  assertEquals(jsaction.EventType.CLICK, copiedEvent['type']);
+  assertEquals(jsaction.EventType.TOUCHEND, copiedEvent['originalEventType']);
+  assertEquals(div, copiedEvent['target']);
+  assertEquals(101, copiedEvent['clientX']);
+  assertEquals(102, copiedEvent['clientY']);
+  assertEquals(201, copiedEvent['screenX']);
+  assertEquals(202, copiedEvent['screenY']);
+}
+
+function testRecreateTouchEventAsClick_noTouchData() {
+  var div = document.createElement('div');
+  var event = new goog.testing.events.Event(jsaction.EventType.TOUCHEND, div);
+  var copiedEvent = jsaction.event.recreateTouchEventAsClick(event);
+  assertEquals(jsaction.EventType.CLICK, copiedEvent['type']);
+  assertEquals(jsaction.EventType.TOUCHEND, copiedEvent['originalEventType']);
+  assertEquals(div, copiedEvent['target']);
+  assertUndefined(copiedEvent['clientX']);
+  assertUndefined(copiedEvent['clientY']);
+  assertUndefined(copiedEvent['screenX']);
+  assertUndefined(copiedEvent['screenY']);
 }
 
 function testMaybeCopyEvent() {
