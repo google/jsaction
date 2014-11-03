@@ -11,16 +11,24 @@ goog.require('jsaction.EventType');
  * Create a custom event with the specified data.
  * @param {string} type The type of the action, e.g. 'submit'.
  * @param {!Object.<string, *>=} opt_data An optional data payload.
+ * @param {!Event=} opt_triggeringEvent The event that triggers this custom
+ *     event. This can be accessed from the custom event's action flow like
+ *     so: actionFlow.event().detail.triggeringEvent.
  * @return {!Event} The new custom event.
  */
-jsaction.createCustomEvent = function(type, opt_data) {
+jsaction.createCustomEvent = function(type, opt_data, opt_triggeringEvent) {
   var event;
 
   // We use '_type' for the event contract, which lives in a separate
   // compilation unit, but also include the renamable keys so that event
   // consumers can access the data directly, e.g. detail.type instead of
   // detail['type'].
-  var detail = {'_type': type, type: type, data: opt_data};
+  var detail = {
+    '_type': type,
+    type: type,
+    data: opt_data,
+    triggeringEvent: opt_triggeringEvent
+  };
   try {
     // We don't use the CustomEvent constructor directly since it isn't
     // supported in IE 9 or 10 and initCustomEvent below works just fine.
@@ -47,8 +55,11 @@ jsaction.createCustomEvent = function(type, opt_data) {
  * @param {!Element} target The target element.
  * @param {string} type The type of the action, e.g. 'submit'.
  * @param {!Object.<string, *>=} opt_data An optional data payload.
+ * @param {!Event=} opt_triggeringEvent An optional data for the Event triggered
+ *     this custom event.
  */
-jsaction.fireCustomEvent = function(target, type, opt_data) {
-  var event = jsaction.createCustomEvent(type, opt_data);
+jsaction.fireCustomEvent = function(
+    target, type, opt_data, opt_triggeringEvent) {
+  var event = jsaction.createCustomEvent(type, opt_data, opt_triggeringEvent);
   target.dispatchEvent(event);
 };
