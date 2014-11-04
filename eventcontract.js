@@ -836,6 +836,7 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
   // as a click.
   else if (event.type == jsaction.EventType.TOUCHEND &&
               fastClickNode && fastClickNode.node == node) {
+    event.preventDefault();
     var newEvent = /** @type {!Event} */ (jsaction.event.
             recreateTouchEventAsClick(event));
     jsaction.EventContract.fastClickedNodes_.push(node);
