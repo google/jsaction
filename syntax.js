@@ -235,6 +235,13 @@ jsaction.EventType = {
   KEYPRESS: 'keypress',
 
   /**
+   * The keyup event. In addEvent() and non-click jsaction it represents the
+   * regular DOM keyup event. It represents click actions in non-Gecko
+   * browsers.
+   */
+  KEYUP: 'keyup',
+
+  /**
    * The mouseover event. Can either be used directly or used implicitly to
    * capture mouseenter events. In addEvent(), it represents a regular DOM
    * mouseover event.
@@ -295,6 +302,12 @@ jsaction.EventType = {
    * touch support.
    */
   TOUCHMOVE: 'touchmove',
+
+
+  /**
+   * The input event.
+   */
+  INPUT: 'input',
 
 
   /**
