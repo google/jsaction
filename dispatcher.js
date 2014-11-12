@@ -171,28 +171,6 @@ jsaction.Dispatcher.prototype.dispatch = function(
   }
 
   var action = eventInfo['action'];
-
-  // We allow dispatching directly to controller methods defined in IDL. We
-  // support this here because the jsaction event type, which we need to
-  // dispatch to the right handler, is not available in ActionFlow.
-  // The alternative would be to extend the ActionFlow interface and to
-  // register a corresponding handler.
-  if (action == '__idl_action') {
-    var idlMaps = eventInfo['actionElement']['__idl_map'];
-    if (idlMaps) {
-      var functionKey = 'action:' + eventInfo['eventType'];
-      for (var templateKey in idlMaps) {
-        var idlMap = idlMaps[templateKey];
-        var idlActionFunction = idlMap[functionKey];
-        if (idlActionFunction) {
-          idlActionFunction.call(
-              eventInfo['actionElement'], eventInfo['event']);
-        }
-      }
-    }
-    return;
-  }
-
   var namespace = jsaction.Dispatcher.getNamespace_(action);
   var namespaceAction = this.namespaceActions_[namespace];
 
@@ -324,7 +302,7 @@ jsaction.Dispatcher.getNamespace_ = function(action) {
 jsaction.Dispatcher.createActionFlow_ = function(eventInfo) {
   return new jsaction.ActionFlow(
       eventInfo['action'], eventInfo['actionElement'], eventInfo['event'],
-      eventInfo['timeStamp']);
+      eventInfo['timeStamp'], eventInfo['eventType']);
 };
 
 

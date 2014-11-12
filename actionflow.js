@@ -36,10 +36,12 @@ goog.require('jsaction.event');
  * @param {Event} opt_event The event.
  * @param {number} opt_startTime The time at which the flow started,
  *     defaulting to the current time.
+ * @param {?string=} opt_eventType The jsaction event type, e.g. "click".
  * @constructor
  * @extends {goog.events.EventTarget}
  */
-jsaction.ActionFlow = function(flowType, opt_node, opt_event, opt_startTime) {
+jsaction.ActionFlow = function(flowType, opt_node, opt_event, opt_startTime,
+    opt_eventType) {
   jsaction.ActionFlow.base(this, 'constructor');
 
   /**
@@ -75,6 +77,13 @@ jsaction.ActionFlow = function(flowType, opt_node, opt_event, opt_startTime) {
    * @private
    */
   this.event_ = opt_event ? jsaction.event.maybeCopyEvent(opt_event) : null;
+
+  /**
+   * The jsaction event type.
+   * @type {?string}
+   * @private
+   */
+  this.eventType_ = opt_eventType || null;
 
   /**
    * The collection of timers, as an array of pairs of [name,value].
@@ -1309,6 +1318,17 @@ jsaction.ActionFlow.prototype.node = function() {
  */
 jsaction.ActionFlow.prototype.event = function() {
   return this.event_;
+};
+
+
+/**
+ * Returns the jsaction event type as specified in the jsaction attribute,
+ * which may be different from the type obtained from the event.
+ *
+ * @return {?string} Event type.
+ */
+jsaction.ActionFlow.prototype.eventType = function() {
+  return this.eventType_;
 };
 
 
