@@ -366,7 +366,8 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
     // a jsaction attached. For that reason, we need to check the actionElement
     // rather than the targetElement.
     if (eventInfo['actionElement'].tagName == goog.dom.TagName.A &&
-        eventInfo['eventType'] == jsaction.EventType.CLICK) {
+        (eventInfo['eventType'] == jsaction.EventType.CLICK ||
+            eventInfo['eventType'] == jsaction.EventType.CLICKMOD)) {
       jsaction.event.preventDefault(e);
     }
 

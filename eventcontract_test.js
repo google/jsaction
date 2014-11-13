@@ -385,7 +385,7 @@ function testFindActionAliased() {
 }
 
 
-function testPreventDefaultOnAnchorChild() {
+function testPreventDefaultForClickOnAnchorChild() {
   var container = elem('container6');
   var target = elem('inside_anchor6');
 
@@ -413,6 +413,39 @@ function testPreventDefaultOnAnchorChild() {
     event: jsaction.createEvent({type: 'click'})
   });
   assertEquals('myaction', eventInfo.action);
+
+  mockControl_.$verifyAll();
+}
+
+
+function testPreventDefaultForModClickOnAnchorChild() {
+  var container = elem('container6');
+  var target = elem('inside_anchor6');
+
+  var mockPreventDefault = mockControl_.createMethodMock(
+      jsaction.event, 'preventDefault');
+  // preventDefault should be called even if the target is not an anchor,
+  // because the detected action is attached to an anchor which is a parent of
+  // the target.
+  mockPreventDefault(new goog.testing.mockmatchers.IgnoreArgument()).
+      $atLeastOnce();
+  mockControl_.$replayAll();
+
+  var eventInfo = null;
+  var dispatchCallback = function(ei) {
+    eventInfo = ei;
+  };
+
+  var e = new jsaction.EventContract;
+  e.addContainer(container);
+  e.addEvent(jsaction.EventType.CLICK);
+  e.dispatchTo(dispatchCallback);
+
+  // Replay a fake modified mouse button click event to trigger a DOM event on
+  // the target element.
+  var event = jsaction.createEvent({type: 'click', shiftKey: true});
+  jsaction.triggerEvent(target, event);
+  assertEquals('myclickmodaction', eventInfo.action);
 
   mockControl_.$verifyAll();
 }
