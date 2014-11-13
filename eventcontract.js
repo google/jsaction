@@ -927,9 +927,10 @@ jsaction.EventContract.containerHandlerInstaller_ = function(name, handler) {
    * @return {jsaction.EventHandlerInfo} The event name and the
    *    handler installed by the function.
    */
-  return function(div) {
+  var installer = function(div) {
     return jsaction.event.addEventListener(div, name, handler);
   };
+  return installer;
 };
 
 
