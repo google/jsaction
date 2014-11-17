@@ -5,7 +5,7 @@
 goog.provide('jsaction');
 
 goog.require('jsaction.EventType');
-goog.require('jsaction.dom');
+
 
 /**
  * Create a custom event with the specified data.
@@ -62,23 +62,4 @@ jsaction.fireCustomEvent = function(
     target, type, opt_data, opt_triggeringEvent) {
   var event = jsaction.createCustomEvent(type, opt_data, opt_triggeringEvent);
   target.dispatchEvent(event);
-};
-
-
-/**
- * Fires a custom event to all children that listen for the specified jsaction.
- * Supported whereever fireCustomEvent is supported.
- *
- * @param {!Element} target The target element.
- * @param {string} type The type of the action, e.g. 'submit'.
- * @param {!Object.<string, *>=} opt_data An optional data payload.
-*/
-jsaction.broadcastCustomEvent = function(target, type, opt_data) {
-  var matched = target.querySelectorAll("[jsaction*='" + type + "']");
-  for (var i = 0; i < matched.length; ++i) {
-    var match = matched[i];
-    if (!jsaction.dom.hasAncestorInNodeList(match, matched)) {
-      jsaction.fireCustomEvent(match, type, opt_data);
-    }
-  }
 };

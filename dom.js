@@ -40,21 +40,3 @@ jsaction.dom.contains = function(node, otherNode) {
   }
   return otherNode == node;
 };
-
-/**
- * Helper method for broadcastCustomEvent. Returns true if any member of
- * the set is an ancestor of element.
- *
- * @param {!Element} element
- * @param {!NodeList} nodeList
- * @return {boolean}
-*/
-jsaction.dom.hasAncestorInNodeList = function(element, nodeList) {
-  for (var i = 0; i < nodeList.length; ++i) {
-    var member = nodeList[i];
-    if (member != element && jsaction.dom.contains(member, element)) {
-      return true;
-    }
-  }
-  return false;
-};
