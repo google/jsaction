@@ -223,6 +223,22 @@ function testIsActionKeyEventSpace() {
 }
 
 
+function testIsActionKeyRealCheckBox() {
+  var checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.SPACE, checkbox));
+  assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, checkbox));
+}
+
+
+function testIsActionKeyFakeCheckBox() {
+  var checkbox = document.createElement('div');
+  checkbox.setAttribute('role', 'checkbox');
+  assertTrue(baseIsActionKeyEvent(jsaction.KeyCodes.SPACE, checkbox));
+  assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, checkbox));
+}
+
+
 function testIsActionKeyEventMacEnter() {
   if (!jsaction.event.isWebKit_) {
     return;

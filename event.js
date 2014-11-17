@@ -403,12 +403,14 @@ jsaction.event.shouldCallPreventDefaultOnNativeHtmlControl = function(e) {
   var elementName = (el.getAttribute('role') || el.tagName).toUpperCase();
   var type = el.type;
   return elementName == 'BUTTON' || !!type &&
-      !(type.toUpperCase() in jsaction.event.PROCESS_SPACE);
+      !(type.toUpperCase() in jsaction.event.PROCESS_SPACE_);
 };
 
 
 /**
- * Determines and returns whether the given event acts like a regular DOM click.
+ * Determines and returns whether the given event acts like a regular DOM click,
+ * and should be handled instead of the click.  If this returns true, the caller
+ * will call preventDefault() to prevent a possible duplicate event.
  * This is represented by a keypress (keydown on Gecko browsers) on Enter or
  * Space key.
  * @param {!Event} e The event.
@@ -419,19 +421,38 @@ jsaction.event.isActionKeyEvent = function(e) {
   if (jsaction.event.isWebKit_ && key == jsaction.KeyCodes.MAC_ENTER) {
     key = jsaction.KeyCodes.ENTER;
   }
+  if (key != jsaction.KeyCodes.ENTER && key != jsaction.KeyCodes.SPACE) {
+    return false;
+  }
   var el = jsaction.event.getTarget(e);
-  var id = (el.getAttribute('role') || el.type || el.tagName).toUpperCase();
-  var kCodes = key == jsaction.KeyCodes.ENTER || key == jsaction.KeyCodes.SPACE;
-  var validTypeMods = e.type == jsaction.EventType.KEYDOWN &&
-      jsaction.event.isValidActionKeyTarget_(el) &&
-      !jsaction.event.hasModifierKey_(e);
-  var noType = el.tagName.toUpperCase() == 'INPUT' && !el.type;
-  var inMap = jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING[id] % key == 0;
-  var notInMap = !(id in jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING) &&
+  var type = (el.getAttribute('role') || el.type || el.tagName).toUpperCase();
+  if (e.type != jsaction.EventType.KEYDOWN ||
+      !jsaction.event.isValidActionKeyTarget_(el) ||
+      jsaction.event.hasModifierKey_(e)) {
+    return false;
+  }
+
+  // For <input type="checkbox">, we must only handle the browser's native click
+  // event, so that the browser can toggle the checkbox.
+  if (el.tagName.toUpperCase() == 'INPUT' &&
+      el.type && el.type.toUpperCase() in jsaction.event.PROCESS_SPACE_ &&
+      key == jsaction.KeyCodes.SPACE) {
+    return false;
+  }
+
+  // If we're handling a bubbled event from a parent element, don't be fooled by
+  // the child element which generated the event.
+  if (e.originalTarget && e.originalTarget != el) {
+    return true;
+  }
+
+  var hasType = el.tagName.toUpperCase() != 'INPUT' || el.type;
+  var isSpecificTriggerKey =
+      jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING_[type] % key == 0;
+  var isDefaultTriggerKey =
+      !(type in jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING_) &&
       key == jsaction.KeyCodes.ENTER;
-  // To prevent false negatives when bubbling
-  var origTar = !!e.originalTarget && e.originalTarget != el;
-  return validTypeMods && kCodes && ((inMap || notInMap) && !noType || origTar);
+  return (isSpecificTriggerKey || isDefaultTriggerKey) && !!hasType;
 };
 
 
@@ -620,9 +641,9 @@ jsaction.event.maybeCopyEvent = function(e) {
  * Mapping of HTML element identifiers (ARIA role, type, or tagName) to the
  * keys (enter and/or space) that should activate them. A value of zero means
  * that both should activate them.
- * @const {!Object.<string, number>}
+ * @private @const {!Object.<string, number>}
  */
-jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING = {
+jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING_ = {
   'A': jsaction.KeyCodes.ENTER,
   'BUTTON': 0,
   'CHECKBOX': jsaction.KeyCodes.SPACE,
@@ -647,10 +668,14 @@ jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING = {
 
 
 /**
- * HTML controls for which to not call preventDefault when space is pressed.
- * @const {!Object.<string, number>}
+ * HTML <input> types (not ARIA roles) which will auto-trigger a click event for
+ * the Space key, with side-effects. We will not call preventDefault if space is
+ * pressed, nor will we raise a11y click events.  For all other elements, we can
+ * suppress the default event (which has no desired side-effects) and handle the
+ * keydown ourselves.
+ * @private @const {!Object.<string, number>}
  */
-jsaction.event.PROCESS_SPACE = {
+jsaction.event.PROCESS_SPACE_ = {
   'CHECKBOX': 1,
   'OPTION': 1,
   'RADIO': 1
