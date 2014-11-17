@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<div id="no-matches">
+  <span id="no-matches-foo"></span>
+  <div id="no-matches-bar"></div>
+</div>
+
+<div id="matches">
+  <span id="matches-foo" jsaction="handleFoo;customEvent:myFooHandler"></span>
+  <div id="matches-bar"
+       jsaction="keydown:handleBar;customEvent:myBarHandler"></div>
+  <div id="matches2" jsaction="custom2:myQuxHandler"></div>
+</div>
+
+
+<div id="nested">
+  <span>
+    <span id="nested-foo" jsaction="handleFoo;customEvent:myFooHandler"></span>
+  </span>
+  <div id="nested-bar"
+       jsaction="keydown:handleBar;customEvent:myBarHandler">
+    <div jsaction="customEvent: myBarHandler"></div>
+  </div>
+  <div id="nested-qux" jsaction="customEvent:myQuxHandler">
+    <div>
+      <div jsaction="customEvent:myQuxHandler"></div>
+      <div>
+        <div id="nested2" jsaction="custom2:myQuxHandler"></div>
+      </div>
+    </div>
+  </div>
+</div>
