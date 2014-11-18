@@ -448,9 +448,9 @@ jsaction.event.isActionKeyEvent = function(e) {
 
   var hasType = el.tagName.toUpperCase() != 'INPUT' || el.type;
   var isSpecificTriggerKey =
-      jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING_[type] % key == 0;
+      jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING[type] % key == 0;
   var isDefaultTriggerKey =
-      !(type in jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING_) &&
+      !(type in jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING) &&
       key == jsaction.KeyCodes.ENTER;
   return (isSpecificTriggerKey || isDefaultTriggerKey) && !!hasType;
 };
@@ -641,9 +641,9 @@ jsaction.event.maybeCopyEvent = function(e) {
  * Mapping of HTML element identifiers (ARIA role, type, or tagName) to the
  * keys (enter and/or space) that should activate them. A value of zero means
  * that both should activate them.
- * @private @const {!Object.<string, number>}
+ * @const {!Object.<string, number>}
  */
-jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING_ = {
+jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING = {
   'A': jsaction.KeyCodes.ENTER,
   'BUTTON': 0,
   'CHECKBOX': jsaction.KeyCodes.SPACE,
