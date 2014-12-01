@@ -437,6 +437,19 @@ jsaction.Dispatcher.prototype.replay = function() {
 
 
 /**
+ * Replays queued events, if any. The replaying will happen in its own
+ * stack once the current flow cedes control. As opposed to the replay()
+ * method, the replay happens immediately.
+ */
+jsaction.Dispatcher.prototype.replayNow = function() {
+  if (!this.eventReplayer_ || goog.array.isEmpty(this.queue_)) {
+    return;
+  }
+  this.eventReplayer_(this.queue_, this);
+};
+
+
+/**
  * Replays queued events. The replaying will happen in its own stack once the
  * current flow cedes control. This is done to mimic browser event handling.
  * @private
