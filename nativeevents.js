@@ -156,12 +156,18 @@ jsaction.testing.nativeEvents.fireMouseMoveEvent = function(
  * @param {!EventTarget} target The target for the event.
  * @param {goog.events.BrowserEvent.MouseButton=} opt_button Mouse button;
  *     defaults to {@code goog.events.BrowserEvent.MouseButton.LEFT}.
+ * @param {boolean=} opt_modifierKey Create the event with the modifier key
+ *     registered as down.
  * @return {!Event} The created event.
  */
 jsaction.testing.nativeEvents.createMouseButtonEvent = function(
-    type, target, opt_button) {
+    type, target, opt_button, opt_modifierKey) {
   var e = new goog.testing.events.Event(type, target);
   e.button = opt_button || goog.events.BrowserEvent.MouseButton.LEFT;
+  if (opt_modifierKey) {
+    e.ctrlKey = true;
+    e.metaKey = true;
+  }
   return jsaction.createMouseEvent(e);
 };
 
