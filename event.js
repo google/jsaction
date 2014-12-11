@@ -446,6 +446,11 @@ jsaction.event.isActionKeyEvent = function(e) {
     return true;
   }
 
+  // If this element is non-focusable, ignore stray keystrokes (b/18337209)
+  if (!jsaction.event.isFocusable_(el)) {
+    return false;
+  }
+
   var hasType = el.tagName.toUpperCase() != 'INPUT' || el.type;
   var isSpecificTriggerKey =
       jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING[type] % key == 0;
@@ -453,6 +458,48 @@ jsaction.event.isActionKeyEvent = function(e) {
       !(type in jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING) &&
       key == jsaction.KeyCodes.ENTER;
   return (isSpecificTriggerKey || isDefaultTriggerKey) && !!hasType;
+};
+
+
+/**
+ * Checks whether a DOM element can receive keyboard focus.
+ * This code is based on goog.dom.isFocusable, but simplified since we shouldn't
+ * care about visibility if we're already handling a keyboard event.
+ * @param {!Element} el
+ * @return {boolean}
+ * @private
+ */
+jsaction.event.isFocusable_ = function(el) {
+  return (el.tagName in jsaction.event.NATIVELY_FOCUSABLE_ELEMENTS_ ||
+      jsaction.event.hasSpecifiedTabIndex_(el)) &&
+      el.tabIndex >= 0 && !el.disabled;
+};
+
+
+/**
+ * @param {!Element} element Element to check.
+ * @return {boolean} Whether the element has a specified tab index.
+ * @private
+ */
+jsaction.event.hasSpecifiedTabIndex_ = function(element) {
+  // IE returns 0 for an unset tabIndex, so we must use getAttributeNode(),
+  // which returns an object with a 'specified' property if tabIndex is
+  // specified.  This works on other browsers, too.
+  var attrNode = element.getAttributeNode('tabindex'); // Must be lowercase!
+  return goog.isDefAndNotNull(attrNode) && attrNode.specified;
+};
+
+
+/**
+ * Element tagnames that are focusable by default.
+ * @private {!Object<string, number>}
+ */
+jsaction.event.NATIVELY_FOCUSABLE_ELEMENTS_ = {
+  'A': 1,
+  'INPUT': 1,
+  'TEXTAREA': 1,
+  'SELECT': 1,
+  'BUTTON': 1
 };
 
 

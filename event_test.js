@@ -7,6 +7,7 @@
 goog.provide('jsaction.eventTest');
 goog.setTestOnly('jsaction.eventTest');
 
+goog.require('goog.dom');
 goog.require('goog.functions');
 goog.require('goog.testing.PropertyReplacer');
 goog.require('goog.testing.events.Event');
@@ -34,11 +35,9 @@ DivMock.prototype.attachEvent = function(event, handler) {
 
 
 var div_ = null;
-var validTarget = document.createElement('div');
-validTarget.setAttribute('role', 'button');
+var validTarget = goog.dom.createDom('div', {tabIndex: 0, role: 'button'});
 var invalidTarget = document.createElement('div');
-var roleTarget = document.createElement('div');
-roleTarget.setAttribute('role', 'textbox');
+var roleTarget = goog.dom.createDom('div', {tabIndex: 0, role: 'textbox'});
 
 
 function setUp() {
@@ -204,7 +203,15 @@ function baseIsActionKeyEvent(keyCode, opt_target, opt_originalTarget) {
   };
 
   stubs.set(jsaction.event, 'isValidActionKeyTarget_', goog.functions.TRUE);
-  return jsaction.event.isActionKeyEvent(event);
+  try {
+    // isFocusable() in IE calls getBoundingClientRect(), which fails on orphans
+    document.body.appendChild(event.target);
+    event.target.style.height = '4px';   // Make sure we don't report as hidden.
+    event.target.style.width = '4px';
+    return jsaction.event.isActionKeyEvent(event);
+  } finally {
+    document.body.removeChild(event.target);
+  }
 }
 
 
@@ -232,8 +239,7 @@ function testIsActionKeyRealCheckBox() {
 
 
 function testIsActionKeyFakeCheckBox() {
-  var checkbox = document.createElement('div');
-  checkbox.setAttribute('role', 'checkbox');
+  var checkbox = goog.dom.createDom('div', {tabIndex: 0, role: 'checkbox'});
   assertTrue(baseIsActionKeyEvent(jsaction.KeyCodes.SPACE, checkbox));
   assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, checkbox));
 }
@@ -251,11 +257,30 @@ function testIsActionKeyEventNotOriginalTarget() {
       jsaction.KeyCodes.SPACE, document.createElement('div'), validTarget));
 }
 
+function testIsActionKeyNonControl() {
+  var control = goog.dom.createDom('div');
+  assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, control));
+}
+
+function testIsActionKeyDisabledControl() {
+  var control = goog.dom.createDom('button', {disabled: true});
+  assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, control));
+}
+
+function testIsActionKeyNormalControl() {
+  var control = goog.dom.createDom('button');
+  assertTrue(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, control));
+}
+
+function testIsActionKeyNonTabbableControl() {
+  var control = goog.dom.createDom('button', {tabIndex: '-1'});
+  assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, control));
+}
+
 function testIsActionKeyEventNotInMap() {
-  assertTrue(baseIsActionKeyEvent(
-      jsaction.KeyCodes.ENTER, document.createElement('div')));
-  assertFalse(baseIsActionKeyEvent(
-      jsaction.KeyCodes.SPACE, document.createElement('div')));
+  var control = goog.dom.createDom('div', {tabIndex: 0});
+  assertTrue(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, control));
+  assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.SPACE, control));
 }
 
 function testIsMouseSpecialEventMouseenter() {
