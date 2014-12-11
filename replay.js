@@ -7,6 +7,7 @@
  */
 goog.provide('jsaction.createKeyboardEvent');
 goog.provide('jsaction.createMouseEvent');
+goog.provide('jsaction.createUiEvent');
 goog.provide('jsaction.replayEvent');
 goog.provide('jsaction.triggerEvent');
 
@@ -60,16 +61,19 @@ jsaction.isMouseEvent_ = function(eventType) {
 
 
 /**
- * Checks if a given event was related to element focus changes.
+ * Checks if a given event is a general UI event.
  * @param {string} eventType The event type.
  * @return {boolean} Whether it's a focus event.
  * @private
  */
-jsaction.isFocusEvent_ = function(eventType) {
+jsaction.isUiEvent_ = function(eventType) {
+  // Almost nobody supports the W3C method of creating FocusEvents.
+  // For now, we're going to use the UIEvent as a super-interface.
   return eventType == goog.events.EventType.FOCUS ||
       eventType == goog.events.EventType.BLUR ||
       eventType == goog.events.EventType.FOCUSIN ||
-      eventType == goog.events.EventType.FOCUSOUT;
+      eventType == goog.events.EventType.FOCUSOUT ||
+      eventType == goog.events.EventType.SCROLL;
 };
 
 
@@ -103,16 +107,14 @@ jsaction.createKeyboardModifiersList_ = function(alt, ctrl, meta, shift) {
 
 
 /**
- * Creates a focus event object for replaying through the DOM.
+ * Creates a UI event object for replaying through the DOM.
  * @param {!Event} original The event to create a new event from.
  * @param {string=} opt_eventType The type this event is being handled as by
  *     jsaction. E.g. blur events are handled as focusout
  * @return {!Event} The event object.
  */
-jsaction.createFocusEvent = function(original, opt_eventType) {
+jsaction.createUiEvent = function(original, opt_eventType) {
   var event;
-  // Almost nobody supports the W3C method of creating FocusEvents.
-  // For now, we're going to use the UIEvent as a super-interface.
   if (document.createEvent) {
     // Event creation as per W3C event model specification.  This codepath
     // is used by most non-IE browsers and also by IE 9 and later.
@@ -350,8 +352,8 @@ jsaction.createEvent = function(original, opt_eventType) {
     event = jsaction.createKeyboardEvent(original, opt_eventType);
   } else if (jsaction.isMouseEvent_(eventType)) {
     event = jsaction.createMouseEvent(original, opt_eventType);
-  } else if (jsaction.isFocusEvent_(eventType)) {
-    event = jsaction.createFocusEvent(original, opt_eventType);
+  } else if (jsaction.isUiEvent_(eventType)) {
+    event = jsaction.createUiEvent(original, opt_eventType);
   } else if (eventType == jsaction.EventType.CUSTOM) {
     goog.asserts.assert(opt_eventType);
     event = jsaction.createCustomEvent(
@@ -366,16 +368,16 @@ jsaction.createEvent = function(original, opt_eventType) {
 
 /**
  * Sends an event for replay to the DOM.
- * @param {!Element} elem The element to trigger the event on.
+ * @param {!EventTarget} target The target for the event.
  * @param {!Event} event The event object.
  * @return {boolean} The return value of the event replay, i.e., whether
  *     preventDefault() was called on it.
  */
-jsaction.triggerEvent = function(elem, event) {
-  if (elem.dispatchEvent) {
-    return elem.dispatchEvent(event);
+jsaction.triggerEvent = function(target, event) {
+  if (target.dispatchEvent) {
+    return target.dispatchEvent(event);
   } else {
-    goog.asserts.assert(elem.fireEvent);
-    return elem.fireEvent('on' + event.type, event);
+    goog.asserts.assert(target.fireEvent);
+    return target.fireEvent('on' + event.type, event);
   }
 };

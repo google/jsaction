@@ -35,18 +35,19 @@ function createEventArrayForTypes(eventTypes) {
 }
 
 
-function testIsFocusEvent() {
-  var focusEventTypes = [
+function testIsUiEvent() {
+  var uiEventTypes = [
     goog.events.EventType.BLUR,
     goog.events.EventType.FOCUS,
     goog.events.EventType.FOCUSIN,
-    goog.events.EventType.FOCUSOUT
+    goog.events.EventType.FOCUSOUT,
+    goog.events.EventType.SCROLL
   ];
-  var focusEvents = createEventArrayForTypes(focusEventTypes);
-  for (var i = 0; i < focusEvents.length; ++i) {
-    assertTrue(jsaction.isFocusEvent_(focusEvents[i].type));
+  var uiEvents = createEventArrayForTypes(uiEventTypes);
+  for (var i = 0; i < uiEvents.length; ++i) {
+    assertTrue(jsaction.isUiEvent_(uiEvents[i].type));
   }
-  assertFalse(jsaction.isFocusEvent_(
+  assertFalse(jsaction.isUiEvent_(
       {'type': goog.events.EventType.KEYUP}));
 }
 
@@ -83,7 +84,7 @@ function testIsMouseEvent() {
 }
 
 
-function testCreateFocusEvent() {
+function testCreateUiEvent() {
   var event = {
     'type': goog.events.EventType.BLUR,
     'bubbles': false,
@@ -92,7 +93,7 @@ function testCreateFocusEvent() {
     'detail': 0,
     'relatedTarget': null
   };
-  var nativeEvent = jsaction.createFocusEvent(event);
+  var nativeEvent = jsaction.createUiEvent(event);
   assertEquals(event.type, nativeEvent.type);
   assertEquals(event.bubbles, nativeEvent.bubbles);
   assertEquals(event.cancelable, nativeEvent.cancelable);

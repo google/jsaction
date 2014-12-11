@@ -13,37 +13,50 @@ goog.require('goog.style');
 goog.require('goog.testing.events.Event');
 goog.require('jsaction.createKeyboardEvent');
 goog.require('jsaction.createMouseEvent');
+goog.require('jsaction.createUiEvent');
 goog.require('jsaction.triggerEvent');
 
 
 /**
  * Simulates a blur event on the given target.
- * @param {EventTarget} target The target for the event.
+ * @param {!EventTarget} target The target for the event.
  * @return {boolean} The returnValue of the event: false if preventDefault() was
  *     called on it, true otherwise.
  */
 jsaction.testing.nativeEvents.fireBlurEvent = function(target) {
   var e = new goog.testing.events.Event(goog.events.EventType.BLUR, target);
-  return jsaction.triggerEvent(target, jsaction.createFocusEvent(e));
+  return jsaction.triggerEvent(target, jsaction.createUiEvent(e));
 };
 
 
 /**
  * Simulates a focus event on the given target.
- * @param {EventTarget} target The target for the event.
+ * @param {!EventTarget} target The target for the event.
  * @return {boolean} The returnValue of the event: false if preventDefault() was
  *     called on it, true otherwise.
  */
 jsaction.testing.nativeEvents.fireFocusEvent = function(target) {
   var e = new goog.testing.events.Event(goog.events.EventType.FOCUS, target);
-  return jsaction.triggerEvent(target, jsaction.createFocusEvent(e));
+  return jsaction.triggerEvent(target, jsaction.createUiEvent(e));
+};
+
+
+/**
+ * Simulates a scroll event on the given target.
+ * @param {!EventTarget} target The target for the event.
+ * @return {boolean} The returnValue of the event: false if preventDefault() was
+ *     called on it, true otherwise.
+ */
+jsaction.testing.nativeEvents.fireScrollEvent = function(target) {
+  var e = new goog.testing.events.Event(goog.events.EventType.SCROLL, target);
+  return jsaction.triggerEvent(target, jsaction.createUiEvent(e));
 };
 
 
 /**
  * Simulates a mousedown, mouseup, and then click on the given event target,
  * with the left mouse button.
- * @param {EventTarget} target The target for the event.
+ * @param {!EventTarget} target The target for the event.
  * @param {goog.events.BrowserEvent.MouseButton=} opt_button Mouse button;
  *     defaults to {@code goog.events.BrowserEvent.MouseButton.LEFT}.
  * @return {boolean} The returnValue of the sequence: false if preventDefault()
@@ -59,7 +72,7 @@ jsaction.testing.nativeEvents.fireClickSequence = function(target, opt_button) {
 
 /**
  * Simulates a mousedown event on the given target.
- * @param {EventTarget} target The target for the event.
+ * @param {!EventTarget} target The target for the event.
  * @param {goog.events.BrowserEvent.MouseButton=} opt_button Mouse button;
  *     defaults to {@code goog.events.BrowserEvent.MouseButton.LEFT}.
  * @return {boolean} false if preventDefault() was called, true otherwise.
@@ -73,7 +86,7 @@ jsaction.testing.nativeEvents.fireMouseDownEvent = function(
 
 /**
  * Simulates a mouseup event on the given target.
- * @param {EventTarget} target The target for the event.
+ * @param {!EventTarget} target The target for the event.
  * @param {goog.events.BrowserEvent.MouseButton=} opt_button Mouse button;
  *     defaults to {@code goog.events.BrowserEvent.MouseButton.LEFT}.
  * @return {boolean} false if preventDefault() was called, true otherwise.
@@ -86,7 +99,7 @@ jsaction.testing.nativeEvents.fireMouseUpEvent = function(target, opt_button) {
 
 /**
  * Simulates a click event on the given target.
- * @param {EventTarget} target The target for the event.
+ * @param {!EventTarget} target The target for the event.
  * @param {goog.events.BrowserEvent.MouseButton=} opt_button Mouse button;
  *     defaults to {@code goog.events.BrowserEvent.MouseButton.LEFT}.
  * @return {boolean} false if preventDefault() was called, true otherwise.
@@ -99,7 +112,7 @@ jsaction.testing.nativeEvents.fireClickEvent = function(target, opt_button) {
 
 /**
  * Simulates a mouseover event on the given target.
- * @param {EventTarget} target The target for the event.
+ * @param {!EventTarget} target The target for the event.
  * @return {boolean} false if preventDefault() was called, true otherwise.
  */
 jsaction.testing.nativeEvents.fireMouseOverEvent = function(target) {
@@ -110,7 +123,7 @@ jsaction.testing.nativeEvents.fireMouseOverEvent = function(target) {
 
 /**
  * Simulates a mouseout event on the given target.
- * @param {EventTarget} target The target for the event.
+ * @param {!EventTarget} target The target for the event.
  * @return {boolean} false if preventDefault() was called, true otherwise.
  */
 jsaction.testing.nativeEvents.fireMouseOutEvent = function(target) {
@@ -121,7 +134,7 @@ jsaction.testing.nativeEvents.fireMouseOutEvent = function(target) {
 
 /**
  * Simulates a mousemove event on the given target.
- * @param {EventTarget} target The target for the event.
+ * @param {!EventTarget} target The target for the event.
  * @param {goog.math.Coordinate=} opt_coords Mouse position. Defaults to event's
  * target's position (if available), otherwise (0, 0).
  * @return {boolean} The returnValue of the event: false if preventDefault() was
@@ -176,7 +189,7 @@ jsaction.testing.nativeEvents.createMouseButtonEvent = function(
  * Helper function to fire a mouse event with a mouse button. IE < 9 only allows
  * firing events using the left mouse button.
  * @param {string} type The event type.
- * @param {EventTarget} target The target for the event.
+ * @param {!EventTarget} target The target for the event.
  * @param {goog.events.BrowserEvent.MouseButton=} opt_button Mouse button;
  *     defaults to {@code goog.events.BrowserEvent.MouseButton.LEFT}.
  * @return {boolean} The value returned by the browser event,
