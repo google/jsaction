@@ -1195,6 +1195,14 @@ function testQualifiedJsActionName_NamespaceOnBoundingNode() {
 }
 
 
+function testQualifiedJsActionName_NamespaceOnSameNode() {
+  var target = elem('action18');
+  var bound = elem('container18');
+  var qualifiedName = jsaction.EventContract.getQualifiedName_(
+      'qualifiedaction18', target, bound);
+  assertEquals('namespace18.qualifiedaction18', qualifiedName);
+}
+
 function testQualifiedJsActionName_NoJsNamespace() {
   var target = elem('host5');
   var bound = elem('innercontainer5');

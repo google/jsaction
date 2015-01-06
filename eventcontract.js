@@ -466,7 +466,7 @@ jsaction.EventContract.createEventInfo_ = function(eventType, e, container) {
   var element;
   if (jsaction.EventContract.USE_EVENT_PATH) {
     var generator = jsaction.domGenerator.getGenerator(
-        e, target, /** @type {!Element} */(container));
+        e, target, /** @type {!Node} */ (container.parentNode));
     for (var node; node = generator.next();) {
       element = node;
       actionInfo = jsaction.EventContract.getAction_(
@@ -490,7 +490,7 @@ jsaction.EventContract.createEventInfo_ = function(eventType, e, container) {
       }
     }
   } else {
-    for (var node = target; node && node != container;
+    for (var node = target; node && node != container.parentNode;
       // Walk to the parent node, unless the node has a different owner in
       // which case we walk to the owner.
       node = node[jsaction.Property.OWNER] || node.parentNode) {

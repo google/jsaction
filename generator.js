@@ -33,7 +33,7 @@ jsaction.domGenerator.Ancestors = function() {
   /** @private {Element} */
   this.node_ = null;
 
-  /** @private {Element} */
+  /** @private {Node} */
   this.container_ = null;
 };
 
@@ -41,7 +41,7 @@ jsaction.domGenerator.Ancestors = function() {
 /**
  * Resets an ancestors generator of an element with a new target and container.
  * @param {!Element} target the element to start walking ancestors at.
- * @param {!Element} container the element to stop walking ancestors at.
+ * @param {!Node} container the element to stop walking ancestors at.
  * @return {!jsaction.domGenerator.Generator}
  * @private
  */
@@ -82,7 +82,7 @@ jsaction.domGenerator.EventPath = function() {
   /** @private {number} */
   this.idx_ = 0;
 
-  /** @private {Element} */
+  /** @private {Node} */
   this.container_ = null;
 
   /** @private {boolean} */
@@ -93,7 +93,7 @@ jsaction.domGenerator.EventPath = function() {
 /**
  * Resets an EventPath with a new path and container.
  * @param {!Array.<!Element>} path
- * @param {!Element} container
+ * @param {!Node} container
  * @return {!jsaction.domGenerator.Generator}
  * @private
  */
@@ -156,7 +156,7 @@ jsaction.domGenerator.eventPath_ =
  * Return the correct dom generator for a given event.
  * @param {!Event} e the event.
  * @param {!Element} target the events target element.
- * @param {!Element} container the jsaction container.
+ * @param {!Node} container the jsaction container.
  * @return {!jsaction.domGenerator.Generator}
  */
 jsaction.domGenerator.getGenerator = function(e, target, container) {
