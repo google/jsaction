@@ -37,13 +37,13 @@ function tearDown() {
   eventsToTargets = {};
 }
 
-function testFireCustomEventDownNoMatches() {
+function testBroadcastCustomEventNoMatches() {
   jsaction.broadcastCustomEvent(document.getElementById('no-matches'),
                                 'customEvent');
   assertEquals(0, Object.keys(eventsToTargets).length);
 }
 
-function testFireCustomEventDownMatches() {
+function testBroadcastCustomEventMatches() {
   jsaction.broadcastCustomEvent(document.getElementById('matches'),
                                 'customEvent');
   assertEquals(1, Object.keys(eventsToTargets).length);
@@ -60,7 +60,7 @@ function testFireCustomEventDownMatches() {
   assertEquals('matches2', eventsToTargets['custom2'][0].id);
 }
 
-function testFireCustomEventDownNestedMatches() {
+function testBroadcastCustomEventNestedMatches() {
   jsaction.broadcastCustomEvent(document.getElementById('nested'),
                                 'customEvent');
   assertEquals(1, Object.keys(eventsToTargets).length);
@@ -77,4 +77,26 @@ function testFireCustomEventDownNestedMatches() {
 
   assertEquals(1, eventsToTargets['custom2'].length);
   assertEquals('nested2', eventsToTargets['custom2'][0].id);
+}
+
+
+function testBroadcastCustomEventPartialMatchDoesNotTriggerEvent() {
+  jsaction.broadcastCustomEvent(document.getElementById('partial_match_test'),
+                                'partial_');
+  assertFalse('partial_' in eventsToTargets);
+
+  jsaction.broadcastCustomEvent(document.getElementById('partial_match_test'),
+                                '_match');
+  assertFalse('_match' in eventsToTargets);
+}
+
+
+function testBroadcastCustomEventExactMatchTriggersEvent() {
+  // Does not trigger inexact_match
+  jsaction.broadcastCustomEvent(document.getElementById('exact_match_test'),
+                                'exact_match');
+  assertEquals(3, eventsToTargets['exact_match'].length);
+  assertEquals('exact-match-a', eventsToTargets['exact_match'][0].id);
+  assertEquals('exact-match-b', eventsToTargets['exact_match'][1].id);
+  assertEquals('exact-match-c', eventsToTargets['exact_match'][2].id);
 }

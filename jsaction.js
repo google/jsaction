@@ -4,6 +4,7 @@
 
 goog.provide('jsaction');
 
+goog.require('goog.asserts');
 goog.require('jsaction.EventType');
 goog.require('jsaction.dom');
 
@@ -66,15 +67,21 @@ jsaction.fireCustomEvent = function(
 
 
 /**
- * Fires a custom event to all children that listen for the specified jsaction.
- * Supported whereever fireCustomEvent is supported.
+ * Fires a custom event at descendant elements. For a given descendant of the
+ * target element, a custom event is fired if (1) it has a jsaction handler for
+ * the action type, and (2) the element does not have an ancestor (also a
+ * descendant of the target element) that already handled the event.
+ * Supported wherever fireCustomEvent is supported.
  *
  * @param {!Element} target The target element.
- * @param {string} type The type of the action, e.g. 'submit'.
+ * @param {string} type The type of the action, e.g. 'submit'. Because of an
+ *     implementation detail, type may not be 'click'.
  * @param {!Object.<string, *>=} opt_data An optional data payload.
 */
 jsaction.broadcastCustomEvent = function(target, type, opt_data) {
-  var matched = target.querySelectorAll("[jsaction*='" + type + "']");
+  goog.asserts.assert(type != 'click');
+  var matched = target.querySelectorAll('[jsaction^="' + type + ':"], ' +
+      '[jsaction*=";' + type + ':"], [jsaction*=" ' + type + ':"]');
   for (var i = 0; i < matched.length; ++i) {
     var match = matched[i];
     if (!jsaction.dom.hasAncestorInNodeList(match, matched)) {

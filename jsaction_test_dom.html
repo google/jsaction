@@ -12,14 +12,13 @@
   <div id="matches2" jsaction="custom2:myQuxHandler"></div>
 </div>
 
-
 <div id="nested">
   <span>
     <span id="nested-foo" jsaction="handleFoo;customEvent:myFooHandler"></span>
   </span>
   <div id="nested-bar"
        jsaction="keydown:handleBar;customEvent:myBarHandler">
-    <div jsaction="customEvent: myBarHandler"></div>
+    <div jsaction="customEvent:myBarHandler"></div>
   </div>
   <div id="nested-qux" jsaction="customEvent:myQuxHandler">
     <div>
@@ -28,5 +27,17 @@
         <div id="nested2" jsaction="custom2:myQuxHandler"></div>
       </div>
     </div>
+  </div>
+</div>
+
+<div id="partial_match_test">
+  <div jsaction="partial_match:myFooHandler"></div>
+</div>
+
+<div id="exact_match_test">
+  <div jsaction="inexact_match:myFooHandler">
+    <div id="exact-match-a" jsaction="exact_match:myFooHandler"></div>
+    <div id="exact-match-b" jsaction="x:x;exact_match:myFooHandler"></div>
+    <div id="exact-match-c" jsaction="x:x; exact_match: myFooHandler"></div>
   </div>
 </div>
