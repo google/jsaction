@@ -629,6 +629,15 @@ jsaction.event.recreateTouchEventAsClick = function(event) {
       click[p] = v;
     }
   }
+
+  // Emulate preventDefault and stopPropagation behavior
+  // TODO(ruilopes): b/18978823 - refactor constants in a enum
+  click['defaultPrevented'] = false;
+  click['preventDefault'] = jsaction.event.syntheticPreventDefault_;
+  click['_propagationStopped'] = false;
+  click['stopPropagation'] = jsaction.event.syntheticStopPropagation_;
+
+  // Emulate click coordinates using touch info
   var touch = jsaction.event.getTouchData(event);
   if (touch) {
     click['clientX'] = touch.clientX;
@@ -637,6 +646,28 @@ jsaction.event.recreateTouchEventAsClick = function(event) {
     click['screenY'] = touch.screenY;
   }
   return click;
+};
+
+
+/**
+ * An implementation of "preventDefault" for a synthesized event. Simply
+ * sets "defaultPrevented" property to true.
+ * @this {!Event}
+ * @private
+ */
+jsaction.event.syntheticPreventDefault_ = function() {
+  this['defaultPrevented'] = true;
+};
+
+
+/**
+ * An implementation of "stopPropagation" for a synthesized event. It simply
+ * sets a synthetic non-standard "_propagationStopped" property to true.
+ * @this {!Event}
+ * @private
+ */
+jsaction.event.syntheticStopPropagation_ = function() {
+  this['_propagationStopped'] = true;
 };
 
 

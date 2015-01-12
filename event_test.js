@@ -502,6 +502,29 @@ function testRecreateTouchEventAsClick_noTouchData() {
   assertUndefined(copiedEvent['screenY']);
 }
 
+function testRecreateTouchEventAsClick_behavior() {
+  var div = document.createElement('div');
+  var origEvent = new goog.testing.events.Event('touchend', div);
+  origEvent.touches = [{
+    clientX: 1,
+    clientY: 2,
+    screenX: 3,
+    screenY: 4,
+    pageX: 5,
+    pageY: 6
+  }, {}];
+  var event = jsaction.event.recreateTouchEventAsClick(origEvent);
+  assertEquals('click', event.type);
+
+  assertFalse(event.defaultPrevented);
+  event.preventDefault();
+  assertTrue(event.defaultPrevented);
+
+  assertFalse(event['_propagationStopped']);
+  event.stopPropagation();
+  assertTrue(event['_propagationStopped']);
+}
+
 function testMaybeCopyEvent() {
   var div = document.createElement('div');
   document.body.appendChild(div);
