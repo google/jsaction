@@ -123,7 +123,7 @@ jsaction.createUiEvent = function(original, opt_eventType) {
     // initEvent, otherwise it will fail.
     event.initUIEvent(
         opt_eventType || original.type,
-        original.bubbles || false,
+        goog.isDef(original.bubbles) ? original.bubbles : true,
         original.cancelable || false,
         original.view || window,
         original.detail || 0 //detail
@@ -134,7 +134,7 @@ jsaction.createUiEvent = function(original, opt_eventType) {
     // W3C event model. Use the IE specific function instead.
     event = document.createEventObject();
     event.type = opt_eventType || original.type;
-    event.bubbles = original.bubbles || false;
+    event.bubbles = goog.isDef(original.bubbles) ? original.bubbles : true;
     event.cancelable = original.cancelable || false;
     event.view = original.view || window;
     event.detail = original.detail || 0;
