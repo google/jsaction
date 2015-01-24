@@ -508,7 +508,7 @@ jsaction.ActionFlow.prototype.setType = function(flowType) {
  * Records one tick. The tick value is relative to the start tick that
  * was recorded in the constructor.
  * @param {string} name The name of the tick.
- * @param {Object} opt_opts Options with the following optional fields:
+ * @param {Object=} opt_opts Options with the following optional fields:
  *     time: The timestamp, if it's not goog.now().
  *     doNotReportToServer: If true, do not report this tick to the
  *         server (e.g. csi or mfe).  The tick can still be used in puppet
@@ -564,8 +564,8 @@ jsaction.ActionFlow.prototype.tick = function(name, opt_opts) {
  *    flow opened by the branch() call with the same name. The
  *    implicit branch in the constructor has a reserved name
  *    (jsaction.Branch.MAIN).
- * @param {string} opt_tick Optional tick to record while we are at it.
- * @param {Object} opt_tickOpts An options object for the tick.
+ * @param {string=} opt_tick Optional tick to record while we are at it.
+ * @param {Object=} opt_tickOpts An options object for the tick.
  */
 jsaction.ActionFlow.prototype.done = function(branch, opt_tick, opt_tickOpts) {
   if (this.reportSent_ || !this.branches_[branch]) {
@@ -632,8 +632,8 @@ jsaction.ActionFlow.prototype.finish_ = function() {
  * @param {string} branch The name of the branch that is created. The
  *     corresponding done() should use the same name to signal that
  *     the branch has finished.
- * @param {string} opt_tick Optional tick to record while we are at.
- * @param {Object} opt_tickOpts Tick configuration object. See tick()
+ * @param {string=} opt_tick Optional tick to record while we are at.
+ * @param {Object=} opt_tickOpts Tick configuration object. See tick()
  *     for more details.
  */
 jsaction.ActionFlow.prototype.branch =
@@ -1179,8 +1179,8 @@ jsaction.ActionFlow.branch = function(flow, branch, opt_tick, opt_tickOpts) {
  *    flow opened by the branch() call with the same name. The
  *    implicit branch in the constructor has a reserved name
  *    (jsaction.Branch.MAIN).
- * @param {string} opt_tick The tick name.
- * @param {Object} opt_tickOpts The options for the tick.
+ * @param {string=} opt_tick The tick name.
+ * @param {Object=} opt_tickOpts The options for the tick.
  */
 jsaction.ActionFlow.done = function(flow, branch, opt_tick, opt_tickOpts) {
   if (flow) {

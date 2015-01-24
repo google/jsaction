@@ -299,78 +299,80 @@ jsaction.EventContract.setDefaultEventType = function(eventType) {
  * @private
  */
 jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
-  /**
-   * See description above.
-   * @param {!Event} e Event.
-   * @this {!Element}
-   */
-  return function(e) {
-    var container = this;
-    // Store eventType's value in a local variable so that multiple calls do not
-    // modify the shared eventType variable.
-    var eventTypeForDispatch = eventType;
-    if (jsaction.EventContract.CUSTOM_EVENT_SUPPORT &&
-        eventTypeForDispatch == jsaction.EventType.CUSTOM) {
-      // For custom events, use a secondary dispatch based on the internal
-      // custom type of the event.
-      if (!e.detail || !e.detail['_type']) {
-        // This should never happen.
-        return;
-      }
-      eventTypeForDispatch = e.detail['_type'];
+  return /** @type {jsaction.EventHandlerFunction} */ (
+      /**
+       * See description above.
+       * @param {!Event} e Event.
+       * @this {!Element}
+       */
+      function(e) {
+        var container = this;
+        // Store eventType's value in a local variable so that multiple calls do
+        // not modify the shared eventType variable.
+        var eventTypeForDispatch = eventType;
+        if (jsaction.EventContract.CUSTOM_EVENT_SUPPORT &&
+            eventTypeForDispatch == jsaction.EventType.CUSTOM) {
+          // For custom events, use a secondary dispatch based on the internal
+          // custom type of the event.
+          if (!e.detail || !e.detail['_type']) {
+            // This should never happen.
+            return;
+          }
+          eventTypeForDispatch = e.detail['_type'];
+        }
+
+        var eventInfo = jsaction.EventContract.createEventInfo_(
+            eventTypeForDispatch, e, container);
+
+        if (eventContract.dispatcher_) {
+          var globalEventInfo = jsaction.EventContract.createEventInfoInternal_(
+              eventInfo['eventType'], eventInfo['event'],
+              eventInfo['targetElement'], eventInfo['action'],
+              eventInfo['actionElement'], eventInfo['timeStamp']);
+
+          // In some cases, createEventInfo_() will rewrite click events to
+          // clickonly.  Revert back to a regular click, otherwise we won't be
+          // able to execute global event handlers registered on click events.
+          if (globalEventInfo['eventType'] == jsaction.EventType.CLICKONLY) {
+            globalEventInfo['eventType'] = jsaction.EventType.CLICK;
+          }
+
+          eventContract.dispatcher_(
+              globalEventInfo, /* dispatch global event */ true);
+        }
+
+        // Return early if no action element found while walking up the DOM
+        // tree.
+        if (!eventInfo['actionElement']) {
+          return;
+        }
+
+        if (jsaction.EventContract.STOP_PROPAGATION) {
+          // Since we found a jsaction, prevent other handlers from seeing
+          // this event.
+          jsaction.event.stopPropagation(e);
+        }
+
+        // Prevent browser from following <a> node links if a jsaction is
+        // present. Note that the targetElement may be a child of an anchor that
+        // has a jsaction attached. For that reason, we need to check the
+        // actionElement rather than the targetElement.
+        if (eventInfo['actionElement'].tagName == goog.dom.TagName.A &&
+            eventInfo['eventType'] == jsaction.EventType.CLICK) {
+          jsaction.event.preventDefault(e);
+        }
+
+        if (eventContract.dispatcher_) {
+          eventContract.dispatcher_(eventInfo);
+        } else {
+          var copiedEvent = jsaction.event.maybeCopyEvent(e);
+          // The event is queued since there is no dispatcher registered
+          // yet. Potentially make a copy of the event in order to extend its
+          // life. The copy will later be used when attempting to replay.
+          eventInfo['event'] = copiedEvent;
+          eventContract.queue_.push(eventInfo);
     }
-
-    var eventInfo = jsaction.EventContract.createEventInfo_(
-        eventTypeForDispatch, e, container);
-
-    if (eventContract.dispatcher_) {
-      var globalEventInfo = jsaction.EventContract.createEventInfoInternal_(
-          eventInfo['eventType'], eventInfo['event'],
-          eventInfo['targetElement'], eventInfo['action'],
-          eventInfo['actionElement'], eventInfo['timeStamp']);
-
-      // In some cases, createEventInfo_() will rewrite click events to
-      // clickonly.  Revert back to a regular click, otherwise we won't be able
-      // to execute global event handlers registered on click events.
-      if (globalEventInfo['eventType'] == jsaction.EventType.CLICKONLY) {
-        globalEventInfo['eventType'] = jsaction.EventType.CLICK;
-      }
-
-      eventContract.dispatcher_(
-          globalEventInfo, /* dispatch global event */ true);
-    }
-
-    // Return early if no action element found while walking up the DOM tree.
-    if (!eventInfo['actionElement']) {
-      return;
-    }
-
-    if (jsaction.EventContract.STOP_PROPAGATION) {
-      // Since we found a jsaction, prevent other handlers from seeing
-      // this event.
-      jsaction.event.stopPropagation(e);
-    }
-
-    // Prevent browser from following <a> node links if a jsaction is
-    // present. Note that the targetElement may be a child of an anchor that has
-    // a jsaction attached. For that reason, we need to check the actionElement
-    // rather than the targetElement.
-    if (eventInfo['actionElement'].tagName == goog.dom.TagName.A &&
-        eventInfo['eventType'] == jsaction.EventType.CLICK) {
-      jsaction.event.preventDefault(e);
-    }
-
-    if (eventContract.dispatcher_) {
-      eventContract.dispatcher_(eventInfo);
-    } else {
-      var copiedEvent = jsaction.event.maybeCopyEvent(e);
-      // The event is queued since there is no dispatcher registered
-      // yet. Potentially make a copy of the event in order to extend its
-      // life. The copy will later be used when attempting to replay.
-      eventInfo['event'] = copiedEvent;
-      eventContract.queue_.push(eventInfo);
-    }
-  };
+  });
 };
 
 
@@ -907,14 +909,16 @@ if (jsaction.EventContract.JSNAMESPACE_SUPPORT) {
  * @private
  */
 jsaction.EventContract.containerHandlerInstaller_ = function(name, handler) {
-  /**
-   * @param {!Element} div The container to install this handler on.
-   * @return {jsaction.EventHandlerInfo} The event name and the
-   *    handler installed by the function.
-   */
-  return function(div) {
-    return jsaction.event.addEventListener(div, name, handler);
-  };
+    return /** @type {jsaction.ContainerInitializerFunction} */ (
+        /**
+         * @param {!Element} div The container to install this handler on.
+         * @return {jsaction.EventHandlerInfo} The event name and the
+         *    handler installed by the function.
+         */
+        function (div) {
+          return jsaction.event.addEventListener(div, name, handler);
+        }
+    );
 };
 
 
