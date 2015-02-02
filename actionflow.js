@@ -263,6 +263,7 @@ jsaction.ActionFlow.removeInstance_ = function(instance) {
  * data associated with such an event, and
  * jsaction.ActionFlow.EventType for the different events that are
  * fired.
+ * If set to null, no reports will be sent.
  * @type {goog.events.EventTarget}
  */
 jsaction.ActionFlow.report = new goog.events.EventTarget;
@@ -706,6 +707,10 @@ jsaction.ActionFlow.prototype.branches = function() {
  */
 jsaction.ActionFlow.prototype.report_ = function() {
   if (this.abandoned_) {
+    return true;
+  }
+
+  if (!jsaction.ActionFlow.report) {
     return true;
   }
 
