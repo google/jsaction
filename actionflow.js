@@ -951,7 +951,7 @@ jsaction.ActionFlow.prototype.addExtraData = function(key, value) {
 
   // Replace all deliminators ':', ':', and '," used by CAD with
   // underscores. Also replace white space with underscore.
-  this.extraData_[key] = value.toString().replace(/[:;,\s]/g, '_');
+  this.extraData_[key] = value.replace(/[:;,\s]/g, '_');
 };
 
 
