@@ -913,41 +913,6 @@ function testEventContractMaybeCreateEventInfoFastClick() {
   var eventInfo = sendEvent(jsaction.EventType.TOUCHEND, element, container);
   assertEquals(jsaction.EventType.CLICK, eventInfo.eventType);
   assertEquals(jsaction.EventType.CLICK, eventInfo.event.type);
-  assertNull(sendEvent(
-      jsaction.EventType.CLICK, element, container).actionElement);
-
-  // Click on something else while the other click is blocked.
-  assertNotNull(sendEvent(
-      jsaction.EventType.CLICK, otherElement, container).actionElement);
-
-  mockClock_.tick(400);
-  eventInfo = sendEvent(jsaction.EventType.CLICK, element, container);
-  assertEquals(jsaction.EventType.CLICK, eventInfo.eventType);
-}
-
-function testEventContractMaybeCreateEventInfoFastClick_interleaved() {
-  var container = elem('container12');
-  var element = elem('action12-1');
-  var otherElement = elem('action12-2');
-  var actionNode = element.parentNode;
-
-  assertNull(sendEvent(
-      jsaction.EventType.TOUCHSTART, element, container).actionElement);
-  assertEquals(element.parentNode, jsaction.EventContract.fastClickNode_.node);
-  assertNotNull(sendEvent(
-      jsaction.EventType.TOUCHEND, element, container).actionElement);
-
-  assertNull(sendEvent(
-      jsaction.EventType.TOUCHSTART, otherElement, container).actionElement);
-  assertEquals(otherElement.parentNode,
-      jsaction.EventContract.fastClickNode_.node);
-  assertNotNull(sendEvent(
-      jsaction.EventType.TOUCHEND, otherElement, container).actionElement);
-
-  assertNull(sendEvent(
-      jsaction.EventType.CLICK, element, container).actionElement);
-  assertNotNull(sendEvent(
-      jsaction.EventType.CLICK, element, container).actionElement);
 }
 
 function testEventContractMaybeCreateEventInfoFastClick_touchstartStopsMagic() {
@@ -1036,6 +1001,110 @@ function testEventContractMaybeCreateEventInfoFastClick_specialElements() {
   assertNotNull(
       sendEvent(jsaction.EventType.TOUCHSTART, elem('password12'), container));
   assertNull(jsaction.EventContract.fastClickNode_);
+}
+
+function testFastClick_cancelFollowingClick() {
+  var container = elem('container12');
+  var element = elem('action12-1');
+  var otherElement = elem('action12-2');
+  var actionNode = element.parentNode;
+
+  sendEvent(jsaction.EventType.TOUCHSTART, element, container);
+  var eventInfo = sendEvent(jsaction.EventType.TOUCHEND, element, container);
+  assertEquals(jsaction.EventType.CLICK, eventInfo.eventType);
+
+  var clickEvent = new goog.testing.events.Event(jsaction.EventType.CLICK,
+      element);
+  jsaction.EventContract.sweepupFastClick_(clickEvent);
+  // Event matched and stopped from propagating, but not default-prevented.
+  assertTrue(clickEvent.propagationStopped_);
+  assertFalse(clickEvent.defaultPrevented);
+  assertNull(jsaction.EventContract.fastClickedEvent_);
+}
+
+function testFastClick_cancelFollowingClick_preventDefault() {
+  var container = elem('container12');
+  var element = elem('action12-1');
+  var otherElement = elem('action12-2');
+  var actionNode = element.parentNode;
+
+  sendEvent(jsaction.EventType.TOUCHSTART, element, container);
+  var eventInfo = sendEvent(jsaction.EventType.TOUCHEND, element, container);
+  assertEquals(jsaction.EventType.CLICK, eventInfo.eventType);
+
+  // Prevent default on "fast click" event.
+  eventInfo.event.preventDefault();
+
+  var clickEvent = new goog.testing.events.Event(jsaction.EventType.CLICK,
+      element);
+  jsaction.EventContract.sweepupFastClick_(clickEvent);
+  // Event matched and stopped from propagating and it's default-prevented.
+  assertTrue(clickEvent.propagationStopped_);
+  assertTrue(clickEvent.defaultPrevented);
+  assertNull(jsaction.EventContract.fastClickedEvent_);
+}
+
+function testFastClick_cancelFollowingClick_wrongElement() {
+  var container = elem('container12');
+  var element = elem('action12-1');
+  var otherElement = elem('action12-2');
+  var actionNode = element.parentNode;
+
+  sendEvent(jsaction.EventType.TOUCHSTART, element, container);
+  var eventInfo = sendEvent(jsaction.EventType.TOUCHEND, element, container);
+  assertEquals(jsaction.EventType.CLICK, eventInfo.eventType);
+
+  var clickEvent = new goog.testing.events.Event(jsaction.EventType.CLICK,
+      otherElement);
+  jsaction.EventContract.sweepupFastClick_(clickEvent);
+  // Event didn't match.
+  assertFalse(clickEvent.propagationStopped_);
+  assertFalse(clickEvent.defaultPrevented);
+  assertNull(jsaction.EventContract.fastClickedEvent_);
+}
+
+function testFastClick_cancelFollowingClick_oldTimestamp() {
+  var container = elem('container12');
+  var element = elem('action12-1');
+  var otherElement = elem('action12-2');
+  var actionNode = element.parentNode;
+
+  sendEvent(jsaction.EventType.TOUCHSTART, element, container);
+  var eventInfo = sendEvent(jsaction.EventType.TOUCHEND, element, container);
+  assertEquals(jsaction.EventType.CLICK, eventInfo.eventType);
+
+  // Expire the event
+  eventInfo.event.timeStamp = goog.now() - 10000;
+
+  var clickEvent = new goog.testing.events.Event(jsaction.EventType.CLICK,
+      element);
+  jsaction.EventContract.sweepupFastClick_(clickEvent);
+  // Event didn't match.
+  assertFalse(clickEvent.propagationStopped_);
+  assertFalse(clickEvent.defaultPrevented);
+  assertNull(jsaction.EventContract.fastClickedEvent_);
+}
+
+function testFastClick_cancelFollowingClick_touchstartElsewhere() {
+  var container = elem('container12');
+  var element = elem('action12-1');
+  var otherElement = elem('action12-2');
+  var actionNode = element.parentNode;
+
+  sendEvent(jsaction.EventType.TOUCHSTART, element, container);
+  var eventInfo = sendEvent(jsaction.EventType.TOUCHEND, element, container);
+  assertEquals(jsaction.EventType.CLICK, eventInfo.eventType);
+
+  // Touchstart arrived on a different element
+  sendEvent(jsaction.EventType.TOUCHSTART, otherElement, container);
+
+  var clickEvent = new goog.testing.events.Event(jsaction.EventType.CLICK,
+      element);
+  jsaction.EventContract.sweepupFastClick_(clickEvent);
+  // Event didn't match.
+  assertFalse(clickEvent.propagationStopped_);
+  assertFalse(clickEvent.defaultPrevented);
+  assertNull(jsaction.EventContract.fastClickedEvent_);
 }
 
 function sendEvent(type, target, container) {
