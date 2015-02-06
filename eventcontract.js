@@ -250,11 +250,14 @@ jsaction.EventContract.fastClickNode_;
 
 
 /**
- * The last emitted "fast clicked" event. It's used to ignore subsequent click
- * events.
- * @private {?Event}
+ * Elements for which we emitted "fast click" events, so that we need to ignore
+ * subsequent click events. Elements are removed when the click events arrive.
+ * At this point there may be a memory leak if we emit fast clicks in scenarios
+ * that do not trigger a native click event.
+ * @private {!Array.<!Element>}
+ * @const
  */
-jsaction.EventContract.fastClickedEvent_ = null;
+jsaction.EventContract.fastClickedNodes_ = [];
 
 
 /**
@@ -778,15 +781,25 @@ jsaction.EventContract.getQualifiedName_ = function(name, start, container) {
  * @private
  */
 jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
+  // TODO(user): Disable fast click emulation for browsers that don't need
+  // it (Currently Chrome 32 and IE10 with layer.style.msTouchAction == 'none').
+  var fastClickNode = jsaction.EventContract.fastClickNode_;
+  // A click event is being emitted onto what was previously the target of
+  // a fast click: Ignore this click.
   if (event.type == jsaction.EventType.CLICK) {
+    for (var i = 0; i < jsaction.EventContract.fastClickedNodes_.length; ++i) {
+      if (jsaction.EventContract.fastClickedNodes_[i] == node) {
+        jsaction.EventContract.fastClickedNodes_.splice(i, 1);
+        return null;
+      }
+    }
     return event;
   }
+
   if (event.targetTouches && event.targetTouches.length > 1) {
     // Click emulation does not make sense for multi touch.
     return event;
   }
-
-  var fastClickNode = jsaction.EventContract.fastClickNode_;
   var target = event.target;
   if (target) {
     // Don't do anything special for clicks on elements with elaborate built in
@@ -810,7 +823,6 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
             node: node,
             x: touch ? touch.clientX : 0,
             y: touch ? touch.clientY : 0};
-    jsaction.EventContract.fastClickedEvent_ = null;
     clearTimeout(jsaction.EventContract.fastClickTimeout_);
 
     // If touchend doesn't arrive within a reasonable amount of time, this is
@@ -825,10 +837,10 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
   // as a click.
   else if (event.type == jsaction.EventType.TOUCHEND &&
               fastClickNode && fastClickNode.node == node) {
-    event.stopPropagation();
+    event.preventDefault();
     var newEvent = /** @type {!Event} */ (jsaction.event.
             recreateTouchEventAsClick(event));
-    jsaction.EventContract.fastClickedEvent_ = newEvent;
+    jsaction.EventContract.fastClickedNodes_.push(node);
     return newEvent;
   }
 
@@ -854,35 +866,6 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
  */
 jsaction.EventContract.resetFastClickNode_ = function() {
   jsaction.EventContract.fastClickNode_ = null;
-};
-
-
-/**
- * This function is only relevant to "fast-click" emulation. The key is to
- * prevent "click" event to be issued twice, but preserve as much of the
- * default browser behavior as possible.
- * @param {!Event} event
- * @private
- */
-jsaction.EventContract.sweepupFastClick_ = function(event) {
-  var fastClickEvent = jsaction.EventContract.fastClickedEvent_;
-  if (fastClickEvent &&
-          fastClickEvent.target == event.target &&
-          goog.now() - fastClickEvent.timeStamp < 500) {
-    // The CLICK event arrives for a node that we previously issued a
-    // "fast click" event within a short period of time.
-
-    // 1) We cancel propagation to avoid elements receiving the event twice
-    event.stopPropagation();
-
-    // 2) If the emulated event has been default-prevented, so should be this
-    // event
-    if (fastClickEvent.defaultPrevented) {
-      event.preventDefault();
-    }
-  }
-
-  jsaction.EventContract.fastClickedEvent_ = null;
 };
 
 
@@ -999,27 +982,9 @@ jsaction.EventContract.prototype.addEvent = function(name, opt_prefixedName) {
 
   if (jsaction.EventContract.FAST_CLICK_SUPPORT &&
       name == jsaction.EventType.CLICK) {
-    this.initializeFastClick_();
-  }
-};
-
-
-/**
- * Add events needed for fast-click support.
- * @private
- */
-jsaction.EventContract.prototype.initializeFastClick_ = function() {
-  this.addEvent(jsaction.EventType.TOUCHSTART);
-  this.addEvent(jsaction.EventType.TOUCHEND);
-  this.addEvent(jsaction.EventType.TOUCHMOVE);
-  // We need to capture CLICK events to cancel clicks that were already
-  // issued based on TOUCHEND. We used a persistent global listener instead
-  // of one per touchend event, because Mobile Safari does not dispatch click
-  // events to listeners added during touchend. This will be ignored on IE8
-  // which doesn't have touch in either case.
-  if (document.addEventListener) {
-    document.addEventListener(jsaction.EventType.CLICK,
-        jsaction.EventContract.sweepupFastClick_, true);
+    this.addEvent(jsaction.EventType.TOUCHSTART);
+    this.addEvent(jsaction.EventType.TOUCHEND);
+    this.addEvent(jsaction.EventType.TOUCHMOVE);
   }
 };
 

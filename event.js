@@ -630,12 +630,8 @@ jsaction.event.recreateTouchEventAsClick = function(event) {
     }
   }
 
-  // TODO(ruilopes): b/18978823 - refactor constants in a enum
-  // Ensure that the event has the most recent timestamp. This timestamp
-  // may be used in the future to validate or cancel subsequent click events.
-  click['timeStamp'] = goog.now();
-
   // Emulate preventDefault and stopPropagation behavior
+  // TODO(ruilopes): b/18978823 - refactor constants in a enum
   click['defaultPrevented'] = false;
   click['preventDefault'] = jsaction.event.syntheticPreventDefault_;
   click['_propagationStopped'] = false;
