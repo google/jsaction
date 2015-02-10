@@ -759,6 +759,9 @@ jsaction.ActionFlow.prototype.report_ = function() {
  * @private
  */
 jsaction.ActionFlow.prototype.error_ = function(error, opt_branch, opt_tick) {
+  if (!jsaction.ActionFlow.report) {
+    return;
+  }
   var event = new jsaction.ActionFlow.Event(
       jsaction.ActionFlow.EventType.ERROR, this);
   event.error = error;
