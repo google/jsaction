@@ -525,6 +525,22 @@ function testRecreateTouchEventAsClick_behavior() {
   assertTrue(event['_propagationStopped']);
 }
 
+function testRecreateTouchEventAsClick_timeStamp() {
+  var div = document.createElement('div');
+  var origEvent = new goog.testing.events.Event('touchend', div);
+  origEvent.touches = [{
+    clientX: 1,
+    clientY: 2,
+    screenX: 3,
+    screenY: 4,
+    pageX: 5,
+    pageY: 6
+  }, {}];
+  var event = jsaction.event.recreateTouchEventAsClick(origEvent);
+  assertEquals('click', event.type);
+  assertTrue(event.timeStamp >= goog.now() - 500);
+}
+
 function testMaybeCopyEvent() {
   var div = document.createElement('div');
   document.body.appendChild(div);
