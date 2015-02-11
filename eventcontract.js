@@ -251,14 +251,6 @@ jsaction.EventContract.fastClickNode_;
 
 
 /**
- * The last emitted "fast clicked" event. It's used to ignore subsequent click
- * events.
- * @private {?Event}
- */
-jsaction.EventContract.fastClickedEvent_ = null;
-
-
-/**
  * A timer that we schedule after a touchstart. If the timer fires before the
  * touchend event, the press is considered a long-press that does not get
  * translated into a click.
@@ -792,9 +784,7 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
   if (target) {
     // Don't do anything special for clicks on elements with elaborate built in
     // click and focus behavior.
-    var type = (target.type || target.tagName || '').toUpperCase();
-    if (type == 'TEXTAREA' || type == 'TEXT' || type == 'PASSWORD' ||
-        type == 'SEARCH') {
+    if (jsaction.EventContract.isInput_(target)) {
       return event;
     }
   }
@@ -811,7 +801,6 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
             node: node,
             x: touch ? touch.clientX : 0,
             y: touch ? touch.clientY : 0};
-    jsaction.EventContract.fastClickedEvent_ = null;
     clearTimeout(jsaction.EventContract.fastClickTimeout_);
 
     // If touchend doesn't arrive within a reasonable amount of time, this is
@@ -826,11 +815,28 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
   // as a click.
   else if (event.type == jsaction.EventType.TOUCHEND &&
               fastClickNode && fastClickNode.node == node) {
-    event.stopPropagation();
     var newEvent = /** @type {!Event} */ (jsaction.event.
             recreateTouchEventAsClick(event));
-    jsaction.EventContract.fastClickedEvent_ = newEvent;
-    return newEvent;
+
+    // Cancel "touchend" and send the emulated "click" event.
+    event.stopPropagation();
+    event.preventDefault();
+    var clickEvent = jsaction.createMouseEvent(newEvent);
+    newEvent.target.dispatchEvent(clickEvent);
+    if (!clickEvent.defaultPrevented) {
+      // Remove the virtual keyboard since it's the default "touchend" behavior
+      // that we cancelled above.
+      if (document.activeElement &&
+              document.activeElement != clickEvent.target &&
+              jsaction.EventContract.isInput_(document.activeElement)) {
+        try {
+          document.activeElement.blur();
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+    return null;
   }
 
   // Touchmove is fired when the user scrolls. In this case a previous
@@ -849,58 +855,25 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
 
 
 /**
+ * Returns true if the specified element is an input.
+ * @param {!EventTarget} target
+ * @return {boolean}
+ * @private
+ */
+jsaction.EventContract.isInput_ = function(target) {
+  var type = (target.type || target.tagName || '').toUpperCase();
+  return (type == 'TEXTAREA' || type == 'TEXT' || type == 'PASSWORD' ||
+      type == 'SEARCH');
+};
+
+
+/**
  * Cancels the expectation that there might come a touchend to after a
  * touchstart, so we can synthesize a click.
  * @private
  */
 jsaction.EventContract.resetFastClickNode_ = function() {
   jsaction.EventContract.fastClickNode_ = null;
-};
-
-
-/**
- * This function is only relevant to "fast-click" emulation. The key is to
- * prevent "click" event to be issued twice, but preserve as much of the
- * default browser behavior as possible.
- * @param {!Event} event
- * @private
- */
-jsaction.EventContract.sweepupFastClick_ = function(event) {
-  var fastClickEvent = jsaction.EventContract.fastClickedEvent_;
-  jsaction.EventContract.fastClickedEvent_ = null;
-  if (fastClickEvent && goog.now() - fastClickEvent.timeStamp < 500) {
-    // The CLICK event arrives for a previously issued "fast click" event
-    // within a short period of time. The simplest case is when the target of
-    // both events is the same. However, it's not always the case, as when the
-    // content is scrolled or when overlays are shown quickly after click. In
-    // the latter case, we will have to measure the distance between the events.
-    var isSameTarget = fastClickEvent.target == event.target;
-    // Similar to "touchend" sometimes there can be a drift of the click event.
-    // In tests it has never been more than 2px in either direction, thus we
-    // will check for 4px Manhattan distance.
-    var diff = Math.abs(event.clientX - fastClickEvent.clientX) +
-        Math.abs(event.clientY - fastClickEvent.clientY);
-    if (isSameTarget || diff <= 4) {
-      // 1) We stop propagation to avoid elements receiving the event twice.
-      event.stopPropagation();
-
-      // 2) If the emulated event has been canceled, so should be this
-      // event. If the event belongs to a different target, it should be
-      // canceled as well, because it would have a fundamentally
-      // different default action from the original.
-      if (fastClickEvent.defaultPrevented || !isSameTarget) {
-        event.preventDefault();
-      }
-
-      // 3) Re-issue a new click event for the same target to restore the
-      // default behavior when the click's target has changed.
-      if (!fastClickEvent.defaultPrevented && !isSameTarget) {
-        var newClick = jsaction.createMouseEvent(fastClickEvent);
-        newClick.stopPropagation();
-        fastClickEvent.target.dispatchEvent(newClick);
-      }
-    }
-  }
 };
 
 
@@ -1030,15 +1003,6 @@ jsaction.EventContract.prototype.initializeFastClick_ = function() {
   this.addEvent(jsaction.EventType.TOUCHSTART);
   this.addEvent(jsaction.EventType.TOUCHEND);
   this.addEvent(jsaction.EventType.TOUCHMOVE);
-  // We need to capture CLICK events to cancel clicks that were already
-  // issued based on TOUCHEND. We used a persistent global listener instead
-  // of one per touchend event, because Mobile Safari does not dispatch click
-  // events to listeners added during touchend. This will be ignored on IE8
-  // which doesn't have touch in either case.
-  if (document.addEventListener) {
-    document.addEventListener(jsaction.EventType.CLICK,
-        jsaction.EventContract.sweepupFastClick_, true);
-  }
 };
 
 
