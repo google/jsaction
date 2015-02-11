@@ -208,10 +208,14 @@ jsaction.EventContract.CLICKKEY_ = 'clickkey';
  * @return {string}  Trimmed string.
  * @private
  */
-jsaction.EventContract.stringTrim_ = function(str) {
-  var trimmedLeft = str.replace(/^\s+/, '');
-  return trimmedLeft.replace(/\s+$/, '');
-};
+jsaction.EventContract.stringTrim_ = String.prototype.trim ?
+    function(str) {
+      return str.trim();
+    } :
+    function(str) {
+      var trimmedLeft = str.replace(/^\s+/, '');
+      return trimmedLeft.replace(/\s+$/, '');
+    };
 
 
 /**
@@ -487,10 +491,6 @@ jsaction.EventContract.createEventInfo_ = function(eventType, e, container) {
       element = node;
       actionInfo = jsaction.EventContract.getAction_(
           element, eventType, e, container);
-      eventInfo = jsaction.EventContract.createEventInfoInternal_(
-          actionInfo.eventType, actionInfo.event || e, target,
-          actionInfo.action || '', element,
-          eventInfo['timeStamp']);
 
       // Stop walking the DOM prematurely if we will ignore this event.  This is
       // used solely for fastbutton's implementation.
@@ -501,6 +501,12 @@ jsaction.EventContract.createEventInfo_ = function(eventType, e, container) {
           actionInfo.action) {
         break;
       }
+    }
+    if (actionInfo) {
+      eventInfo = jsaction.EventContract.createEventInfoInternal_(
+          actionInfo.eventType, actionInfo.event || e, target,
+          actionInfo.action || '', element,
+          eventInfo['timeStamp']);
     }
   }
 
