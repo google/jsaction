@@ -613,6 +613,14 @@ jsaction.EventContract.getAttr_ = function(node, attribute) {
 
 
 /**
+ * Since maps from event to action are immutable we can use a single map
+ * to represent the empty map.
+ * @private @const {!Object.<string, string>}
+ */
+jsaction.EventContract.EMPTY_ACTION_MAP_ = {};
+
+
+/**
  * Accesses the jsaction map on a node and retrieves the name of the
  * action the given event is mapped to, if any. It parses the
  * attribute value and stores it in a property on the node for
@@ -637,29 +645,43 @@ jsaction.EventContract.getAction_ = function(node, eventType, event,
     container) {
   var actionMap = jsaction.Cache.get(node);
   if (!actionMap) {
-    actionMap = {};
-    jsaction.Cache.set(node, actionMap);
     var attvalue = jsaction.EventContract.getAttr_(
         node, jsaction.Attribute.JSACTION);
-    if (attvalue) {
-      var values = attvalue.split(jsaction.EventContract.REGEXP_SEMICOLON_);
-      for (var i = 0, I = values ? values.length : 0; i < I; i++) {
-        var value = values[i];
-        if (!value) {
-          continue;
+    if (!attvalue) {
+      actionMap = jsaction.EventContract.EMPTY_ACTION_MAP_;
+      jsaction.Cache.set(node, actionMap);
+    } else {
+      actionMap = jsaction.Cache.getParsed(attvalue);
+      if (!actionMap) {
+        actionMap = {};
+        var values = attvalue.split(jsaction.EventContract.REGEXP_SEMICOLON_);
+        for (var i = 0, I = values ? values.length : 0; i < I; i++) {
+          var value = values[i];
+          if (!value) {
+            continue;
+          }
+          var colon = value.indexOf(jsaction.Char.EVENT_ACTION_SEPARATOR);
+          var hasColon = colon != -1;
+          var type = hasColon ?
+              jsaction.EventContract.stringTrim_(value.substr(0, colon)) :
+              jsaction.EventContract.defaultEventType_;
+          var action = hasColon ? jsaction.EventContract.stringTrim_(
+              value.substr(colon + 1)) : value;
+          actionMap[type] = action;
         }
-        var colon = value.indexOf(jsaction.Char.EVENT_ACTION_SEPARATOR);
-        var hasColon = colon != -1;
-        var type = hasColon ?
-            jsaction.EventContract.stringTrim_(value.substr(0, colon)) :
-            jsaction.EventContract.defaultEventType_;
-        var action = jsaction.EventContract.getQualifiedName_(
-            hasColon ? jsaction.EventContract.stringTrim_(
-                value.substr(colon + 1)) : value,
-            node, container);
-
-        actionMap[type] = action;
+        jsaction.Cache.setParsed(attvalue, actionMap);
       }
+      // If namespace support is active we need to augment the (potentially
+      // cached) jsaction mapping with the namespace.
+      if (jsaction.EventContract.JSNAMESPACE_SUPPORT) {
+        var noNs = actionMap;
+        actionMap = {};
+        for (var type in noNs) {
+          actionMap[type] = jsaction.EventContract.getQualifiedName_(
+              noNs[type], node, container);
+        }
+      }
+      jsaction.Cache.set(node, actionMap);
     }
   }
 
