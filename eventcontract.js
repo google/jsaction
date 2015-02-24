@@ -255,6 +255,14 @@ jsaction.EventContract.fastClickNode_;
 
 
 /**
+ * The last emitted "fast clicked" event. It's used to ignore subsequent click
+ * events.
+ * @private {?Event}
+ */
+jsaction.EventContract.fastClickedEvent_ = null;
+
+
+/**
  * A timer that we schedule after a touchstart. If the timer fires before the
  * touchend event, the press is considered a long-press that does not get
  * translated into a click.
@@ -829,6 +837,7 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
             node: node,
             x: touch ? touch.clientX : 0,
             y: touch ? touch.clientY : 0};
+    jsaction.EventContract.fastClickedEvent_ = null;
     clearTimeout(jsaction.EventContract.fastClickTimeout_);
 
     // If touchend doesn't arrive within a reasonable amount of time, this is
@@ -845,11 +854,13 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
               fastClickNode && fastClickNode.node == node) {
     var newEvent = /** @type {!Event} */ (jsaction.event.
             recreateTouchEventAsClick(event));
+    jsaction.EventContract.fastClickedEvent_ = newEvent;
 
     // Cancel "touchend" and send the emulated "click" event.
     event.stopPropagation();
     event.preventDefault();
     var clickEvent = jsaction.createMouseEvent(newEvent);
+    clickEvent['_fastclick'] = true;
     newEvent.target.dispatchEvent(clickEvent);
     if (!clickEvent.defaultPrevented) {
       // Remove the virtual keyboard since it's the default "touchend" behavior
@@ -902,6 +913,57 @@ jsaction.EventContract.isInput_ = function(target) {
  */
 jsaction.EventContract.resetFastClickNode_ = function() {
   jsaction.EventContract.fastClickNode_ = null;
+};
+
+
+/**
+ * In "fastclick" emulation, prevents the "click" event from being issued twice.
+ * Some browsers (specifically iOS Safari) send a "click" event even if
+ * the respective "touchend" is canceled.
+ *
+ * @param {!Event} event
+ * @private
+ */
+jsaction.EventContract.sweepupFastClick_ = function(event) {
+  if (event['_fastclick']) {
+    // It's the "fastclick" we issued - proceed uninterrupted.
+    return;
+  }
+
+  var fastClickEvent = jsaction.EventContract.fastClickedEvent_;
+  jsaction.EventContract.fastClickedEvent_ = null;
+  if (!fastClickEvent) {
+    // No recent "fastclick" - proceed uninterrupted.
+    return;
+  }
+
+  if (goog.now() - fastClickEvent.timeStamp < 400) {
+    // The CLICK event arrives for a previously issued "fastclick" event
+    // within a short period of time, 400 milliseconds in this case. This value
+    // comes from the fact that after TOUCHEND iOS Safari typically issues
+    // MOUSENTER, MOUSEOVER, MOUSEMOVE, MOUSEDOWN, MOUSEUP and finally CLICK
+    // event. The tests show that iOS issues these events one at a time with
+    // about 50-60 milliseconds in between, which sums up to about ~350-400
+    // milliseconds.
+
+    // The simplest case is when the target of both events is the same. However,
+    // it's not always the case, as when the content is scrolled or when
+    // overlays are shown quickly after click. In the latter case, we have to
+    // measure the distance between the events.
+    var isSameTarget = fastClickEvent.target == event.target;
+
+    // Similar to "touchend" sometimes there can be a drift of the click event.
+    // In tests it never was more than 2px in either direction, thus we
+    // check for 4px Manhattan distance.
+    var diff = Math.abs(event.clientX - fastClickEvent.clientX) +
+        Math.abs(event.clientY - fastClickEvent.clientY);
+    if (isSameTarget || diff <= 4) {
+      // We stop propagation and cancel event to avoid elements receiving the
+      // event twice.
+      event.stopPropagation();
+      event.preventDefault();
+    }
+  }
 };
 
 
@@ -1031,6 +1093,15 @@ jsaction.EventContract.prototype.initializeFastClick_ = function() {
   this.addEvent(jsaction.EventType.TOUCHSTART);
   this.addEvent(jsaction.EventType.TOUCHEND);
   this.addEvent(jsaction.EventType.TOUCHMOVE);
+  // We need to capture CLICK events to cancel clicks that were already
+  // issued based on TOUCHEND. The only reason for this handler is to work
+  // around an issue with iOS Safari where a CLICK event sometimes is issued
+  // even though the TOUCHEND has been canceled.
+  // This is ignored on IE8 which doesn't have touch support.
+  if (document.addEventListener) {
+    document.addEventListener(jsaction.EventType.CLICK,
+        jsaction.EventContract.sweepupFastClick_, true);
+  }
 };
 
 
