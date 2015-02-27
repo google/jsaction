@@ -207,14 +207,12 @@ jsaction.ActionFlow = function(flowType, opt_node, opt_event, opt_startTime,
   // flow. This is effective only in debug.
   jsaction.ActionFlow.registerInstance_(this);
 
-  if (goog.DEBUG) {
-    /**
-     * A unique identifier for this flow, for debugging purposes.
-     * @type {number}
-     * @private
-     */
-    this.id_ = ++jsaction.ActionFlow.nextId_;
-  }
+  /**
+   * A unique identifier for this flow.
+   * @type {number}
+   * @private
+   */
+  this.id_ = ++jsaction.ActionFlow.nextId_;
 };
 goog.inherits(jsaction.ActionFlow, goog.events.EventTarget);
 
@@ -328,15 +326,14 @@ jsaction.ActionFlow.Error = {
   TICK: 'tick'
 };
 
+/**
+ * A counter used for generating unique identifiers.
+ * @type {number}
+ * @private
+ */
+jsaction.ActionFlow.nextId_ = 0;
 
 if (goog.DEBUG) {
-  /**
-   * A counter used for generating unique identifiers.
-   * @type {number}
-   * @private
-   */
-  jsaction.ActionFlow.nextId_ = 0;
-
 
   /**
    * Specifies the flow type we want to show logging for. Only messages for this
@@ -375,16 +372,15 @@ if (goog.DEBUG) {
       }
     }
   };
-
-
-  /**
-   * Returns a unique flow identifier to be used for debugging purposes.
-   * @return {number} The unique flow identifier.
-   */
-  jsaction.ActionFlow.prototype.id = function() {
-    return this.id_;
-  };
 }
+
+/**
+ * Returns a unique flow identifier.
+ * @return {number} The unique flow identifier.
+ */
+jsaction.ActionFlow.prototype.id = function() {
+  return this.id_;
+};
 
 
 /**
