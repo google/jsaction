@@ -737,7 +737,7 @@ jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING = {
   'MENUITEM': 0,
   'MENUITEMCHECKBOX': 0,
   'MENUITEMRADIO': 0,
-  'OPTION': jsaction.KeyCodes.ENTER,
+  'OPTION': jsaction.KeyCodes.SPACE,
   'RADIO': jsaction.KeyCodes.SPACE,
   'RADIOGROUP': jsaction.KeyCodes.SPACE,
   'RESET': 0,
