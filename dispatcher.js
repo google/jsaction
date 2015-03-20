@@ -115,6 +115,12 @@ jsaction.Dispatcher = function(opt_flowFactory, opt_getHandler) {
    * @private {!Object.<string, !Array.<function(!Event):(boolean|undefined)>>}
    */
   this.globalHandlers_ = {};
+
+  /**
+   * @private {?function(
+   *     !Array.<jsaction.EventInfo>, !jsaction.Dispatcher):void}
+   */
+  this.eventReplayer_ = null;
 };
 
 
