@@ -654,6 +654,53 @@ jsaction.event.recreateTouchEventAsClick = function(event) {
 
 
 /**
+ * Returns whether the mouse-event canceling has been requested for this
+ * event. Currently only defined for "touchend" event.
+ * @param {!Event} event A touch event.
+ * @return {boolean}
+ * @package
+ */
+jsaction.event.isMouseEventsPrevented = function(event) {
+  return !!event['_mouseEventsPrevented'];
+};
+
+
+/**
+ * Instructs system to cancel mouse events that follow the specified touch
+ * event. Currently only defined for "touchend" event.
+ * @param {!Event} event A touch event.
+ * @package
+ */
+jsaction.event.preventMouseEvents = function(event) {
+  event['_mouseEventsPrevented'] = true;
+};
+
+
+/**
+ * An implementation of "_preventMouseEvents" method to the specified event.
+ * Delegates implementation to "jsaction.event.preventMouseEvents".
+ * @this {!Event}
+ * @private
+ */
+jsaction.event.syntheticPreventMouseEvents_ = function() {
+  jsaction.event.preventMouseEvents(this);
+};
+
+
+/**
+ * Adds unobfuscated "_preventMouseEvents" method to the Event. This method can
+ * be further included in externs for compilation support. This method
+ * starts with "_" to prevent potential namespace conflict with standard Event's
+ * methods.
+ * @param {!Event} event
+ * @package
+ */
+jsaction.event.addPreventMouseEventsSupport = function(event) {
+  event['_preventMouseEvents'] = jsaction.event.syntheticPreventMouseEvents_;
+};
+
+
+/**
  * An implementation of "preventDefault" for a synthesized event. Simply
  * sets "defaultPrevented" property to true.
  * @this {!Event}

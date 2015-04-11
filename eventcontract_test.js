@@ -1041,9 +1041,9 @@ function testFastClick_allowFastClick() {
 
   // The "fastclick" event will be allowed to proceed, "fastclick" is still
   // pending.
-  jsaction.EventContract.sweepupFastClick_(clickEvent);
+  jsaction.EventContract.sweepupPreventedMouseEvents_(clickEvent);
   assertFalse(clickEvent.defaultPrevented);
-  assertNotNull(jsaction.EventContract.fastClickedEvent_);
+  assertNotNull(jsaction.EventContract.preventingMouseEvents_);
 }
 
 function testFastClick_cancelFollowingClick() {
@@ -1072,10 +1072,10 @@ function testFastClick_cancelFollowingClick() {
   // Quick follow with a subsequent CLICK event, e.g. as iOS sometimes does.
   var clickEvent = new goog.testing.events.Event(jsaction.EventType.CLICK,
       element);
-  jsaction.EventContract.sweepupFastClick_(clickEvent);
+  jsaction.EventContract.sweepupPreventedMouseEvents_(clickEvent);
   // Event matched and stopped from propagating, but not canceled.
   assertTrue(clickEvent.defaultPrevented);
-  assertNull(jsaction.EventContract.fastClickedEvent_);
+  assertNull(jsaction.EventContract.preventingMouseEvents_);
 }
 
 function testFastClick_cancelFollowingClick_wrongElement() {
@@ -1105,10 +1105,10 @@ function testFastClick_cancelFollowingClick_wrongElement() {
   // However, the target is a different element!
   var clickEvent = new goog.testing.events.Event(jsaction.EventType.CLICK,
       otherElement);
-  jsaction.EventContract.sweepupFastClick_(clickEvent);
+  jsaction.EventContract.sweepupPreventedMouseEvents_(clickEvent);
   // Event didn't match.
   assertFalse(clickEvent.defaultPrevented);
-  assertNull(jsaction.EventContract.fastClickedEvent_);
+  assertNull(jsaction.EventContract.preventingMouseEvents_);
 }
 
 function testFastClick_cancelFollowingClick_oldTimestamp() {
@@ -1138,11 +1138,11 @@ function testFastClick_cancelFollowingClick_oldTimestamp() {
   // However, the new event is further in the future!
   var clickEvent = new goog.testing.events.Event(jsaction.EventType.CLICK,
       element);
-  jsaction.EventContract.fastClickedEvent_.timeStamp = goog.now() - 10000;
-  jsaction.EventContract.sweepupFastClick_(clickEvent);
+  jsaction.EventContract.preventingMouseEvents_.timeStamp = goog.now() - 10000;
+  jsaction.EventContract.sweepupPreventedMouseEvents_(clickEvent);
   // Event didn't match.
   assertFalse(clickEvent.defaultPrevented);
-  assertNull(jsaction.EventContract.fastClickedEvent_);
+  assertNull(jsaction.EventContract.preventingMouseEvents_);
 }
 
 function testFastClick_cancelFollowingClick_touchstartElsewhere() {
@@ -1172,10 +1172,10 @@ function testFastClick_cancelFollowingClick_touchstartElsewhere() {
   sendEvent(jsaction.EventType.TOUCHSTART, otherElement, container);
   var clickEvent = new goog.testing.events.Event(jsaction.EventType.CLICK,
       element);
-  jsaction.EventContract.sweepupFastClick_(clickEvent);
+  jsaction.EventContract.sweepupPreventedMouseEvents_(clickEvent);
   // Event didn't match.
   assertFalse(clickEvent.defaultPrevented);
-  assertNull(jsaction.EventContract.fastClickedEvent_);
+  assertNull(jsaction.EventContract.preventingMouseEvents_);
 }
 
 function testFastClick_retargetClickWithWrongTarget() {
@@ -1215,18 +1215,85 @@ function testFastClick_retargetClickWithWrongTarget() {
       otherElement);
   clickEvent.clientX = 101;
   clickEvent.clientY = 101;
-  jsaction.EventContract.sweepupFastClick_(clickEvent);
+  jsaction.EventContract.sweepupPreventedMouseEvents_(clickEvent);
   // Event matched, stopped AND canceled since the target doesn't match.
   assertTrue(clickEvent.defaultPrevented);
-  assertNull(jsaction.EventContract.fastClickedEvent_);
+  assertNull(jsaction.EventContract.preventingMouseEvents_);
 }
 
-function sendEvent(type, target, container, opt_template) {
+function testPreventMouseEvents_notPrevented() {
+  var container = elem('container12');
+  var element = elem('action12-1');
+  var otherElement = elem('action12-2');
+  var actionNode = element.parentNode;
+
+  // Send touchend
+  var eventInfo = sendEvent(jsaction.EventType.TOUCHEND, element, container,
+      {clientX: 0, clientY: 0});
+  assertEquals(jsaction.EventType.TOUCHEND, eventInfo.eventType);
+  assertEquals(jsaction.EventType.TOUCHEND, eventInfo.event.type);
+  assertFalse(eventInfo.event.defaultPrevented);
+  jsaction.EventContract.afterEventHandler_(eventInfo);
+  assertNull(jsaction.EventContract.preventingMouseEvents_);
+
+  var otherEvent;
+  otherEvent = createEvent('mouseup', element, {clientX: 0, clientY: 0});
+  jsaction.EventContract.sweepupPreventedMouseEvents_(otherEvent);
+  assertFalse(otherEvent.defaultPrevented);
+
+  otherEvent = createEvent('mousedown', element, {clientX: 0, clientY: 0});
+  jsaction.EventContract.sweepupPreventedMouseEvents_(otherEvent);
+  assertFalse(otherEvent.defaultPrevented);
+
+  otherEvent = createEvent('click', element, {clientX: 0, clientY: 0});
+  jsaction.EventContract.sweepupPreventedMouseEvents_(otherEvent);
+  assertFalse(otherEvent.defaultPrevented);
+}
+
+function testPreventMouseEvents_prevented() {
+  var container = elem('container12');
+  var element = elem('action12-1');
+  var otherElement = elem('action12-2');
+  var actionNode = element.parentNode;
+
+  // Send touchend
+  var eventInfo = sendEvent(jsaction.EventType.TOUCHEND, element, container,
+      {clientX: 0, clientY: 0});
+  assertEquals(jsaction.EventType.TOUCHEND, eventInfo.eventType);
+  assertEquals(jsaction.EventType.TOUCHEND, eventInfo.event.type);
+  assertFalse(eventInfo.event.defaultPrevented);
+  eventInfo.event._preventMouseEvents();
+  jsaction.EventContract.afterEventHandler_(eventInfo);
+  assertNotNull(jsaction.EventContract.preventingMouseEvents_);
+
+  var otherEvent;
+  otherEvent = createEvent('mouseup', element, {clientX: 0, clientY: 0});
+  jsaction.EventContract.sweepupPreventedMouseEvents_(otherEvent);
+  assertTrue(otherEvent.defaultPrevented);
+  assertNotNull(jsaction.EventContract.preventingMouseEvents_);
+
+  otherEvent = createEvent('mousedown', element, {clientX: 0, clientY: 0});
+  jsaction.EventContract.sweepupPreventedMouseEvents_(otherEvent);
+  assertTrue(otherEvent.defaultPrevented);
+  assertNotNull(jsaction.EventContract.preventingMouseEvents_);
+
+  otherEvent = createEvent('click', element, {clientX: 0, clientY: 0});
+  jsaction.EventContract.sweepupPreventedMouseEvents_(otherEvent);
+  assertTrue(otherEvent.defaultPrevented);
+  assertNull(jsaction.EventContract.preventingMouseEvents_);
+}
+
+function createEvent(type, target, opt_template) {
   var event = new goog.testing.events.Event(type, target);
   if (opt_template) {
     event.clientX = opt_template.clientX || 0;
     event.clientY = opt_template.clientY || 0;
   }
+  return event;
+}
+
+function sendEvent(type, target, container, opt_template) {
+  var event = createEvent(type, target, opt_template);
   return jsaction.EventContract.createEventInfo_(type, event, container);
 }
 

@@ -255,11 +255,11 @@ jsaction.EventContract.fastClickNode_;
 
 
 /**
- * The last emitted "fast clicked" event. It's used to ignore subsequent click
- * events.
+ * The last emitted touchend event. It's used to ignore subsequent mouse
+ * events when requested by "_preventMouseEvents".
  * @private {?Event}
  */
-jsaction.EventContract.fastClickedEvent_ = null;
+jsaction.EventContract.preventingMouseEvents_ = null;
 
 
 /**
@@ -383,8 +383,25 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
       eventInfo['event'] = copiedEvent;
       eventContract.queue_.push(eventInfo);
     }
+
+    jsaction.EventContract.afterEventHandler_(eventInfo);
   };
   return handler;
+};
+
+
+/**
+ * Post-processes event. Called after event has been canceled.
+ * @param {!jsaction.EventInfo} eventInfo
+ * @private
+ */
+jsaction.EventContract.afterEventHandler_ = function(eventInfo) {
+  // Setup sweeper if mouse events have been canceled.
+  if (eventInfo.event.type == jsaction.EventType.TOUCHEND &&
+     jsaction.event.isMouseEventsPrevented(eventInfo.event)) {
+    jsaction.EventContract.preventingMouseEvents_ = /** @type {!Event} */ (
+        jsaction.event.recreateTouchEventAsClick(eventInfo.event));
+  }
 };
 
 
@@ -829,7 +846,7 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
   // When a subsequent touchend arrives, it'll be interpreted as a click.
   if (event.type == jsaction.EventType.TOUCHSTART &&
       // If the jsaction binds touchstart or touchend explicitly, we don't do
-      // anything special with it
+      // anything special with it.
       !actionMap[jsaction.EventType.TOUCHSTART] &&
       !actionMap[jsaction.EventType.TOUCHEND]) {
     var touch = jsaction.event.getTouchData(event);
@@ -837,7 +854,7 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
             node: node,
             x: touch ? touch.clientX : 0,
             y: touch ? touch.clientY : 0};
-    jsaction.EventContract.fastClickedEvent_ = null;
+    jsaction.EventContract.preventingMouseEvents_ = null;
     clearTimeout(jsaction.EventContract.fastClickTimeout_);
 
     // If touchend doesn't arrive within a reasonable amount of time, this is
@@ -854,7 +871,7 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
               fastClickNode && fastClickNode.node == node) {
     var newEvent = /** @type {!Event} */ (jsaction.event.
             recreateTouchEventAsClick(event));
-    jsaction.EventContract.fastClickedEvent_ = newEvent;
+    jsaction.EventContract.preventingMouseEvents_ = newEvent;
 
     // Cancel "touchend" and send the emulated "click" event.
     event.stopPropagation();
@@ -876,6 +893,12 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
       }
     }
     return null;
+  }
+
+  // If a touchend was fired without fastclick monitoring, we still want to
+  // "enhance" it to support mouse-events canceling.
+  else if (event.type == jsaction.EventType.TOUCHEND) {
+    jsaction.event.addPreventMouseEventsSupport(event);
   }
 
   // Touchmove is fired when the user scrolls. In this case a previous
@@ -917,52 +940,65 @@ jsaction.EventContract.resetFastClickNode_ = function() {
 
 
 /**
- * In "fastclick" emulation, prevents the "click" event from being issued twice.
- * Some browsers (specifically iOS Safari) send a "click" event even if
- * the respective "touchend" is canceled.
- *
+ * On mobile browsers, touchend is typically followed by an emulated sequence of
+ * mouse events. In "fastclick" emulation and similar use cases these events are
+ * no longer necessary and could lead to duplicate event processing. Instead,
+ * the handler can instruct to cancel mouse events following "touchend" event by
+ * using the "_preventMouseEvents" method.
  * @param {!Event} event
  * @private
  */
-jsaction.EventContract.sweepupFastClick_ = function(event) {
+jsaction.EventContract.sweepupPreventedMouseEvents_ = function(event) {
   if (event['_fastclick']) {
     // It's the "fastclick" we issued - proceed uninterrupted.
     return;
   }
 
-  var fastClickEvent = jsaction.EventContract.fastClickedEvent_;
-  jsaction.EventContract.fastClickedEvent_ = null;
+  var fastClickEvent = jsaction.EventContract.preventingMouseEvents_;
   if (!fastClickEvent) {
     // No recent "fastclick" - proceed uninterrupted.
     return;
   }
 
-  if (goog.now() - fastClickEvent.timeStamp < 400) {
-    // The CLICK event arrives for a previously issued "fastclick" event
-    // within a short period of time, 400 milliseconds in this case. This value
-    // comes from the fact that after TOUCHEND iOS Safari typically issues
-    // MOUSENTER, MOUSEOVER, MOUSEMOVE, MOUSEDOWN, MOUSEUP and finally CLICK
-    // event. The tests show that iOS issues these events one at a time with
-    // about 50-60 milliseconds in between, which sums up to about ~350-400
-    // milliseconds.
+  // The mouse event has to arrive for a previously issued "fastclick" event
+  // within a short period of time, 400 milliseconds in this case. This value
+  // comes from the fact that after TOUCHEND iOS Safari typically issues
+  // MOUSENTER, MOUSEOVER, MOUSEMOVE, MOUSEDOWN, MOUSEUP and finally CLICK
+  // event. The tests show that iOS issues these events one at a time with
+  // about 50-60 milliseconds in between, which sums up to about ~350-400
+  // milliseconds.
+  if (goog.now() - fastClickEvent.timeStamp > 400) {
+    jsaction.EventContract.preventingMouseEvents_ = null;
+    return;
+  }
 
-    // The simplest case is when the target of both events is the same. However,
-    // it's not always the case, as when the content is scrolled or when
-    // overlays are shown quickly after click. In the latter case, we have to
-    // measure the distance between the events.
-    var isSameTarget = fastClickEvent.target == event.target;
+  // The simplest case is when the target of both events is the same. However,
+  // it's not always the case, as when the content is scrolled or when
+  // overlays are shown quickly after click. In the latter case, we have to
+  // measure the distance between the events.
+  var isSameTarget = fastClickEvent.target == event.target;
 
-    // Similar to "touchend" sometimes there can be a drift of the click event.
-    // In tests it never was more than 2px in either direction, thus we
-    // check for 4px Manhattan distance.
-    var diff = Math.abs(event.clientX - fastClickEvent.clientX) +
-        Math.abs(event.clientY - fastClickEvent.clientY);
-    if (isSameTarget || diff <= 4) {
-      // We stop propagation and cancel event to avoid elements receiving the
-      // event twice.
-      event.stopPropagation();
-      event.preventDefault();
-    }
+  // Similar to "touchend" sometimes there can be a drift of the click event.
+  // In tests it never was more than 2px in either direction, thus we
+  // check for 4px Manhattan distance.
+  var isNear = (Math.abs(event.clientX - fastClickEvent.clientX) +
+      Math.abs(event.clientY - fastClickEvent.clientY)) <= 4;
+
+  // If neither condition is true all mouse-events canceling for all subsequent
+  // mouse events is canceled.
+  if (!isSameTarget && !isNear) {
+    jsaction.EventContract.preventingMouseEvents_ = null;
+    return;
+  }
+
+  // We stop propagation and cancel event to avoid elements receiving the
+  // event twice.
+  event.stopPropagation();
+  event.preventDefault();
+
+  // No mouse events expected after click - stop monitoring.
+  if (event.type == jsaction.EventType.CLICK) {
+    jsaction.EventContract.preventingMouseEvents_ = null;
   }
 };
 
@@ -1100,7 +1136,11 @@ jsaction.EventContract.prototype.initializeFastClick_ = function() {
   // This is ignored on IE8 which doesn't have touch support.
   if (document.addEventListener) {
     document.addEventListener(jsaction.EventType.CLICK,
-        jsaction.EventContract.sweepupFastClick_, true);
+        jsaction.EventContract.sweepupPreventedMouseEvents_, true);
+    document.addEventListener(jsaction.EventType.MOUSEUP,
+        jsaction.EventContract.sweepupPreventedMouseEvents_, true);
+    document.addEventListener(jsaction.EventType.MOUSEDOWN,
+        jsaction.EventContract.sweepupPreventedMouseEvents_, true);
   }
 };
 

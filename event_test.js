@@ -541,6 +541,27 @@ function testRecreateTouchEventAsClick_timeStamp() {
   assertTrue(event.timeStamp >= goog.now() - 500);
 }
 
+function testPreventMouseEvents() {
+  var div = document.createElement('div');
+  var event = new goog.testing.events.Event('touchend', div);
+
+  assertFalse(jsaction.event.isMouseEventsPrevented(event));
+
+  jsaction.event.preventMouseEvents(event);
+  assertTrue(jsaction.event.isMouseEventsPrevented(event));
+}
+
+function testAddPreventMouseEventsSupport() {
+  var div = document.createElement('div');
+  var event = new goog.testing.events.Event('touchend', div);
+  jsaction.event.addPreventMouseEventsSupport(event);
+
+  assertFalse(jsaction.event.isMouseEventsPrevented(event));
+
+  event['_preventMouseEvents']();
+  assertTrue(jsaction.event.isMouseEventsPrevented(event));
+}
+
 function testMaybeCopyEvent() {
   var div = document.createElement('div');
   document.body.appendChild(div);

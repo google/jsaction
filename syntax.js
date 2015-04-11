@@ -242,6 +242,20 @@ jsaction.EventType = {
   KEYUP: 'keyup',
 
   /**
+   * The mouseup event. Can either be used directly or used implicitly to
+   * capture mouseup events. In addEvent(), it represents a regular DOM
+   * mouseup event.
+   */
+  MOUSEUP: 'mouseup',
+
+  /**
+   * The mousedown event. Can either be used directly or used implicitly to
+   * capture mouseenter events. In addEvent(), it represents a regular DOM
+   * mouseover event.
+   */
+  MOUSEDOWN: 'mousedown',
+
+  /**
    * The mouseover event. Can either be used directly or used implicitly to
    * capture mouseenter events. In addEvent(), it represents a regular DOM
    * mouseover event.
