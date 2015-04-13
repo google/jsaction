@@ -358,9 +358,17 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
     }
 
     if (jsaction.EventContract.STOP_PROPAGATION) {
-      // Since we found a jsaction, prevent other handlers from seeing
-      // this event.
-      jsaction.event.stopPropagation(e);
+      if (jsaction.event.isGecko &&
+          eventInfo['targetElement'].tagName == goog.dom.TagName.INPUT &&
+          (eventInfo['eventType'] == jsaction.EventType.FOCUS)) {
+        // Do nothing since stopping propagation a focus event on an input
+        // element in Firefox makes the text cursor disappear:
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=509684
+      } else {
+        // Since we found a jsaction, prevent other handlers from seeing
+        // this event.
+        jsaction.event.stopPropagation(e);
+      }
     }
 
     // Prevent browser from following <a> node links if a jsaction is
