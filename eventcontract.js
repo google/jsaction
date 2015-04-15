@@ -399,7 +399,7 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
 
 
 /**
- * Post-processes event. Called after event has been canceled.
+ * Post-processes event. Called after event has been sent to the handler.
  * @param {!jsaction.EventInfo} eventInfo
  * @private
  */
@@ -541,6 +541,11 @@ jsaction.EventContract.createEventInfo_ = function(eventType, e, container) {
           actionInfo.action || '', element,
           eventInfo['timeStamp']);
     }
+  }
+
+  // A touchend is "enhanced" to support mouse-events canceling.
+  if (eventInfo && eventInfo['eventType'] == jsaction.EventType.TOUCHEND) {
+    jsaction.event.addPreventMouseEventsSupport(eventInfo['event']);
   }
 
   if (actionInfo && actionInfo.action) {
@@ -901,12 +906,6 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
       }
     }
     return null;
-  }
-
-  // If a touchend was fired without fastclick monitoring, we still want to
-  // "enhance" it to support mouse-events canceling.
-  else if (event.type == jsaction.EventType.TOUCHEND) {
-    jsaction.event.addPreventMouseEventsSupport(event);
   }
 
   // Touchmove is fired when the user scrolls. In this case a previous
