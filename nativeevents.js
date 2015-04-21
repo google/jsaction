@@ -208,7 +208,7 @@ jsaction.testing.nativeEvents.fireMouseButtonEvent_ = function(
  * Creates and initializes a key event.
  * @param {string} eventType The type of event to create ("keydown", "keyup",
  *     or "keypress").
- * @param {HTMLElement} node The event target.
+ * @param {!HTMLElement} node The event target.
  * @param {number} keyCode The key code.
  * @param {number} charCode The character code produced by the key.
  * @return {Object} an initialized event object.
@@ -226,7 +226,7 @@ jsaction.testing.nativeEvents.fireKeyEvent = function(
 
 /**
  * Generates a series of events simulating a key press on the given element.
- * @param {HTMLElement} node The event target.
+ * @param {!HTMLElement} node The event target.
  * @param {number} keyCode The key code.
  * @param {number} charCode The character code produced by the key.
  */
