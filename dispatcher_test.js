@@ -73,7 +73,7 @@ function testDispatcherHandleAction_NoHandlerBound_CallLoader() {
   var mockEvent = jsaction.createEvent({type: 'click'});
 
   // The loader should get called only once.
-  loader(isObject_, 'foo');
+  loader(isObject_, 'foo', isObject_);
 
   mockControl_.$replayAll();
 

@@ -17,7 +17,7 @@ goog.require('jsaction.event');
  * A loader is a function that will do whatever is necessary to register
  * handlers for a given namespace. A loader takes a dispatcher and a namespace
  * as parameters.
- * @typedef {function(!jsaction.Dispatcher,string):void}
+ * @typedef {function(!jsaction.Dispatcher,string,jsaction.EventInfo):void}
  */
 jsaction.Loader;
 
@@ -208,7 +208,7 @@ jsaction.Dispatcher.prototype.dispatch = function(
     // If there already is a handler for the namespace, but it is not
     // yet ready to accept the event, then the namespace handler
     // might load handlers on its own, and will call replay() later.
-    this.maybeInvokeLoader_(namespace);
+    this.maybeInvokeLoader_(namespace, eventInfo);
   }
 };
 
@@ -271,17 +271,19 @@ jsaction.Dispatcher.prototype.registerNamespaceHandler = function(
  * loader is found for the namespace, invoke the default loader.
  *
  * @param {string} namespace The namespace.
+ * @param {jsaction.EventInfo} eventInfo The event info.
  * @private
  */
-jsaction.Dispatcher.prototype.maybeInvokeLoader_ = function(namespace) {
+jsaction.Dispatcher.prototype.maybeInvokeLoader_ = function(
+    namespace, eventInfo) {
   var loaderInfo = this.loaders_[namespace];
   if (!loaderInfo) {
     if (this.defaultLoader_ && !(namespace in this.defaultLoaderNamespaces_)) {
       this.defaultLoaderNamespaces_[namespace] = true;
-      this.defaultLoader_(this, namespace);
+      this.defaultLoader_(this, namespace, eventInfo);
     }
   } else if (!loaderInfo.called) {
-    loaderInfo.loader(this, namespace);
+    loaderInfo.loader(this, namespace, eventInfo);
     loaderInfo.called = true;
   }
 };
