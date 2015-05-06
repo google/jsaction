@@ -424,6 +424,33 @@ function testTrackedCallback() {
 }
 
 
+function testTrackedCallbackThrows() {
+  var flow = new jsaction.ActionFlow('test');
+  var callbackCalled = false;
+  var fn = function() {
+    callbackCalled = true;
+    throw 'foo';
+  };
+
+  var trackedCallback = flow.callback(fn, 'testbranch', 't0', 't1');
+
+  assertTrue(goog.isDef(flow.getTick('t0')));
+
+  jsaction.ActionFlow.done(flow, jsaction.Branch.MAIN);
+  assertFalse(reportSent);
+
+  try {
+    trackedCallback();
+  } catch (e) {
+    assertEquals('foo', e);
+  }
+
+  assertTrue(goog.isDef(flow.getTick('t1')));
+  assertTrue(callbackCalled);
+  assertTrue(reportSent);
+}
+
+
 function testIsOfType() {
   var flow = new jsaction.ActionFlow('foo');
   assertTrue(flow.isOfType('foo'));

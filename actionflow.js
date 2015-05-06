@@ -1284,8 +1284,11 @@ jsaction.ActionFlow.prototype.callback =
   this.branch(branchName, opt_branchTick);
   var flow = this;
   return function() {
-    var ret = fn.apply(this, arguments);
-    flow.done(branchName, opt_doneTick);
+    try {
+      var ret = fn.apply(this, arguments);
+    } finally {
+      flow.done(branchName, opt_doneTick);
+    }
     return ret;
   };
 };
