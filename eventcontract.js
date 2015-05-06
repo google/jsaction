@@ -930,9 +930,9 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
  * @private
  */
 jsaction.EventContract.isInput_ = function(target) {
-  var type = (target.type || target.tagName || '').toUpperCase();
-  return (type == 'TEXTAREA' || type == 'TEXT' || type == 'PASSWORD' ||
-      type == 'SEARCH');
+  var tagName = target.tagName || '';
+  return (tagName == 'TEXTAREA' || tagName == 'INPUT' || tagName == 'SELECT' ||
+      tagName == 'OPTION');
 };
 
 
