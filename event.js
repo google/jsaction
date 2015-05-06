@@ -790,7 +790,6 @@ jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING = {
   'RESET': 0,
   'SUBMIT': 0,
   'TAB': 0,
-  'TABLIST': 0,
   'TREE': jsaction.KeyCodes.ENTER,
   'TREEITEM': jsaction.KeyCodes.ENTER
 };
