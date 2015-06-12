@@ -968,13 +968,19 @@ jsaction.EventContract.sweepupPreventedMouseEvents_ = function(event) {
   }
 
   // The mouse event has to arrive for a previously issued "fastclick" event
-  // within a short period of time, 400 milliseconds in this case. This value
+  // within a short period of time, 800 milliseconds in this case. This value
   // comes from the fact that after TOUCHEND iOS Safari typically issues
-  // MOUSENTER, MOUSEOVER, MOUSEMOVE, MOUSEDOWN, MOUSEUP and finally CLICK
+  // MOUSEENTER, MOUSEOVER, MOUSEMOVE, MOUSEDOWN, MOUSEUP and finally CLICK
   // event. The tests show that iOS issues these events one at a time with
   // about 50-60 milliseconds in between, which sums up to about ~350-400
   // milliseconds.
-  if (goog.now() - fastClickEvent.timeStamp > 400) {
+  //
+  // Tests on Firefox 32 have shown up to 800+ milliseconds from TOUCHEND to the
+  // final CLICK event being emitted.
+  //
+  // Increasing this value is benign. It will not prevent double clicks since
+  // any subsequent TOUCHSTART will cancel this sweep.
+  if (goog.now() - fastClickEvent.timeStamp > 800) {
     jsaction.EventContract.preventingMouseEvents_ = null;
     return;
   }
