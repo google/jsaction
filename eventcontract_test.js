@@ -9,6 +9,7 @@ goog.setTestOnly('jsaction.EventContractTest');
 
 goog.require('goog.testing.MockClock');
 goog.require('goog.testing.MockControl');
+goog.require('goog.testing.PropertyReplacer');
 goog.require('goog.testing.events.Event');
 goog.require('goog.testing.jsunit');
 goog.require('goog.testing.mockmatchers');
@@ -28,12 +29,14 @@ goog.require('jsaction.replayEvent');
 
 var mockClock_;
 var mockControl_;
+var propertyReplacer_;
 var isFunction_ = goog.testing.mockmatchers.isFunction;
 var SaveArgument_ = goog.testing.mockmatchers.SaveArgument;
 
 function setUp() {
   mockControl_ = new goog.testing.MockControl;
   mockClock_ = new goog.testing.MockClock(true);
+  propertyReplacer_ = new goog.testing.PropertyReplacer();
   jsaction.EventContract.USE_EVENT_PATH = true;
   jsaction.EventContract.A11Y_CLICK_SUPPORT = true;
   jsaction.EventContract.MOUSE_SPECIAL_SUPPORT = true;
@@ -45,6 +48,7 @@ function setUp() {
 function tearDown() {
   mockControl_.$tearDown();
   mockClock_.dispose();
+  propertyReplacer_.reset();
   jsaction.EventContract.resetFastClickNode_();
   jsaction.EventContract.CUSTOM_EVENT_SUPPORT = false;
 }
@@ -1219,6 +1223,88 @@ function testFastClick_retargetClickWithWrongTarget() {
   // Event matched, stopped AND canceled since the target doesn't match.
   assertTrue(clickEvent.defaultPrevented);
   assertNull(jsaction.EventContract.preventingMouseEvents_);
+}
+
+function testFastClick_clearSelection() {
+  var container = elem('container12');
+  var element = elem('action12-1');
+  var otherElement = elem('action12-2');
+  var actionNode = element.parentNode;
+
+  var clickDispatched = false;
+  var clickEvent = null;
+  element.dispatchEvent = function(event) {
+    if (event.type == 'click') {
+      clickDispatched = true;
+      clickEvent = event;
+    }
+  };
+
+  var origGetSelection = window.getSelection;
+  var removeSelectionCalled = false;
+  propertyReplacer_.replace(window, 'getSelection', function() {
+    return {
+      removeAllRanges: function() {
+        removeSelectionCalled = true;
+      }
+    };
+  });
+  var getSelectionReplaced = origGetSelection === window.getSelection;
+
+  sendEvent(jsaction.EventType.TOUCHSTART, element, container);
+  var eventInfo = sendEvent(jsaction.EventType.TOUCHEND, element, container);
+
+  // TOUCHEND arrives and it's canceled. CLICK event is issued.
+  assertEquals(jsaction.EventType.TOUCHEND, eventInfo.eventType);
+  assertTrue(eventInfo.event.defaultPrevented);
+  assertTrue(clickDispatched);
+
+  // Remove Selection API called.
+  if (getSelectionReplaced) {
+    assertTrue(removeSelectionCalled);
+  }
+}
+
+function testFastClick_clearSelectionNotCalled() {
+  var container = elem('container12');
+  var element = elem('action12-1');
+  var otherElement = elem('action12-2');
+  var actionNode = element.parentNode;
+
+  var clickDispatched = false;
+  var clickEvent = null;
+  element.dispatchEvent = function(event) {
+    if (event.type == 'click') {
+      clickDispatched = true;
+      clickEvent = event;
+      // Cancel the issued CLICK event.
+      event.preventDefault();
+    }
+  };
+
+  var origGetSelection = window.getSelection;
+  var removeSelectionCalled = false;
+  propertyReplacer_.replace(window, 'getSelection', function() {
+    return {
+      removeAllRanges: function() {
+        removeSelectionCalled = true;
+      }
+    };
+  });
+  var getSelectionReplaced = origGetSelection === window.getSelection;
+
+  sendEvent(jsaction.EventType.TOUCHSTART, element, container);
+  var eventInfo = sendEvent(jsaction.EventType.TOUCHEND, element, container);
+
+  // TOUCHEND arrives and it's canceled. CLICK event is issued.
+  assertEquals(jsaction.EventType.TOUCHEND, eventInfo.eventType);
+  assertTrue(eventInfo.event.defaultPrevented);
+  assertTrue(clickDispatched);
+
+  // Remove Selection API was not been called.
+  if (getSelectionReplaced) {
+    assertFalse(removeSelectionCalled);
+  }
 }
 
 function testPreventMouseEvents_notPrevented() {

@@ -904,6 +904,13 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
           // ignore
         }
       }
+      // Reset selection as well. This normally done on "mousedown", but
+      // we cancel mouse events.
+      try {
+        window.getSelection().removeAllRanges();
+      } catch (e) {
+        // ignore
+      }
     }
     return null;
   }
