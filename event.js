@@ -440,12 +440,6 @@ jsaction.event.isActionKeyEvent = function(e) {
     return false;
   }
 
-  // If we're handling a bubbled event from a parent element, don't be fooled by
-  // the child element which generated the event.
-  if (e.originalTarget && e.originalTarget != el) {
-    return true;
-  }
-
   // If this element is non-focusable, ignore stray keystrokes (b/18337209)
   if (!jsaction.event.isFocusable_(el)) {
     return false;

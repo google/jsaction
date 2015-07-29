@@ -252,11 +252,6 @@ function testIsActionKeyEventMacEnter() {
   assertTrue(baseIsActionKeyEvent(jsaction.KeyCodes.MAC_ENTER));
 }
 
-function testIsActionKeyEventNotOriginalTarget() {
-  assertTrue(baseIsActionKeyEvent(
-      jsaction.KeyCodes.SPACE, document.createElement('div'), validTarget));
-}
-
 function testIsActionKeyNonControl() {
   var control = goog.dom.createDom('div');
   assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, control));
