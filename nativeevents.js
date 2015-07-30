@@ -4,7 +4,6 @@
  * @fileoverview Utility functions for generating native browser events.
  */
 goog.provide('jsaction.testing.nativeEvents');
-goog.setTestOnly('jsaction.testing.nativeEvents');
 
 goog.require('goog.dom.NodeType');
 goog.require('goog.events.BrowserEvent');
