@@ -213,6 +213,12 @@ jsaction.ActionFlow = function(flowType, opt_node, opt_event, opt_startTime,
    * @private
    */
   this.id_ = ++jsaction.ActionFlow.nextId_;
+
+  // NOTE(user): Dispatching this event must always be the last line in
+  // the constructor so that listeners will receive an initialized flow.
+  var event = new jsaction.ActionFlow.Event(
+      jsaction.ActionFlow.EventType.CREATED, this);
+  jsaction.ActionFlow.report.dispatchEvent(event);
 };
 goog.inherits(jsaction.ActionFlow, goog.events.EventTarget);
 
@@ -1422,6 +1428,16 @@ jsaction.ActionFlow.Event.prototype.finished;
  * @enum {string}
  */
 jsaction.ActionFlow.EventType = {
+  /**
+   * Fired when a flow is created. This event cannot be canceled, and so the
+   * return type of the handler is inconsequential. Because the event is
+   * triggered inside the ActionFlow constructor, handlers will be called
+   * synchronously with the new ActionFlow instance. Also because the triggering
+   * happens inside the constructor, the event is only fired on
+   * jsaction.ActionFlow.report.
+   */
+  CREATED: 'created',
+
   /**
    * Fired when the flow is done and before the DONE event is
    * fired. If a handler cancels the default action, then no DONE
