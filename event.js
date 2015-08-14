@@ -15,7 +15,10 @@ goog.provide('jsaction.EventHandlerFunction');
 goog.provide('jsaction.EventHandlerInfo');
 goog.provide('jsaction.EventInfo');
 goog.provide('jsaction.event');
+goog.provide('jsaction.event.NATIVE_HTML_CONTROLS');
 
+goog.require('goog.dom.TagName');
+goog.require('goog.structs.Set');
 goog.require('jsaction.EventType');
 goog.require('jsaction.KeyCodes');
 goog.require('jsaction.dom');
@@ -98,7 +101,7 @@ jsaction.EventHandlerInfo;
 
 
 /**
- * A function used to initialze containers in
+ * A function used to initialize containers in
  * EventContract.addContainer(). Such a function is passed an HTML DOM
  * Element and registers a specific event handler on it. The
  * EventHandlerInfo that is needed to eventually deregister the event
@@ -360,23 +363,17 @@ jsaction.event.isGecko = typeof navigator != 'undefined' &&
 /**
  * Determines and returns whether the given element is a valid target for
  * keypress/keydown DOM events that act like regular DOM clicks.
- * @param {!Element} element The element.
+ * @param {!Element} el The element.
  * @return {boolean} Whether the given element is a valid action key target.
  * @private
  */
-jsaction.event.isValidActionKeyTarget_ = function(element) {
-  if (!('getAttribute' in element)) {
+jsaction.event.isValidActionKeyTarget_ = function(el) {
+  if (!('getAttribute' in el)) {
     return false;
   }
-  var tagName = (
-      element.getAttribute('role') || element.type || element.tagName).
-      toUpperCase();
-  return tagName != 'TEXT' &&
-      tagName != 'TEXTAREA' &&
-      tagName != 'PASSWORD' &&
-      tagName != 'SEARCH' &&
-      (tagName != 'COMBOBOX' || element.tagName.toUpperCase() != 'INPUT') &&
-      !element.isContentEditable;
+  var tagName = (el.getAttribute('role') || el.tagName).toUpperCase();
+  return !jsaction.event.isTextControl_(el) &&
+      (tagName != 'COMBOBOX' || tagName != 'INPUT') && !el.isContentEditable;
 };
 
 
@@ -400,10 +397,8 @@ jsaction.event.hasModifierKey_ = function(e) {
  */
 jsaction.event.shouldCallPreventDefaultOnNativeHtmlControl = function(e) {
   var el = jsaction.event.getTarget(e);
-  var elementName = (el.getAttribute('role') || el.tagName).toUpperCase();
-  var type = el.type;
-  return elementName == 'BUTTON' || !!type &&
-      !(type.toUpperCase() in jsaction.event.PROCESS_SPACE_);
+  return jsaction.event.isNativeHTMLControl(el) &&
+      !jsaction.event.processSpace_(el) && !jsaction.event.isTextControl_(el);
 };
 
 
@@ -434,9 +429,7 @@ jsaction.event.isActionKeyEvent = function(e) {
 
   // For <input type="checkbox">, we must only handle the browser's native click
   // event, so that the browser can toggle the checkbox.
-  if (el.tagName.toUpperCase() == 'INPUT' &&
-      el.type && el.type.toUpperCase() in jsaction.event.PROCESS_SPACE_ &&
-      key == jsaction.KeyCodes.SPACE) {
+  if (jsaction.event.processSpace_(el) && key == jsaction.KeyCodes.SPACE) {
     return false;
   }
 
@@ -533,8 +526,8 @@ jsaction.event.isMouseSpecialEvent = function(e, type, element) {
            type == jsaction.EventType.MOUSEENTER) ||
           (e.type == jsaction.EventType.MOUSEOUT &&
            type == jsaction.EventType.MOUSELEAVE)) &&
-          (!related || (related !== element &&
-           !jsaction.dom.contains(element, related)));
+      (!related || (related !== element &&
+          !jsaction.dom.contains(element, related)));
 };
 
 
@@ -790,15 +783,92 @@ jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING = {
 
 
 /**
+ * Returns whether or not to process space based on the type of the element;
+ * checks to make sure that type is not null.
+ * @param {!Element} element The element.
+ * @return {boolean} Whether or not to process space based on type.
+ * @private
+ */
+jsaction.event.processSpace_ = function(element) {
+  var type = (element.getAttribute('type') || element.tagName).toUpperCase();
+  return jsaction.event.PROCESS_SPACE_.contains(type);
+};
+
+
+/**
+ * Returns whether or not the given element is a text control.
+ * @param {!Element} el The element.
+ * @return {boolean} Whether or not the given element is a text control.
+ * @private
+ */
+jsaction.event.isTextControl_ = function(el) {
+  var type = (el.getAttribute('type') || el.tagName).toUpperCase();
+  return jsaction.event.TEXT_CONTROLS_.contains(type);
+};
+
+
+/**
+ * Returns if the given element is a native HTML control.
+ * @param {!Element} el The element.
+ * @return {boolean} If the given element is a native HTML control.
+ */
+jsaction.event.isNativeHTMLControl = function(el) {
+  return jsaction.event.NATIVE_HTML_CONTROLS.contains(el.tagName.toUpperCase());
+};
+
+
+/**
  * HTML <input> types (not ARIA roles) which will auto-trigger a click event for
  * the Space key, with side-effects. We will not call preventDefault if space is
  * pressed, nor will we raise a11y click events.  For all other elements, we can
  * suppress the default event (which has no desired side-effects) and handle the
  * keydown ourselves.
- * @private @const {!Object.<string, number>}
+ * @private @const {!goog.structs.Set<string>}
  */
-jsaction.event.PROCESS_SPACE_ = {
-  'CHECKBOX': 1,
-  'OPTION': 1,
-  'RADIO': 1
-};
+jsaction.event.PROCESS_SPACE_ = new goog.structs.Set(
+    ['CHECKBOX', 'OPTION', 'RADIO']);
+
+
+/**
+ * TagNames and Input types for which to not process enter/space as click.
+ * @private @const {!goog.structs.Set<string>}
+ */
+jsaction.event.TEXT_CONTROLS_ = new goog.structs.Set([
+  'COLOR',
+  'DATE',
+  'DATETIME',
+  'DATETIME-LOCAL',
+  'EMAIL',
+  'MONTH',
+  'NUMBER',
+  'PASSWORD',
+  'RANGE',
+  'SEARCH',
+  'TEL',
+  'TEXT',
+  'TEXTAREA',
+  'TIME',
+  'URL',
+  'WEEK'
+]);
+
+
+/**
+ * TagNames that are native HTML controls.
+ * @const {!goog.structs.Set<string>}
+ */
+jsaction.event.NATIVE_HTML_CONTROLS = new goog.structs.Set([
+  goog.dom.TagName.A,
+  goog.dom.TagName.AREA,
+  goog.dom.TagName.BUTTON,
+  goog.dom.TagName.DIALOG,
+  goog.dom.TagName.IMG,
+  goog.dom.TagName.INPUT,
+  goog.dom.TagName.LINK,
+  goog.dom.TagName.MENU,
+  goog.dom.TagName.OPTGROUP,
+  goog.dom.TagName.OPTION,
+  goog.dom.TagName.PROGRESS,
+  goog.dom.TagName.SELECT,
+  goog.dom.TagName.TEXTAREA
+]);
