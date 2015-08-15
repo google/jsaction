@@ -11,7 +11,6 @@ goog.require('jsaction.EventType');
  * instantiated in a test's setUp. All listeners created in this context are
  * removed in CustomEvents#dispose, which should be called from the test's
  * tearDown.
- * @suppress {checkStructDictInheritance}
  */
 jsaction.testing.CustomEvents = goog.defineClass(goog.Disposable, {
   statics: {
