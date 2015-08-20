@@ -5,8 +5,8 @@
 goog.provide('jsaction.replayEventTest');
 goog.setTestOnly('jsaction.replayEventTest');
 
-goog.require('goog.events.EventType');
 goog.require('goog.testing.jsunit');
+goog.require('jsaction.EventType');
 goog.require('jsaction.replayEvent');
 
 
@@ -37,56 +37,56 @@ function createEventArrayForTypes(eventTypes) {
 
 function testIsUiEvent() {
   var uiEventTypes = [
-    goog.events.EventType.BLUR,
-    goog.events.EventType.FOCUS,
-    goog.events.EventType.FOCUSIN,
-    goog.events.EventType.FOCUSOUT,
-    goog.events.EventType.SCROLL
+    jsaction.EventType.BLUR,
+    jsaction.EventType.FOCUS,
+    jsaction.EventType.FOCUSIN,
+    jsaction.EventType.FOCUSOUT,
+    jsaction.EventType.SCROLL
   ];
   var uiEvents = createEventArrayForTypes(uiEventTypes);
   for (var i = 0; i < uiEvents.length; ++i) {
     assertTrue(jsaction.isUiEvent_(uiEvents[i].type));
   }
   assertFalse(jsaction.isUiEvent_(
-      {'type': goog.events.EventType.KEYUP}));
+      {'type': jsaction.EventType.KEYUP}));
 }
 
 
 function testIsKeyboardEvent() {
   var keyboardEventTypes = [
-    goog.events.EventType.KEYPRESS,
-    goog.events.EventType.KEYDOWN,
-    goog.events.EventType.KEYUP
+    jsaction.EventType.KEYPRESS,
+    jsaction.EventType.KEYDOWN,
+    jsaction.EventType.KEYUP
   ];
   var keyboardEvents = createEventArrayForTypes(keyboardEventTypes);
   for (var i = 0; i < keyboardEvents.length; ++i) {
     assertTrue(jsaction.isKeyboardEvent_(keyboardEvents[i].type));
   }
-  assertFalse(jsaction.isKeyboardEvent_(goog.events.EventType.MOUSEDOWN));
+  assertFalse(jsaction.isKeyboardEvent_(jsaction.EventType.MOUSEDOWN));
 }
 
 
 function testIsMouseEvent() {
   var mouseEventTypes = [
-    goog.events.EventType.CLICK,
-    goog.events.EventType.DBLCLICK,
-    goog.events.EventType.MOUSEDOWN,
-    goog.events.EventType.MOUSEOVER,
-    goog.events.EventType.MOUSEOUT,
-    goog.events.EventType.MOUSEMOVE
+    jsaction.EventType.CLICK,
+    jsaction.EventType.DBLCLICK,
+    jsaction.EventType.MOUSEDOWN,
+    jsaction.EventType.MOUSEOVER,
+    jsaction.EventType.MOUSEOUT,
+    jsaction.EventType.MOUSEMOVE
   ];
   var mouseEvents = createEventArrayForTypes(mouseEventTypes);
   for (var i = 0; i < mouseEvents.length; ++i) {
     assertTrue(jsaction.isMouseEvent_(mouseEvents[i].type));
   }
   assertFalse(jsaction.isMouseEvent_(
-      {'type': goog.events.EventType.KEYUP}));
+      {'type': jsaction.EventType.KEYUP}));
 }
 
 
 function testCreateUiEvent() {
   var event = {
-    'type': goog.events.EventType.BLUR,
+    'type': jsaction.EventType.BLUR,
     'bubbles': false,
     'cancelable': false,
     'view' : window,
@@ -117,7 +117,7 @@ function testCreateKeyboardModifiersList() {
 
 function testCreateKeyboardEvent() {
   var event = {
-    'type': goog.events.EventType.KEYPRESS,
+    'type': jsaction.EventType.KEYPRESS,
     'charCode': 13,
     'keyCode': 13,
     'location': 0,
@@ -137,7 +137,7 @@ function testCreateKeyboardEvent() {
 
 function testCreateMouseEvent() {
   var event = {
-    'type': goog.events.EventType.MOUSEDOWN,
+    'type': jsaction.EventType.MOUSEDOWN,
     'detail': 0,
     'screenX': 0,
     'screenY': 0,
@@ -155,14 +155,14 @@ function testCreateMouseEvent() {
 
 
 function testCreateGenericEvent() {
-  var event = {'type': goog.events.EventType.UNLOAD};
+  var event = {'type': jsaction.EventType.UNLOAD};
   assertEquals(event.type, jsaction.createGenericEvent_(event).type);
 }
 
 
 function testCreateEvent() {
   var event = {
-    'type': goog.events.EventType.MOUSEDOWN,
+    'type': jsaction.EventType.MOUSEDOWN,
     'detail': 0,
     'screenX': 0,
     'screenY': 0,

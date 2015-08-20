@@ -189,6 +189,11 @@ jsaction.EventType = {
   CLICKONLY: 'clickonly',
 
   /**
+   * The dblclick event.
+   */
+  DBLCLICK: 'dblclick',
+
+  /**
    * Focus doesn't bubble, but you can use it in addEvent() and
    * jsaction anyway. EventContract does the right thing under the
    * hood.
@@ -282,12 +287,16 @@ jsaction.EventType = {
   MOUSELEAVE: 'mouseleave',
 
   /**
+   * The mousemove event.
+   */
+  MOUSEMOVE: 'mousemove',
+
+  /**
    * The error event. The error event doesn't bubble, but you can use it in
    * addEvent() and jsaction anyway. EventContract does the right thing under
    * the hood (except in IE8 which does not use error events).
    */
   ERROR: 'error',
-
 
   /**
    * The load event. The load event doesn't bubble, but you can use it in
@@ -296,6 +305,10 @@ jsaction.EventType = {
    */
   LOAD: 'load',
 
+  /**
+   * The unload event.
+   */
+  UNLOAD: 'unload',
 
   /**
    * The touchstart event. Bubbles, will only ever fire in browsers with
@@ -303,13 +316,11 @@ jsaction.EventType = {
    */
   TOUCHSTART: 'touchstart',
 
-
   /**
    * The touchend event. Bubbles, will only ever fire in browsers with
    * touch support.
    */
   TOUCHEND: 'touchend',
-
 
   /**
    * The touchmove event. Bubbles, will only ever fire in browsers with
@@ -317,12 +328,15 @@ jsaction.EventType = {
    */
   TOUCHMOVE: 'touchmove',
 
-
   /**
    * The input event.
    */
   INPUT: 'input',
 
+  /**
+   * The scroll event.
+   */
+  SCROLL: 'scroll',
 
   /**
    * A custom event. The actual custom event type is declared as the 'type'

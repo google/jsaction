@@ -341,11 +341,28 @@ jsaction.event.isModifiedClickEvent = function(e) {
 
 /**
  * Whether we are on WebKit (e.g., Chrome).
- * @private {boolean}
+ * @const {boolean}
  */
-jsaction.event.isWebKit_ = typeof navigator != 'undefined' &&
+jsaction.event.isWebKit = typeof navigator != 'undefined' &&
     !/Opera/.test(navigator.userAgent) &&
     /WebKit/.test(navigator.userAgent);
+
+
+/**
+ * Whether we are on Safari.
+ * @const {boolean}
+ */
+jsaction.event.isSafari = typeof navigator != 'undefined' &&
+    /WebKit/.test(navigator.userAgent) &&
+    /Safari/.test(navigator.userAgent);
+
+
+/**
+ * Whether we are on IE.
+ * @const {boolean}
+ */
+jsaction.event.isIe = typeof navigator != 'undefined' &&
+    /MSIE/.test(navigator.userAgent);
 
 
 /**
@@ -418,7 +435,7 @@ jsaction.event.shouldCallPreventDefaultOnNativeHtmlControl = function(e) {
  */
 jsaction.event.isActionKeyEvent = function(e) {
   var key = e.which || e.keyCode || e.key;
-  if (jsaction.event.isWebKit_ && key == jsaction.KeyCodes.MAC_ENTER) {
+  if (jsaction.event.isWebKit && key == jsaction.KeyCodes.MAC_ENTER) {
     key = jsaction.KeyCodes.ENTER;
   }
   if (key != jsaction.KeyCodes.ENTER && key != jsaction.KeyCodes.SPACE) {

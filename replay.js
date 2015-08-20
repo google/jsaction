@@ -12,12 +12,10 @@ goog.provide('jsaction.replayEvent');
 goog.provide('jsaction.triggerEvent');
 
 goog.require('goog.asserts');
-goog.require('goog.events.EventType');
 goog.require('goog.functions');
-goog.require('goog.userAgent');
-goog.require('goog.userAgent.product');
 goog.require('jsaction');
 goog.require('jsaction.EventType');
+goog.require('jsaction.event');
 
 
 /**
@@ -37,9 +35,9 @@ jsaction.replayEvent = function(eventInfo) {
  * @private
  */
 jsaction.isKeyboardEvent_ = function(eventType) {
-  return eventType == goog.events.EventType.KEYPRESS ||
-      eventType == goog.events.EventType.KEYDOWN ||
-      eventType == goog.events.EventType.KEYUP;
+  return eventType == jsaction.EventType.KEYPRESS ||
+      eventType == jsaction.EventType.KEYDOWN ||
+      eventType == jsaction.EventType.KEYUP;
 };
 
 
@@ -51,12 +49,12 @@ jsaction.isKeyboardEvent_ = function(eventType) {
  */
 jsaction.isMouseEvent_ = function(eventType) {
   // TODO(ruilopes): Verify if Drag events should be bound here.
-  return eventType == goog.events.EventType.CLICK ||
-      eventType == goog.events.EventType.DBLCLICK ||
-      eventType == goog.events.EventType.MOUSEDOWN ||
-      eventType == goog.events.EventType.MOUSEOVER ||
-      eventType == goog.events.EventType.MOUSEOUT ||
-      eventType == goog.events.EventType.MOUSEMOVE;
+  return eventType == jsaction.EventType.CLICK ||
+      eventType == jsaction.EventType.DBLCLICK ||
+      eventType == jsaction.EventType.MOUSEDOWN ||
+      eventType == jsaction.EventType.MOUSEOVER ||
+      eventType == jsaction.EventType.MOUSEOUT ||
+      eventType == jsaction.EventType.MOUSEMOVE;
 };
 
 
@@ -69,11 +67,11 @@ jsaction.isMouseEvent_ = function(eventType) {
 jsaction.isUiEvent_ = function(eventType) {
   // Almost nobody supports the W3C method of creating FocusEvents.
   // For now, we're going to use the UIEvent as a super-interface.
-  return eventType == goog.events.EventType.FOCUS ||
-      eventType == goog.events.EventType.BLUR ||
-      eventType == goog.events.EventType.FOCUSIN ||
-      eventType == goog.events.EventType.FOCUSOUT ||
-      eventType == goog.events.EventType.SCROLL;
+  return eventType == jsaction.EventType.FOCUS ||
+      eventType == jsaction.EventType.BLUR ||
+      eventType == jsaction.EventType.FOCUSIN ||
+      eventType == jsaction.EventType.FOCUSOUT ||
+      eventType == jsaction.EventType.SCROLL;
 };
 
 
@@ -154,18 +152,9 @@ jsaction.createUiEvent = function(original, opt_eventType) {
  */
 jsaction.createKeyboardEvent = function(original, opt_eventType) {
   var event;
-  if (goog.userAgent.OPERA || goog.userAgent.product.SAFARI) {
-    // Opera < 12.14 doesn't support DOM Level 3 events in all of its extent.
-    // Opera 12.15 supports DOM Level 3 events, but not the initKeyboardEvent
-    // used below.
-    // Thus, we must fallback to a generic DOM event to trigger a keyboard
-    // event.  See details at
-    // http://my.opera.com/community/forums/topic.dml?id=185375.
-    // TODO(ruilopes): Revisit this once logs show we don't need to support
-    // older Opera versions.
-    //
-    // We also have to fall back to a generic event for Safari, which has the
-    // Webkit keyCode bug noted below, but is also incapable of fixing it with
+  if (jsaction.event.isSafari) {
+    // We have to fall back to a generic event for Safari, which has the WebKit
+    // keyCode bug noted below, but is also incapable of fixing it with
     // Object.defineProperty due to another bug:
     // https://bugs.webkit.org/show_bug.cgi?id=36423
     event = jsaction.createGenericEvent_(original, opt_eventType);
@@ -204,8 +193,7 @@ jsaction.createKeyboardEvent = function(original, opt_eventType) {
       // implemented DOM3 events.  We work around it by redefining the noted
       // properties; a simple assignment here would fail because the native
       // properties are readonly.
-      if (goog.userAgent.WEBKIT ||
-          (goog.userAgent.IE && goog.userAgent.isVersionOrHigher('9.0'))) {
+      if (jsaction.event.isWebKit || jsaction.event.isIe) {
         var keyCodeGetter = goog.functions.constant(original.keyCode);
         Object.defineProperty(event, 'keyCode', {
           get: keyCodeGetter
