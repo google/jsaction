@@ -362,7 +362,8 @@ jsaction.event.isSafari = typeof navigator != 'undefined' &&
  * @const {boolean}
  */
 jsaction.event.isIe = typeof navigator != 'undefined' &&
-    /MSIE/.test(navigator.userAgent);
+    /MSIE/.test(navigator.userAgent) ||
+    /Trident/.test(navigator.userAgent);
 
 
 /**
