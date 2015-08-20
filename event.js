@@ -789,6 +789,7 @@ jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING = {
   'BUTTON': 0,
   'CHECKBOX': jsaction.KeyCodes.SPACE,
   'COMBOBOX': jsaction.KeyCodes.ENTER,
+  'GRIDCELL': jsaction.KeyCodes.ENTER,
   'LINK': jsaction.KeyCodes.ENTER,
   'LISTBOX': jsaction.KeyCodes.ENTER,
   'MENU': 0,
