@@ -930,6 +930,37 @@ function testEventContractMaybeCreateEventInfoFastClick() {
   assertTrue(clickDispatched);
 }
 
+function testEventContractPreventDefaultCancelFastClick() {
+  var container = elem('container12');
+  var element = elem('action12-1');
+  var actionNode = element.parentNode;
+
+  var clickDispatched = false;
+  element.dispatchEvent = function(event) {
+    if (event.type == 'click') {
+      clickDispatched = true;
+    }
+  };
+
+  // Touch an element.
+  assertNull(sendEvent(
+      jsaction.EventType.TOUCHSTART, element, container).actionElement);
+  assertEquals(actionNode, jsaction.EventContract.fastClickNode_.node);
+
+  var touchendEvent = createEvent(jsaction.EventType.TOUCHEND, element);
+  touchendEvent.preventDefault();
+  var eventInfo = jsaction.EventContract.createEventInfo_(
+      jsaction.EventType.TOUCHEND, touchendEvent, container);
+
+  // TOUCHEND arrives, but prevent default on touchend event.
+  assertEquals(jsaction.EventType.TOUCHEND, eventInfo.eventType);
+  assertEquals(jsaction.EventType.TOUCHEND, eventInfo.event.type);
+  assertTrue(eventInfo.event.defaultPrevented);
+  // CLICK event is not issued.
+  assertFalse(clickDispatched);
+  assertNull(jsaction.EventContract.fastClickNode_);
+}
+
 function testEventContractMaybeCreateEventInfoFastClick_touchstartStopsMagic() {
   var container = elem('container12');
   var element = elem('action12-3');

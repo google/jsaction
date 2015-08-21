@@ -882,37 +882,41 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
   // as a click.
   else if (event.type == jsaction.EventType.TOUCHEND &&
               fastClickNode && fastClickNode.node == node) {
-    var newEvent = /** @type {!Event} */ (jsaction.event.
-            recreateTouchEventAsClick(event));
-    jsaction.EventContract.preventingMouseEvents_ = newEvent;
+    if (!event.defaultPrevented) {
+      var newEvent = /** @type {!Event} */ (jsaction.event.
+              recreateTouchEventAsClick(event));
+      jsaction.EventContract.preventingMouseEvents_ = newEvent;
 
-    // Cancel "touchend" and send the emulated "click" event.
-    event.stopPropagation();
-    event.preventDefault();
-    var clickEvent = jsaction.createMouseEvent(newEvent);
-    clickEvent['_fastclick'] = true;
-    newEvent.target.dispatchEvent(clickEvent);
-    if (!clickEvent.defaultPrevented) {
-      // Remove the virtual keyboard since it's the default "touchend" behavior
-      // that we cancelled above.
-      if (document.activeElement &&
-              document.activeElement != clickEvent.target &&
-              jsaction.EventContract.isInput_(document.activeElement)) {
+      // Cancel "touchend" and send the emulated "click" event.
+      event.stopPropagation();
+      event.preventDefault();
+      var clickEvent = jsaction.createMouseEvent(newEvent);
+      clickEvent['_fastclick'] = true;
+      newEvent.target.dispatchEvent(clickEvent);
+      if (!clickEvent.defaultPrevented) {
+        // Remove the virtual keyboard since it's the default "touchend"
+        // behavior that we cancelled above.
+        if (document.activeElement &&
+                document.activeElement != clickEvent.target &&
+                jsaction.EventContract.isInput_(document.activeElement)) {
+          try {
+            document.activeElement.blur();
+          } catch (e) {
+            // ignore
+          }
+        }
+        // Reset selection as well. This normally done on "mousedown", but
+        // we cancel mouse events.
         try {
-          document.activeElement.blur();
+          window.getSelection().removeAllRanges();
         } catch (e) {
           // ignore
         }
       }
-      // Reset selection as well. This normally done on "mousedown", but
-      // we cancel mouse events.
-      try {
-        window.getSelection().removeAllRanges();
-      } catch (e) {
-        // ignore
-      }
+      return null;
+    } else {
+      jsaction.EventContract.resetFastClickNode_();
     }
-    return null;
   }
 
   // Touchmove is fired when the user scrolls. In this case a previous
