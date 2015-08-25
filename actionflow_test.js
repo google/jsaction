@@ -12,8 +12,8 @@ goog.require('goog.events');
 goog.require('goog.object');
 goog.require('goog.testing.MockClock');
 goog.require('goog.testing.jsunit');
-goog.require('jsaction.Branch');
 goog.require('jsaction.ActionFlow');
+goog.require('jsaction.Branch');
 /** @suppress {extraRequire} */
 goog.require('jsaction.replayEvent');
 
@@ -85,8 +85,18 @@ var TICK_TIME = 415;
 function testActionFlow() {
   mockClock_.tick(CONSTRUCTION_TIME);
 
+  var createdFlow = null;
+  var creationListener = function(event) {
+    createdFlow = event.flow;
+  };
+  goog.events.listen(
+      jsaction.ActionFlow.report,
+      jsaction.ActionFlow.EventType.CREATED,
+      creationListener);
+
   var flow = new jsaction.ActionFlow('test');
   var timers = flow.timers();
+  assertEquals(flow, createdFlow);
 
   var beforeReportTriggered = false;
   goog.events.listen(flow,
