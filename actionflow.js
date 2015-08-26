@@ -508,7 +508,7 @@ jsaction.ActionFlow.prototype.setType = function(flowType) {
  * Records one tick. The tick value is relative to the start tick that
  * was recorded in the constructor.
  * @param {string} name The name of the tick.
- * @param {Object} opt_opts Options with the following optional fields:
+ * @param {Object=} opt_opts Options with the following optional fields:
  *     time: The timestamp, if it's not goog.now().
  *     doNotReportToServer: If true, do not report this tick to the
  *         server (e.g. csi or mfe).  The tick can still be used in puppet
@@ -564,8 +564,8 @@ jsaction.ActionFlow.prototype.tick = function(name, opt_opts) {
  *    flow opened by the branch() call with the same name. The
  *    implicit branch in the constructor has a reserved name
  *    (jsaction.Branch.MAIN).
- * @param {string} opt_tick Optional tick to record while we are at it.
- * @param {Object} opt_tickOpts An options object for the tick.
+ * @param {string=} opt_tick Optional tick to record while we are at it.
+ * @param {Object=} opt_tickOpts An options object for the tick.
  */
 jsaction.ActionFlow.prototype.done = function(branch, opt_tick, opt_tickOpts) {
   if (this.reportSent_ || !this.branches_[branch]) {
@@ -575,7 +575,7 @@ jsaction.ActionFlow.prototype.done = function(branch, opt_tick, opt_tickOpts) {
   }
 
   if (opt_tick) {
-    this.tick(opt_tick, opt_tickOpts);
+    this.tick(/** @type {string} */(opt_tick), opt_tickOpts);
   }
 
   this.branches_[branch]--;
@@ -632,8 +632,8 @@ jsaction.ActionFlow.prototype.finish_ = function() {
  * @param {string} branch The name of the branch that is created. The
  *     corresponding done() should use the same name to signal that
  *     the branch has finished.
- * @param {string} opt_tick Optional tick to record while we are at.
- * @param {Object} opt_tickOpts Tick configuration object. See tick()
+ * @param {string=} opt_tick Optional tick to record while we are at.
+ * @param {Object=} opt_tickOpts Tick configuration object. See tick()
  *     for more details.
  */
 jsaction.ActionFlow.prototype.branch =
@@ -1135,8 +1135,8 @@ jsaction.ActionFlow.getOi_ = function(node) {
  *
  * @param {jsaction.ActionFlow|undefined} flow The jsaction.ActionFlow object.
  * @param {string} tick The tick name.
- * @param {number} opt_time The timestamp, if it's not goog.now().
- * @param {Object} opt_opts Options.  See ActionFlow.tick for details.
+ * @param {number=} opt_time The timestamp, if it's not goog.now().
+ * @param {Object=} opt_opts Options.  See ActionFlow.tick for details.
  */
 jsaction.ActionFlow.tick = function(flow, tick, opt_time, opt_opts) {
   if (flow) {
