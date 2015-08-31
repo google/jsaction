@@ -170,6 +170,11 @@ function testIsValidActionKeyTarget() {
   search.type = 'search';
   assertEquals('search', search.type);
   assertFalse(jsaction.event.isValidActionKeyTarget_(search));
+  var holder = document.createElement('div');
+  holder.innerHTML = '<input type=\"number\"/>';
+  var num = holder.firstChild;
+  assertEquals('number', num.getAttribute('type'));
+  assertFalse(jsaction.event.isValidActionKeyTarget_(num));
 
   var div2 = document.createElement('div');
   // contentEditable only works on non-orphaned elements.
