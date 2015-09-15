@@ -855,6 +855,8 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
     }
   }
 
+  var touch = jsaction.event.getTouchData(event);
+
   // When a touchstart is fired, remember the action node in a global variable.
   // When a subsequent touchend arrives, it'll be interpreted as a click.
   if (event.type == jsaction.EventType.TOUCHSTART &&
@@ -862,7 +864,6 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
       // anything special with it.
       !actionMap[jsaction.EventType.TOUCHSTART] &&
       !actionMap[jsaction.EventType.TOUCHEND]) {
-    var touch = jsaction.event.getTouchData(event);
     jsaction.EventContract.fastClickNode_ = {
             node: node,
             x: touch ? touch.clientX : 0,
@@ -882,7 +883,12 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
   // as a click.
   else if (event.type == jsaction.EventType.TOUCHEND &&
               fastClickNode && fastClickNode.node == node) {
-    if (!event.defaultPrevented) {
+    // If the touchend is more than 4px Manhattan away from the touchstart event
+    // don't consider this a click even when on the same element. This is
+    // necessary when dragging an element and mousemove events are cancelled.
+    if (!event.defaultPrevented &&
+        !(touch && (Math.abs(touch.clientX - fastClickNode.x) +
+            Math.abs(touch.clientY - fastClickNode.y)) > 4)) {
       var newEvent = /** @type {!Event} */ (jsaction.event.
               recreateTouchEventAsClick(event));
       jsaction.EventContract.preventingMouseEvents_ = newEvent;
@@ -924,7 +930,6 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
   else if (event.type == jsaction.EventType.TOUCHMOVE && fastClickNode) {
     // Ignore jitters: iOS often sends +/- 2px touchmove events. Thus we will
     // ignore any moves with the Manhattan distance 4 pixels or less.
-    var touch = jsaction.event.getTouchData(event);
     if (touch && (Math.abs(touch.clientX - fastClickNode.x) +
             Math.abs(touch.clientY - fastClickNode.y)) > 4) {
       jsaction.EventContract.resetFastClickNode_();

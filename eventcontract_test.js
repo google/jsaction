@@ -1049,6 +1049,36 @@ function testEventContractMaybeCreateEventInfoFastClick_specialElements() {
   assertNull(jsaction.EventContract.fastClickNode_);
 }
 
+function testFastClick_distanceCancelsFastClick() {
+  var container = elem('container12');
+  var element = elem('action12-1');
+  var otherElement = elem('action12-2');
+  var actionNode = element.parentNode;
+
+  var clickDispatched = false;
+  var clickEvent = null;
+  element.dispatchEvent = function(event) {
+    if (event.type == 'click') {
+      clickDispatched = true;
+      clickEvent = event;
+    }
+  };
+
+  sendEvent(jsaction.EventType.TOUCHSTART, element, container,
+      {clientX: 100, clientY: 100});
+  var eventInfo = sendEvent(jsaction.EventType.TOUCHEND, element, container,
+      {clientX: 105, clientY: 105});
+
+  // TOUCHEND arrives, and is not canceled.
+  assertEquals(jsaction.EventType.TOUCHEND, eventInfo.eventType);
+  assertEquals(jsaction.EventType.TOUCHEND, eventInfo.event.type);
+  assertFalse(eventInfo.event.defaultPrevented);
+  // CLICK event is not issued.
+  assertFalse(clickDispatched);
+  assertNull(clickEvent);
+  assertNull(jsaction.EventContract.preventingMouseEvents_);
+}
+
 function testFastClick_allowFastClick() {
   var container = elem('container12');
   var element = elem('action12-1');
@@ -1230,7 +1260,10 @@ function testFastClick_retargetClickWithWrongTarget() {
   var otherElement = elem('action12-2');
   var actionNode = element.parentNode;
 
-  sendEvent(jsaction.EventType.TOUCHSTART, element, container);
+  sendEvent(jsaction.EventType.TOUCHSTART, element, container, {
+    clientX: 99,
+    clientY: 99
+  });
   var eventInfo = sendEvent(jsaction.EventType.TOUCHEND, element, container, {
     clientX: 101,
     clientY: 101
@@ -1405,6 +1438,12 @@ function createEvent(type, target, opt_template) {
   if (opt_template) {
     event.clientX = opt_template.clientX || 0;
     event.clientY = opt_template.clientY || 0;
+    if (type == 'touchstart' || type == 'touchend') {
+      event.touches = [{
+        clientX: event.clientX,
+        clientY: event.clientY
+      }];
+    }
   }
   return event;
 }
