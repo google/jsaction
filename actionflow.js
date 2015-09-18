@@ -392,7 +392,7 @@ jsaction.ActionFlow.prototype.id = function() {
 
 
 /**
- * Abandon this flow. No report will be sent when the flow completes.
+ * Mark this flow as abandoned. No report will be sent when the flow completes.
  */
 jsaction.ActionFlow.prototype.abandon = function() {
   this.abandoned_ = true;
@@ -710,11 +710,15 @@ jsaction.ActionFlow.prototype.branches = function() {
  * @private
  */
 jsaction.ActionFlow.prototype.report_ = function() {
-  if (this.abandoned_) {
+  if (!jsaction.ActionFlow.report) {
     return true;
   }
 
-  if (!jsaction.ActionFlow.report) {
+  if (this.abandoned_) {
+    var event = new jsaction.ActionFlow.Event(
+        jsaction.ActionFlow.EventType.ABANDONED, this);
+    this.dispatchEvent(event);
+    jsaction.ActionFlow.report.dispatchEvent(event);
     return true;
   }
 
@@ -723,7 +727,7 @@ jsaction.ActionFlow.prototype.report_ = function() {
         this.duplicateTicks_.getValues().join('|');
   }
 
-  var event = new jsaction.ActionFlow.Event(
+  event = new jsaction.ActionFlow.Event(
       jsaction.ActionFlow.EventType.BEFOREDONE, this);
 
   // BEFOREDONE fires on both the instance and the class.
@@ -1453,6 +1457,12 @@ jsaction.ActionFlow.EventType = {
    * the event.
    */
   DONE: 'done',
+
+  /**
+   * Fired when the flow is done if abandon() was called on the flow.
+   * Neither BEFOREDONE nor DONE are fired for abandoned flows.
+   */
+  ABANDONED: 'abandoned',
 
   /**
    * Fired whenever an error occurs. Can be handled even in production

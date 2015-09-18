@@ -738,6 +738,11 @@ function testAbandonActionFlow() {
         assertFalse(reportSent);
         beforeReportTriggered = true;
       });
+  var abandonedTriggered = false;
+  goog.events.listen(flow,
+      jsaction.ActionFlow.EventType.ABANDONED, function() {
+        abandonedTriggered = true;
+      });
 
   mockClock_.tick(TICK_TIME);
 
@@ -747,6 +752,7 @@ function testAbandonActionFlow() {
   flow.abandon();
 
   flow.done(jsaction.Branch.MAIN);
+  assertTrue(abandonedTriggered);
   assertFalse(beforeReportTriggered);
   assertFalse(reportSent);
   assertUndefined(reportTimingData['flowType']);
