@@ -274,6 +274,10 @@ function testIsActionKeyNormalControl() {
 
 function testIsActionKeyNonTabbableControl() {
   var control = goog.dom.createDom('button', {tabIndex: '-1'});
+  assertTrue(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, control));
+  control = goog.dom.createDom('div');
+  control.setAttribute('role', 'button');
+  control.removeAttribute('tabindex');
   assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, control));
 }
 
