@@ -451,8 +451,6 @@ jsaction.event.isActionKeyEvent = function(e) {
   }
 
   // If this element is non-focusable, ignore stray keystrokes (b/18337209)
-  // Sscreen readers can move without tab focus, so any tabIndex is focusable.
-  // See B/21809604
   if (!jsaction.event.isFocusable_(el)) {
     return false;
   }
@@ -478,7 +476,7 @@ jsaction.event.isActionKeyEvent = function(e) {
 jsaction.event.isFocusable_ = function(el) {
   return (el.tagName in jsaction.event.NATIVELY_FOCUSABLE_ELEMENTS_ ||
       jsaction.event.hasSpecifiedTabIndex_(el)) &&
-      !el.disabled;
+      el.tabIndex >= 0 && !el.disabled;
 };
 
 
