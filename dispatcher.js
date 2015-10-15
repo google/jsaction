@@ -5,6 +5,7 @@ goog.provide('jsaction.Dispatcher');
 goog.provide('jsaction.Loader');
 
 goog.require('goog.array');
+goog.require('goog.async.run');
 goog.require('goog.functions');
 goog.require('goog.object');
 goog.require('jsaction.ActionFlow');
@@ -466,9 +467,9 @@ jsaction.Dispatcher.prototype.replayQueuedEvents_ = function() {
   if (!this.eventReplayer_ || goog.array.isEmpty(this.queue_)) {
     return;
   }
-  goog.global.setTimeout(goog.bind(function() {
+  goog.async.run(function() {
     this.eventReplayer_(this.queue_, this);
-  }, this), 0);
+  }, this);
 };
 
 
