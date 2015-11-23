@@ -156,15 +156,6 @@ jsaction.ActionFlow = function(flowType, opt_node, opt_event, opt_startTime,
   this.actionData_ = {};
 
   /**
-   * Records the sampling rate for jsaction tracking related to this ActionFlow
-   * instance, or zero if none was explicitly set with the 'jstrackrate'
-   * attribute and the default sampling rate should be used for this request.
-   * @type {number}
-   * @private
-   */
-  this.actionCustomSamplingRate_ = 0;
-
-  /**
    * Collects additional data to be reported after action is done.
    * The object contains string key-value pairs. Added by
    * addExtraData().
@@ -846,7 +837,6 @@ jsaction.ActionFlow.prototype.action = function(target) {
   var jstrack = null;
   var ved = null;
   var vet = null;
-  var jstrackrate = null;
 
   jsaction.ActionFlow.visitDomNodesUpwards_(target, function(element) {
     var oi = jsaction.ActionFlow.getOi_(element);
@@ -879,9 +869,6 @@ jsaction.ActionFlow.prototype.action = function(target) {
     }
     if (!jstrack) {
       jstrack = element.getAttribute(jsaction.Attribute.JSTRACK);
-    }
-    if (!jstrackrate) {
-      jstrackrate = element.getAttribute(jsaction.Attribute.JSTRACKRATE);
     }
   });
 
@@ -922,10 +909,6 @@ jsaction.ActionFlow.prototype.action = function(target) {
   // issue and report it.
   if (ved) {
     this.actionData_[jsaction.UrlParam.VISUAL_ELEMENT_CLICK] = ved;
-  }
-
-  if (jstrackrate) {
-    this.actionCustomSamplingRate_ = parseInt(jstrackrate, 10);
   }
 };
 

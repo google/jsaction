@@ -92,15 +92,7 @@ jsaction.Attribute = {
    *
    * Used by ActionFlow.
    */
-  JSTRACK: 'jstrack',
-
-  /**
-   * The attribute jstrackrate defines a custom sampling rate for
-   * jsactions that are tracked by jstrack.
-   *
-   * Used by ActionFlow.
-   */
-  JSTRACKRATE: 'jstrackrate'
+  JSTRACK: 'jstrack'
 };
 
 
