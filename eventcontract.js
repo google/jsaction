@@ -359,7 +359,8 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
 
     if (jsaction.EventContract.STOP_PROPAGATION) {
       if (jsaction.event.isGecko &&
-          eventInfo['targetElement'].tagName == goog.dom.TagName.INPUT &&
+          (eventInfo['targetElement'].tagName == goog.dom.TagName.INPUT ||
+            eventInfo['targetElement'].tagName == goog.dom.TagName.TEXTAREA) &&
           (eventInfo['eventType'] == jsaction.EventType.FOCUS)) {
         // Do nothing since stopping propagation a focus event on an input
         // element in Firefox makes the text cursor disappear:
