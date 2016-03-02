@@ -22,7 +22,8 @@ var mockEvent = {
   shiftKey: false,
   metaKey: false,
   button: 0,
-  relatedTarget: null
+  relatedTarget: null,
+  timeStamp: 1234
 };
 
 
@@ -91,7 +92,8 @@ function testCreateUiEvent() {
     'cancelable': false,
     'view' : window,
     'detail': 0,
-    'relatedTarget': null
+    'relatedTarget': null,
+    'timeStamp': 1234
   };
   var nativeEvent = jsaction.createUiEvent(event);
   assertEquals(event.type, nativeEvent.type);
@@ -100,6 +102,7 @@ function testCreateUiEvent() {
   assertEquals(event.view, nativeEvent.view);
   assertEquals(event.detail, nativeEvent.detail);
   assertEquals(event.relatedTarget, nativeEvent.relatedTarget);
+  assertEquals(event.timeStamp, nativeEvent.originalTimestamp);
 }
 
 
@@ -127,11 +130,13 @@ function testCreateKeyboardEvent() {
     'ctrlKey': false,
     'altKey': false,
     'shiftKey': false,
-    'metaKey': false
+    'metaKey': false,
+    'timeStamp': 1234
   };
   var nativeEvent = jsaction.createKeyboardEvent(event);
   assertEquals(event.keyCode, nativeEvent.keyCode);
   assertEquals(event.type, nativeEvent.type);
+  assertEquals(event.timeStamp, nativeEvent.originalTimestamp);
 }
 
 
@@ -148,15 +153,23 @@ function testCreateMouseEvent() {
     'shiftKey': false,
     'metaKey': false,
     'button': 0,
-    'relatedTarget': null
+    'relatedTarget': null,
+    'timeStamp': 1234
   };
-  assertEquals(event.type, jsaction.createMouseEvent(event).type);
+  var nativeEvent = jsaction.createMouseEvent(event);
+  assertEquals(event.type, nativeEvent.type);
+  assertEquals(event.timeStamp, nativeEvent.originalTimestamp);
 }
 
 
 function testCreateGenericEvent() {
-  var event = {'type': jsaction.EventType.UNLOAD};
-  assertEquals(event.type, jsaction.createGenericEvent_(event).type);
+  var event = {
+    'type': jsaction.EventType.UNLOAD,
+    'timeStamp': 1234
+  };
+  var nativeEvent = jsaction.createGenericEvent_(event);
+  assertEquals(event.type, nativeEvent.type);
+  assertEquals(event.timeStamp, nativeEvent.originalTimestamp);
 }
 
 
@@ -173,9 +186,12 @@ function testCreateEvent() {
     'shiftKey': false,
     'metaKey': false,
     'button': 0,
-    'relatedTarget': null
+    'relatedTarget': null,
+    'timeStamp': 1234
   };
-  assertEquals(event.type, jsaction.createEvent(event).type);
+  var nativeEvent = jsaction.createEvent(event);
+  assertEquals(event.type, nativeEvent.type);
+  assertEquals(event.timeStamp, nativeEvent.originalTimestamp);
 }
 
 

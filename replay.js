@@ -140,6 +140,7 @@ jsaction.createUiEvent = function(original, opt_eventType) {
   // Some focus events also have a nullable relatedTarget value which isn't
   // directly supported in the initUIEvent() method.
   event.relatedTarget = original.relatedTarget || null;
+  event.originalTimestamp = original.timeStamp;
   return event;
 };
 
@@ -164,6 +165,7 @@ jsaction.createKeyboardEvent = function(original, opt_eventType) {
     event.metaKey = original.metaKey;
     event.keyCode = original.keyCode;
     event.charCode = original.charCode;
+    event.originalTimestamp = original.timeStamp;
     return event;
   }
   if (document.createEvent) {
@@ -233,6 +235,7 @@ jsaction.createKeyboardEvent = function(original, opt_eventType) {
     event.keyCode = original.keyCode;
     event.charCode = original.charCode;
   }
+  event.originalTimestamp = original.timeStamp;
   return event;
 };
 
@@ -284,6 +287,7 @@ jsaction.createMouseEvent = function(original, opt_eventType) {
     event.shiftKey = original.shiftKey;
     event.metaKey = original.metaKey;
   }
+  event.originalTimestamp = original.timeStamp;
   return event;
 };
 
@@ -313,6 +317,7 @@ jsaction.createGenericEvent_ = function(original, opt_eventType) {
     event = document.createEventObject();
     event.type = opt_eventType || original.type;
   }
+  event.originalTimestamp = original.timeStamp;
   return event;
 };
 
@@ -346,6 +351,7 @@ jsaction.createEvent = function(original, opt_eventType) {
     goog.asserts.assert(opt_eventType);
     event = jsaction.createCustomEvent(
         opt_eventType, original['detail']['data']);
+    event.originalTimestamp = original.timeStamp;
   } else {
     // This ensures we don't send an undefined event object to the replayer.
     event = jsaction.createGenericEvent_(original, opt_eventType);
