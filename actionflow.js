@@ -322,7 +322,16 @@ jsaction.ActionFlow.Error = {
   /**
    * A tick was added on the flow after the flow finished.
    */
-  TICK: 'tick'
+  TICK: 'tick',
+
+  /**
+   * Flow didn't have done() called within a time threshold.
+   *
+   * NOTE: There is no detection of this error within the ActionFlow itself.
+   * It's up to the ActionFlow client to implement detection and define the
+   * time threshold.
+   */
+  HUNG: 'hung'
 };
 
 /**
@@ -1456,6 +1465,8 @@ jsaction.ActionFlow.EventType = {
    *   after the flow finished, or
    *
    * - done called on a branch that is not pending.
+   *
+   * - an action flow client detects a suspected HUNG flow.
    */
   ERROR: 'error'
 };
