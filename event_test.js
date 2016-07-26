@@ -8,6 +8,7 @@ goog.provide('jsaction.eventTest');
 goog.setTestOnly('jsaction.eventTest');
 
 goog.require('goog.dom');
+goog.require('goog.dom.TagName');
 goog.require('goog.functions');
 goog.require('goog.testing.PropertyReplacer');
 goog.require('goog.testing.events.Event');
@@ -35,9 +36,11 @@ DivMock.prototype.attachEvent = function(event, handler) {
 
 
 var div_ = null;
-var validTarget = goog.dom.createDom('div', {tabIndex: 0, role: 'button'});
+var validTarget =
+    goog.dom.createDom(goog.dom.TagName.DIV, {tabIndex: 0, role: 'button'});
 var invalidTarget = document.createElement('div');
-var roleTarget = goog.dom.createDom('div', {tabIndex: 0, role: 'textbox'});
+var roleTarget =
+    goog.dom.createDom(goog.dom.TagName.DIV, {tabIndex: 0, role: 'textbox'});
 
 
 function setUp() {
@@ -244,7 +247,8 @@ function testIsActionKeyRealCheckBox() {
 
 
 function testIsActionKeyFakeCheckBox() {
-  var checkbox = goog.dom.createDom('div', {tabIndex: 0, role: 'checkbox'});
+  var checkbox =
+      goog.dom.createDom(goog.dom.TagName.DIV, {tabIndex: 0, role: 'checkbox'});
   assertTrue(baseIsActionKeyEvent(jsaction.KeyCodes.SPACE, checkbox));
   assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, checkbox));
 }
@@ -258,31 +262,31 @@ function testIsActionKeyEventMacEnter() {
 }
 
 function testIsActionKeyNonControl() {
-  var control = goog.dom.createDom('div');
+  var control = goog.dom.createDom(goog.dom.TagName.DIV);
   assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, control));
 }
 
 function testIsActionKeyDisabledControl() {
-  var control = goog.dom.createDom('button', {disabled: true});
+  var control = goog.dom.createDom(goog.dom.TagName.BUTTON, {disabled: true});
   assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, control));
 }
 
 function testIsActionKeyNormalControl() {
-  var control = goog.dom.createDom('button');
+  var control = goog.dom.createDom(goog.dom.TagName.BUTTON);
   assertTrue(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, control));
 }
 
 function testIsActionKeyNonTabbableControl() {
-  var control = goog.dom.createDom('button', {tabIndex: '-1'});
+  var control = goog.dom.createDom(goog.dom.TagName.BUTTON, {tabIndex: '-1'});
   assertTrue(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, control));
-  control = goog.dom.createDom('div');
+  control = goog.dom.createDom(goog.dom.TagName.DIV);
   control.setAttribute('role', 'button');
   control.removeAttribute('tabindex');
   assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, control));
 }
 
 function testIsActionKeyEventNotInMap() {
-  var control = goog.dom.createDom('div', {tabIndex: 0});
+  var control = goog.dom.createDom(goog.dom.TagName.DIV, {tabIndex: 0});
   assertTrue(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, control));
   assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.SPACE, control));
 }
@@ -618,7 +622,7 @@ function testIsSpaceKeyEvent() {
     keyCode: jsaction.KeyCodes.SPACE
   };
   assertTrue(jsaction.event.isSpaceKeyEvent(ev));
-  var input = goog.dom.createDom('input');
+  var input = goog.dom.createDom(goog.dom.TagName.INPUT);
   input.type = 'checkbox';
   ev = {
     target: input,
