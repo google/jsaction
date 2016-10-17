@@ -350,7 +350,9 @@ jsaction.createEvent = function(original, opt_eventType) {
   } else if (eventType == jsaction.EventType.CUSTOM) {
     goog.asserts.assert(opt_eventType);
     event = jsaction.createCustomEvent(
-        opt_eventType, original['detail']['data']);
+        opt_eventType,
+        original['detail']['data'],
+        original['detail']['triggeringEvent']);
     event.originalTimestamp = original.timeStamp;
   } else {
     // This ensures we don't send an undefined event object to the replayer.
