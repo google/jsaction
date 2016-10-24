@@ -66,7 +66,7 @@ If an `eventType` is not specified, JsAction will assume `click`.
 
 ### Set up
 
-```js
+```javascript
 var eventContract = new jsaction.EventContract;
 
 // Register the event types we care about.
@@ -80,7 +80,7 @@ eventContract.dispatchTo(goog.bind(dispatcher.dispatch, dispatcher));
 
 ### Register individual handlers
 
-```js
+```javascript
 /**
  * Do stuff when actions happen.
  * @param {!jsaction.ActionFlow} flow Contains the data related to the action
