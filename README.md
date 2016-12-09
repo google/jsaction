@@ -40,7 +40,7 @@ Here is a typical command line for building JsAction's dispatch_auto.js:
 java -jar compiler.jar  \
     --jsdir=./path/to/closure-library/**.js \
     --jsdir=./path/to/jsaction/**.js \
-    --output_wrapper="(function(){%output%}).call(this);" \
+    --isolation_mode=IIFE \
     --only_closure_dependencies \
     --closure_entry_point=jsaction.dispatcherAuto
 </pre>
