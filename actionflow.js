@@ -804,7 +804,7 @@ jsaction.ActionFlow.foldCadObject_ = function(object) {
     // Don't escape '|' to make it a practical character to use as a separator
     // within the value.
     var escValue = encodeURIComponent(value).replace(/%7C/g, '|');
-    cadArray.push(escKey + jsaction.Char.CAD_KEY_VALUE_SEPARATOR + value);
+    cadArray.push(escKey + jsaction.Char.CAD_KEY_VALUE_SEPARATOR + escValue);
   });
 
   return cadArray.join(jsaction.Char.CAD_SEPARATOR);
