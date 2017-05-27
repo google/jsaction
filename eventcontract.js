@@ -39,7 +39,6 @@ goog.require('jsaction.event');
 
 
 
-
 /**
  * EventContract intercepts events in the bubbling phase at the
  * boundary of a container element, and maps them to generic actions
@@ -141,7 +140,6 @@ goog.define('jsaction.EventContract.USE_EVENT_PATH', false);
  */
 jsaction.EventContract.isIos_ = typeof navigator != 'undefined' &&
     /iPhone|iPad|iPod/.test(navigator.userAgent);
-
 
 
 /**
@@ -311,13 +309,14 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
     var eventTypeForDispatch = eventType;
     if (jsaction.EventContract.CUSTOM_EVENT_SUPPORT &&
         eventTypeForDispatch == jsaction.EventType.CUSTOM) {
+      var detail = e['detail'];
       // For custom events, use a secondary dispatch based on the internal
       // custom type of the event.
-      if (!e.detail || !e.detail['_type']) {
+      if (!detail || !detail['_type']) {
         // This should never happen.
         return;
       }
-      eventTypeForDispatch = e.detail['_type'];
+      eventTypeForDispatch = detail['_type'];
     }
 
     var eventInfo = jsaction.EventContract.createEventInfo_(
@@ -501,8 +500,6 @@ jsaction.EventContract.createEventInfo_ = function(eventType, e, container) {
   }
 
   if (actionInfo && actionInfo.action) {
-
-
     // Prevent scrolling if the Space key was pressed and prevent the browser's
     // default action for native HTML controls.
     if (jsaction.EventContract.A11Y_CLICK_SUPPORT &&
@@ -594,7 +591,7 @@ jsaction.EventContract.getAttr_ = function(node, attribute) {
   // fact been removed from the DOM before eventContract begins
   // handling - where a parentNode does not have getAttribute
   // defined.
-  // NOTE(user): We must use the 'in' operator instead of the regular dot
+  // NOTE(ruilopes): We must use the 'in' operator instead of the regular dot
   // notation, since the latter fails in IE8 if the getAttribute method is not
   // defined. See b/7139109.
   if ('getAttribute' in node) {
@@ -925,8 +922,14 @@ jsaction.EventContract.containerHandlerInstaller_ = function(name, handler) {
  * If the event is already registered, this does nothing.
  *
  * @param {string} name Event name.
+ * @param {string=} opt_prefixedName If supplied, this event is used in
+ *     the actual browser event registration instead of the name that is
+ *     exposed to jsaction. Use this if you e.g. want users to be able
+ *     to subscribe to jsaction="transitionEnd:foo" while the underlying
+ *     event is webkitTransitionEnd in one browser and mozTransitionEnd
+ *     in another.
  */
-jsaction.EventContract.prototype.addEvent = function(name) {
+jsaction.EventContract.prototype.addEvent = function(name, opt_prefixedName) {
   if (this.events_.hasOwnProperty(name)) {
     return;
   }
@@ -941,7 +944,7 @@ jsaction.EventContract.prototype.addEvent = function(name) {
 
   // Install the callback which handles events on the container.
   var installer = jsaction.EventContract.containerHandlerInstaller_(
-      name, handler);
+      opt_prefixedName || name, handler);
 
   // Store the callback to allow us to replay events.
   this.events_[name] = handler;

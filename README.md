@@ -37,8 +37,14 @@ eventcontract_example.js for typical entry points.
 Here is a typical command line for building JsAction's dispatch_auto.js:
 
 <pre>
+<<<<<<< HEAD
 find path/to/closure-library path/to/jsaction -name "*.js" |
     xargs java -jar compiler.jar  \
+=======
+java -jar compiler.jar  \
+    --jsdir=./path/to/closure-library/**.js \
+    --jsdir=./path/to/jsaction/**.js \
+>>>>>>> moe_writing_branch_from_4c8812b9fff629ca48efc7364b2de05a145e6f68
     --output_wrapper="(function(){%output%})();" \
     --only_closure_dependencies \
     --closure_entry_point=jsaction.dispatcherAuto

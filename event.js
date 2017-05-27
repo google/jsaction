@@ -524,7 +524,7 @@ jsaction.event.maybeCopyEvent = function(e) {
   // Doc.createEventObject fails for non-browser events (such as custom events),
   // but those do not require copying, so we just return the existing event.
   //
-  // NOTE(user): document.createEventObject is deprecated since IE 9. Its
+  // NOTE(ruilopes): document.createEventObject is deprecated since IE 9. Its
   // usage is disallowed in IE 9 standards document mode. More information at
   // http://msdn.microsoft.com/en-us/library/ff986080(v=vs.85)
   if (doc && !doc.createEvent && doc.createEventObject) {

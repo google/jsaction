@@ -73,12 +73,14 @@ function testAddContainerInstallsHandlersForRegisteredEvents() {
   mockAddEvent(container, jsaction.EventType.TOUCHEND, isFunction_);
   mockAddEvent(container, jsaction.EventType.TOUCHMOVE, isFunction_);
   mockAddEvent(container, 'mousemove', isFunction_);
+  mockAddEvent(container, 'webkitTransitionEnd', isFunction_);
 
   mockControl_.$replayAll();
 
   var e = new jsaction.EventContract;
   e.addEvent(jsaction.EventType.CLICK);
   e.addEvent('mousemove');
+  e.addEvent('transitionEnd', 'webkitTransitionEnd');
   e.addContainer(container);
 
   mockControl_.$verifyAll();
@@ -168,35 +170,30 @@ function testDispatchCallbackGetsEventInfo() {
 }
 
 
-function testJsPropertiesParsedOnActionNode() {
-  var container = elem('container3');
-  var targetElement = elem('target3');
+function testCustomEvent() {
+  var container = elem('container16');
+  var targetElement = elem('target16');
 
-  var dispatcherCalled = false;
-  var actionElement = null;
-  var dispatchCallback = function(eventInfo) {
-    dispatcherCalled = true;
-    actionElement = eventInfo.actionElement;
+  var eventInfo = null;
+  var dispatchCallback = function(ei) {
+    eventInfo = ei;
   };
-
-  mockControl_.$replayAll();
 
   var e = new jsaction.EventContract;
   e.addContainer(container);
-  e.addEvent('click');
+  e.addEvent('event-16');
   e.dispatchTo(dispatchCallback);
 
-  // Replay a fake event to trigger a DOM event on the target element.
-  jsaction.replayEvent({
-    targetElement: targetElement,
-    event: jsaction.createEvent({type: 'click'})
-  });
+  if (!document.createEvent) {
+    // We don't care about ie8 because this feature is primarily used by
+    // Polymer, which doesn't support ie8
+    return;
+  }
 
-  assertNotNull(actionElement);
-  // Check that the jsprops have been parsed.
-  assertEquals('bar', actionElement['foo']);
-
-  mockControl_.$verifyAll();
+  var event = document.createEvent('Event');
+  event.initEvent('event-16', true, true);
+  targetElement.dispatchEvent(event);
+  assertEquals('action16', eventInfo.action);
 }
 
 
@@ -354,6 +351,33 @@ function testFindActionStopAtMatchOnSelf_EventPath() {
     event: event
   });
   assertEquals('action15', eventInfo.action);
+
+  mockControl_.$verifyAll();
+}
+
+
+function testFindActionAliased() {
+  var container = elem('container17');
+  var target = elem('target17');
+
+  var eventInfo = null;
+  var dispatchCallback = function(ei) {
+    eventInfo = ei;
+  };
+
+  mockControl_.$replayAll();
+
+  var e = new jsaction.EventContract;
+  e.addContainer(container);
+  e.addEvent('transitionEnd', 'webkitTransitionEnd');
+  e.dispatchTo(dispatchCallback);
+
+  // Replay a fake event to trigger a DOM event on the target element.
+  jsaction.replayEvent({
+    targetElement: target,
+    event: jsaction.createEvent({type: 'webkitTransitionEnd'})
+  });
+  assertEquals('transitionIsOver', eventInfo.action);
 
   mockControl_.$verifyAll();
 }

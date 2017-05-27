@@ -15,6 +15,8 @@ goog.require('goog.events.EventType');
 goog.require('goog.functions');
 goog.require('goog.userAgent');
 goog.require('goog.userAgent.product');
+goog.require('jsaction');
+goog.require('jsaction.EventType');
 
 
 /**
@@ -47,7 +49,7 @@ jsaction.isKeyboardEvent_ = function(eventType) {
  * @private
  */
 jsaction.isMouseEvent_ = function(eventType) {
-  // TODO(user): Verify if Drag events should be bound here.
+  // TODO(ruilopes): Verify if Drag events should be bound here.
   return eventType == goog.events.EventType.CLICK ||
       eventType == goog.events.EventType.DBLCLICK ||
       eventType == goog.events.EventType.MOUSEDOWN ||
@@ -157,7 +159,7 @@ jsaction.createKeyboardEvent = function(original, opt_eventType) {
     // Thus, we must fallback to a generic DOM event to trigger a keyboard
     // event.  See details at
     // http://my.opera.com/community/forums/topic.dml?id=185375.
-    // TODO(user): Revisit this once logs show we don't need to support
+    // TODO(ruilopes): Revisit this once logs show we don't need to support
     // older Opera versions.
     //
     // We also have to fall back to a generic event for Safari, which has the
@@ -327,9 +329,9 @@ jsaction.createGenericEvent_ = function(original, opt_eventType) {
 
 /**
  * Creates an event object for replaying through the DOM.
- * NOTE(user): This function is visible just for testing.  Please don't use
+ * NOTE(ruilopes): This function is visible just for testing.  Please don't use
  * it outside JsAction internal testing.
- * TODO(user): Add support for FocusEvent and WheelEvent.
+ * TODO(ruilopes): Add support for FocusEvent and WheelEvent.
  * @param {!Event} original The event to create a new event from.
  * @param {string=} opt_eventType The type this event is being handled as by
  *     jsaction. E.g. a keypress is handled as click in some cases.
@@ -337,13 +339,23 @@ jsaction.createGenericEvent_ = function(original, opt_eventType) {
  */
 jsaction.createEvent = function(original, opt_eventType) {
   var event;
-  var eventType = opt_eventType || original.type;
+  var eventType;
+  if (original.type == jsaction.EventType.CUSTOM) {
+    eventType = jsaction.EventType.CUSTOM;
+  } else {
+    eventType = opt_eventType || original.type;
+  }
+
   if (jsaction.isKeyboardEvent_(eventType)) {
     event = jsaction.createKeyboardEvent(original, opt_eventType);
   } else if (jsaction.isMouseEvent_(eventType)) {
     event = jsaction.createMouseEvent(original, opt_eventType);
   } else if (jsaction.isFocusEvent_(eventType)) {
     event = jsaction.createFocusEvent(original, opt_eventType);
+  } else if (eventType == jsaction.EventType.CUSTOM) {
+    goog.asserts.assert(opt_eventType);
+    event = jsaction.createCustomEvent(
+        opt_eventType, original['detail']['data']);
   } else {
     // This ensures we don't send an undefined event object to the replayer.
     event = jsaction.createGenericEvent_(original, opt_eventType);
