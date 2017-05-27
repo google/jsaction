@@ -575,7 +575,7 @@ jsaction.ActionFlow.prototype.done = function(branch, opt_tick, opt_tickOpts) {
   }
 
   if (opt_tick) {
-    this.tick(opt_tick, opt_tickOpts);
+    this.tick(/** @type {string} */(opt_tick), opt_tickOpts);
   }
 
   this.branches_[branch]--;

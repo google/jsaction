@@ -297,12 +297,11 @@ jsaction.EventContract.setDefaultEventType = function(eventType) {
  * @private
  */
 jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
-  /**
+  return (/**
    * See description above.
    * @param {!Event} e Event.
    * @this {!Element}
-   */
-  return function(e) {
+   */(function(e) {
     var container = this;
     // Store eventType's value in a local variable so that multiple calls do not
     // modify the shared eventType variable.
@@ -369,7 +368,7 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
       eventInfo['event'] = copiedEvent;
       eventContract.queue_.push(eventInfo);
     }
-  };
+  }));
 };
 
 
@@ -904,14 +903,14 @@ if (jsaction.EventContract.JSNAMESPACE_SUPPORT) {
  * @private
  */
 jsaction.EventContract.containerHandlerInstaller_ = function(name, handler) {
+  return (
   /**
    * @param {!Element} div The container to install this handler on.
    * @return {jsaction.EventHandlerInfo} The event name and the
    *    handler installed by the function.
-   */
-  return function(div) {
+   */(function(div) {
     return jsaction.event.addEventListener(div, name, handler);
-  };
+  }));
 };
 
 
