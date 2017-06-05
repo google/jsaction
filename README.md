@@ -73,6 +73,9 @@ var eventContract = new jsaction.EventContract;
 eventContract.addEvent('click');
 eventContract.addEvent('dblclick');
 
+// A container element to sign the event contract to.
+eventContract.addContainer(/** @type {!Element} */(window.document.body));
+
 var dispatcher = new jsaction.Dispatcher;
 
 eventContract.dispatchTo(goog.bind(dispatcher.dispatch, dispatcher));
