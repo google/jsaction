@@ -17,7 +17,7 @@ may late load the implementations, while the app is always able to respond to
 user actions marked up through JsAction. This can help in greatly reducing page
 load time, in particular for server side rendered apps.
 
-# Building
+## Building
 
 JsAction is built using the [Closure
 Compiler](http://github.com/google/closure-compiler). You can obtain a recent
@@ -44,7 +44,21 @@ find path/to/closure-library path/to/jsaction -name "*.js" |
     --closure_entry_point=jsaction.dispatcherAuto
 </pre>
 
-# Usage
+## Using drop-in scripts
+
+If you would like to test out JsAction, you can link precompiled scripts into
+your page.
+
+```html
+
+<script src="https://www.gstatic.com/jsaction/contract.js"></script>
+
+...
+
+<script src="https://www.gstatic.com/jsaction/dispatcher.js" async></script>
+```
+
+## Usage
 
 ## In the DOM
 
@@ -58,9 +72,11 @@ where each one takes the form:
 If an `eventType` is not specified, JsAction will assume `click`.
 
 ```html
-<div id="foo"
-     jsaction="leftNav.clickAction;dblclick:leftNav.doubleClickAction">
-  some content here
+<div id="container">
+  <div id="foo"
+       jsaction="leftNav.clickAction;dblclick:leftNav.doubleClickAction">
+    some content here
+  </div>
 </div>
 ```
 
@@ -69,15 +85,17 @@ If an `eventType` is not specified, JsAction will assume `click`.
 ### Set up
 
 ```javascript
-var eventContract = new jsaction.EventContract;
+const eventContract = new jsaction.EventContract();
+
+// Events will be handled for all elements under this container.
+eventContract.addContainer(document.getElementById('container'));
 
 // Register the event types we care about.
 eventContract.addEvent('click');
 eventContract.addEvent('dblclick');
 
-var dispatcher = new jsaction.Dispatcher;
-
-eventContract.dispatchTo(goog.bind(dispatcher.dispatch, dispatcher));
+const dispatcher = new jsaction.Dispatcher();
+eventContract.dispatchTo(dispatcher.dispatch.bind(dispatcher));
 ```
 
 ### Register individual handlers
@@ -88,17 +106,16 @@ eventContract.dispatchTo(goog.bind(dispatcher.dispatch, dispatcher));
  * @param {!jsaction.ActionFlow} flow Contains the data related to the action
  *     and more. See actionflow.js.
  */
-myapp.LeftNav.prototype.doStuff = function(flow) {
+const doStuff = function(flow) {
   // do stuff
+  alert('doStuff called!');
 };
 
-myapp.LeftNav.prototype.registerHandlers = function() {
-  dispatcher.registerHandlers(
-      'leftNav',                       // the namespace
-      this,                            // handler object
-      {                                // action map
-        'clickAction' : this.doStuff,
-        'doubleClickAction' : this.doStuff
-      });
-};
+dispatcher.registerHandlers(
+    'leftNav',                       // the namespace
+    null,                            // handler object
+    {                                // action map
+      'clickAction' : doStuff,
+      'doubleClickAction' : doStuff
+    });
 ```
