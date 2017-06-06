@@ -19,17 +19,17 @@ load time, in particular for server side rendered apps.
 
 # Building
 
-JsAction is built using the
-[Closure Compiler](http://github.com/google/closure-compiler).
-You can obtain a recent compiler from the site.
+JsAction is built using the [Closure
+Compiler](http://github.com/google/closure-compiler). You can obtain a recent
+compiler from the site.
 
-JsAction depends on the
-[Closure Library](http://github.com/google/closure-library).
-You can obtain a copy of the library from the GitHub repository.
+JsAction depends on the [Closure
+Library](http://github.com/google/closure-library). You can obtain a copy of the
+library from the GitHub repository.
 
-The compiler is able to handle dependency ordering automatically with
-the `--only_closure_dependencies` flag. It needs to be provided with
-the sources and any entry points.
+The compiler is able to handle dependency ordering automatically with the
+`--only_closure_dependencies` flag. It needs to be provided with the sources and
+any entry points.
 
 See the files dispatch_auto.js, eventcontract_auto.js, and
 eventcontract_example.js for typical entry points.
@@ -37,16 +37,17 @@ eventcontract_example.js for typical entry points.
 Here is a typical command line for building JsAction's dispatch_auto.js:
 
 <pre>
-java -jar compiler.jar  \
-    --jsdir=./path/to/closure-library/**.js \
-    --jsdir=./path/to/jsaction/**.js \
-    --isolation_mode=IIFE \
+find path/to/closure-library path/to/jsaction -name "*.js" |
+    xargs java -jar compiler.jar  \
+    --output_wrapper="(function(){%output%})();" \
     --only_closure_dependencies \
     --closure_entry_point=jsaction.dispatcherAuto
 </pre>
 
 # Usage
+
 ## In the DOM
+
 Actions are indicated with the `jsaction` attribute. They are separated by `;`,
 where each one takes the form:
 
@@ -86,7 +87,6 @@ eventContract.dispatchTo(goog.bind(dispatcher.dispatch, dispatcher));
  * Do stuff when actions happen.
  * @param {!jsaction.ActionFlow} flow Contains the data related to the action
  *     and more. See actionflow.js.
- *
  */
 myapp.LeftNav.prototype.doStuff = function(flow) {
   // do stuff
