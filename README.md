@@ -60,6 +60,9 @@ your page.
 
 ## Usage
 
+You can play around with JsAction already set up with the following directions
+at https://jsfiddle.net/q2eacgs7/.
+
 ## In the DOM
 
 Actions are indicated with the `jsaction` attribute. They are separated by `;`,
