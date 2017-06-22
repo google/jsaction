@@ -122,3 +122,86 @@ dispatcher.registerHandlers(
       'doubleClickAction' : doStuff
     });
 ```
+
+## Late loading the JsAction dispatcher and event handlers
+
+JsAction splits the event contract and dispatcher into two separably loadable
+binaries. This allows applications to load the small event contract early on the
+page to capture events, and load the dispatcher and event handlers at a later
+time. Since captured events are queued until the dispatcher loads, this pattern
+can ensure that user events are not lost even if they happen before the primary
+event handlers load.
+
+Visit http://jsfiddle.net/880m0tpd/4/ to try out a working example.
+
+### Load the contract early in the page
+
+Just like in the regular example, in this example the event contract is loaded
+very early on the page, ideally in the head of the page.
+
+```html
+<script id="contract" src="https://www.gstatic.com/jsaction/contract.js"></script>
+<script>
+  const eventContract = new jsaction.EventContract();
+
+  // Events will be handled for all elements on the page.
+  eventContract.addContainer(window.document.documentElement);
+
+  // Register the event types handled by JsAction.
+  eventContract.addEvent('click');
+</script>
+
+<button jsaction="button.handleEvent">
+  click here to capture events
+</button>
+```
+
+The event contract is configured to capture events for the entire page. Since
+the dispatcher and event handlers are not loaded yet, the event contract will
+just queue the events if the user tries to interact with the page. These events
+can then be replayed after the dispatcher and event handlers are loaded, which
+will be shown in this example next. This will ensure that no user interaction is
+lost, even if it happens before the code is loaded.
+
+### Loading the dispatcher and replaying events
+
+At any point later in the page, the dispatcher and event handlers can be loaded
+and any queued events can be replayed.
+
+After the dispatcher and event handler code loads, you will configure the
+dispatcher just like in the regular example:
+
+```javascript
+// This is the actual event handler code.
+function handleEvent() {
+  alert('event handled!');
+}
+
+// Initialize the dispatcher, register the handlers, and then replay the queued events.
+const dispatcher = new jsaction.Dispatcher();
+eventContract.dispatchTo(dispatcher.dispatch.bind(dispatcher));
+dispatcher.registerHandlers(
+    'button',
+    null,
+    { 'handleEvent': handleEvent });
+```
+
+There is some new code to replay the queued events:
+
+```javascript
+// This code replays the queued events. Applications can define custom replay
+// strategies.
+function replayEvents(events, jsActionDispatcher) {
+  while (events.length) {
+    jsActionDispatcher.dispatch(events.shift());
+  }
+}
+
+// This will automatically trigger the event replayer to run if there are
+// queued events.
+dispatcher.setEventReplayer(replayEvents);
+```
+
+Now any events that happen during page load before the JS has loaded will be
+replayed when the primary JS does load, ensuring that user interactions are not
+lost.

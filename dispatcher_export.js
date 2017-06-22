@@ -25,3 +25,6 @@ goog.exportSymbol(
 goog.exportSymbol(
     'jsaction.Dispatcher.prototype.registerHandlers',
     jsaction.Dispatcher.prototype.registerHandlers);
+goog.exportSymbol(
+    'jsaction.Dispatcher.prototype.setEventReplayer',
+    jsaction.Dispatcher.prototype.setEventReplayer);
