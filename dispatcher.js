@@ -311,7 +311,8 @@ jsaction.Dispatcher.getNamespace_ = function(action) {
 jsaction.Dispatcher.createActionFlow_ = function(eventInfo) {
   return new jsaction.ActionFlow(
       eventInfo['action'], eventInfo['actionElement'], eventInfo['event'],
-      eventInfo['timeStamp'], eventInfo['eventType']);
+      eventInfo['timeStamp'], eventInfo['eventType'],
+      eventInfo['targetElement']);
 };
 
 

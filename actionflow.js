@@ -32,16 +32,17 @@ goog.require('jsaction.event');
  *     this is the name of the jsaction, including the
  *     namespace. Otherwise it is whatever name the client application
  *     choses to track its actions by.
- * @param {Element} opt_node The node.
- * @param {Event} opt_event The event.
- * @param {number} opt_startTime The time at which the flow started,
+ * @param {Element=} opt_node The node.
+ * @param {Event=} opt_event The event.
+ * @param {number=} opt_startTime The time at which the flow started,
  *     defaulting to the current time.
  * @param {?string=} opt_eventType The jsaction event type, e.g. "click".
+ * @param {!Element=} opt_target The event target
  * @constructor
  * @extends {goog.events.EventTarget}
  */
-jsaction.ActionFlow = function(flowType, opt_node, opt_event, opt_startTime,
-    opt_eventType) {
+jsaction.ActionFlow = function(
+    flowType, opt_node, opt_event, opt_startTime, opt_eventType, opt_target) {
   jsaction.ActionFlow.base(this, 'constructor');
 
   /**
@@ -84,6 +85,18 @@ jsaction.ActionFlow = function(flowType, opt_node, opt_event, opt_startTime,
    * @private
    */
   this.eventType_ = opt_eventType || null;
+
+  /**
+   * The target of the event.
+   * @type {?Element}
+   * @private
+   */
+  this.target_ = opt_target || null;
+
+  if (!this.target_ && opt_event && opt_event.target &&
+      goog.dom.isElement(opt_event.target)) {
+    this.target_ = /** @type {!Element} */ (opt_event.target);
+  }
 
   /**
    * The collection of timers, as an array of pairs of [name,value].
@@ -1340,6 +1353,20 @@ jsaction.ActionFlow.prototype.event = function() {
  */
 jsaction.ActionFlow.prototype.eventType = function() {
   return this.eventType_;
+};
+
+
+/**
+ * Returns the target of the event.
+ *
+ * This is provided as a separate function from event().target because in some
+ * cases, the target becomes null on an Event after a JavaScript tick (such as
+ * the load event).
+ *
+ * @return {?Element}
+ */
+jsaction.ActionFlow.prototype.target = function() {
+  return this.target_;
 };
 
 
