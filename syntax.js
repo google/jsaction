@@ -155,6 +155,12 @@ jsaction.Char = {
  */
 jsaction.EventType = {
   /**
+   * Mouse middle click, introduced in Chrome 55 and not yet supported on
+   * other browsers.
+   */
+  AUXCLICK: 'auxclick',
+
+  /**
    * The click event. In addEvent() refers to all click events, in the
    * jsaction attribute it refers to the unmodified click and Enter/Space
    * keypress events.  In the latter case, a jsaction click will be triggered,
