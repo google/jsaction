@@ -173,8 +173,26 @@ jsaction.event.addEventListener = function(element, eventType, handler) {
         eventType == jsaction.EventType.LOAD) {
       capture = true;
     }
-    element.addEventListener(
-        eventType, /** @type {EventListener} */(handler), capture);
+    var supportsPassive = false;
+    try {
+      var opts = Object.defineProperty({}, 'passive', {
+        get: function() {
+          supportsPassive = true;
+        }
+      });
+      window.addEventListener('test', null, opts);
+    } catch (e) {
+    }
+    if (supportsPassive &&
+        (eventType == jsaction.EventType.TOUCHMOVE ||
+         eventType == jsaction.EventType.TOUCHSTART)) {
+      element.addEventListener(
+          eventType,
+          /** @type {!EventListener} */ (handler), {'passive': false});
+    } else {
+      element.addEventListener(
+          eventType, /** @type {!EventListener} */ (handler), capture);
+    }
 
   } else if (element.attachEvent) {
     if (eventType == jsaction.EventType.FOCUS) {
