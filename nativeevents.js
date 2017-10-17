@@ -9,6 +9,7 @@ goog.setTestOnly();
 goog.require('goog.dom.NodeType');
 goog.require('goog.events.BrowserEvent');
 goog.require('goog.events.EventType');
+goog.require('goog.object');
 goog.require('goog.style');
 goog.require('goog.testing.events.Event');
 goog.require('jsaction.createKeyboardEvent');
@@ -262,16 +263,15 @@ jsaction.testing.nativeEvents.fireMouseButtonEvent_ = function(
  * @param {!HTMLElement} node The event target.
  * @param {number} keyCode The key code.
  * @param {number} charCode The character code produced by the key.
- * @return {!Object} an initialized event object.
+ * @return {boolean} The value returned by the browser event,
+ *     which returns false iff 'preventDefault' was invoked.
  */
 jsaction.testing.nativeEvents.fireKeyEvent = function(
     eventType, node, keyCode, charCode) {
   var e = new goog.testing.events.Event(eventType, node);
   e.charCode = charCode;
   e.keyCode = keyCode;
-  var nativeEvent = jsaction.createKeyboardEvent(e);
-  jsaction.triggerEvent(node, nativeEvent);
-  return nativeEvent;
+  return jsaction.triggerEvent(node, jsaction.createKeyboardEvent(e));
 };
 
 
@@ -280,6 +280,7 @@ jsaction.testing.nativeEvents.fireKeyEvent = function(
  * @param {!HTMLElement} node The event target.
  * @param {number} keyCode The key code.
  * @param {number} charCode The character code produced by the key.
+ * @return {boolean} False if preventDefault() was called by any of the handlers
  */
 jsaction.testing.nativeEvents.simulateKeyPress = function(
     node, keyCode, charCode) {
@@ -288,7 +289,8 @@ jsaction.testing.nativeEvents.simulateKeyPress = function(
   e = jsaction.testing.nativeEvents.fireKeyEvent(
       goog.events.EventType.KEYDOWN, node, keyCode, charCode);
   e = jsaction.testing.nativeEvents.fireKeyEvent(
-      goog.events.EventType.KEYPRESS, node, keyCode, charCode);
+      goog.events.EventType.KEYPRESS, node, keyCode, charCode) && e;
   e = jsaction.testing.nativeEvents.fireKeyEvent(
-      goog.events.EventType.KEYUP, node, keyCode, charCode);
+      goog.events.EventType.KEYUP, node, keyCode, charCode) && e;
+  return e;
 };
