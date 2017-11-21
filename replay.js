@@ -195,7 +195,8 @@ jsaction.createKeyboardEvent = function(original, opt_eventType) {
       // implemented DOM3 events.  We work around it by redefining the noted
       // properties; a simple assignment here would fail because the native
       // properties are readonly.
-      if (jsaction.event.isWebKit || jsaction.event.isIe) {
+      if (jsaction.event.isWebKit || jsaction.event.isIe ||
+          jsaction.event.isGecko) {
         var keyCodeGetter = goog.functions.constant(original.keyCode);
         Object.defineProperty(event, 'keyCode', {
           get: keyCodeGetter
