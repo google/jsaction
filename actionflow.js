@@ -10,6 +10,7 @@ goog.require('goog.dom');
 goog.require('goog.events.Event');
 goog.require('goog.events.EventTarget');
 goog.require('goog.object');
+goog.require('goog.structs.Set');
 goog.require('goog.style');
 goog.require('jsaction.Attribute');
 goog.require('jsaction.Branch');
@@ -144,10 +145,10 @@ jsaction.ActionFlow = function(
   /**
    * The set of duplicate ticks. They are reported in extra data in the
    * jsaction.Name.DUP key.
-   * @type {!Set}
+   * @type {goog.structs.Set}
    * @private
    */
-  this.duplicateTicks_ = new Set();
+  this.duplicateTicks_ = new goog.structs.Set;
 
   /**
    * A flag that indicates that a report was sent for this
@@ -734,9 +735,9 @@ jsaction.ActionFlow.prototype.report_ = function() {
     return true;
   }
 
-  if (this.duplicateTicks_.size > 0) {
-    const dupTicks = [...this.duplicateTicks_];
-    this.extraData_[jsaction.Name.DUP] = dupTicks.join('|');
+  if (this.duplicateTicks_.getCount() > 0) {
+    this.extraData_[jsaction.Name.DUP] =
+        this.duplicateTicks_.getValues().join('|');
   }
 
   event = new jsaction.ActionFlow.Event(
