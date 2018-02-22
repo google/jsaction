@@ -398,7 +398,8 @@ function testPreventDefaultForClickOnAnchorChild() {
   // preventDefault should be called even if the target is not an anchor,
   // because the detected action is attached to an anchor which is a parent of
   // the target.
-  mockPreventDefault(new goog.testing.mockmatchers.IgnoreArgument());
+  mockPreventDefault(new goog.testing.mockmatchers.IgnoreArgument())
+    .$atLeastOnce();
   mockControl_.$replayAll();
 
   var eventInfo = null;
@@ -1703,5 +1704,55 @@ function testCustomEvents_DispatchedCorrectly() {
   assertEquals(4, eventInfo.event.detail.data['bar']);
   assertEquals(targetElement, eventInfo.targetElement);
   assertEquals(actionElement, eventInfo.actionElement);
+  mockControl_.$verifyAll();
+}
+
+function testSetOnEventQueuedHandler_callsHandler() {
+  var onEventQueuedCallback = goog.testing.recordFunction();
+
+  var container = elem('container6');
+  var target = elem('inside_anchor6');
+
+  mockControl_.$replayAll();
+
+  var eventInfo = null;
+
+  var e = new jsaction.EventContract;
+  e.addContainer(container);
+  e.addEvent(jsaction.EventType.CLICK);
+  e.setOnEventQueuedHandler(onEventQueuedCallback);
+
+  // Replay a fake modified mouse button click event to trigger a DOM event on
+  // the target element.
+  var event = jsaction.createEvent({type: 'click', shiftKey: true});
+  jsaction.triggerEvent(target, event);
+
+  mockControl_.$verifyAll();
+  assertEquals(1, onEventQueuedCallback.getCallCount());
+}
+
+function testGetQueue__getsQueue() {
+  var onEventQueuedCallback = goog.testing.recordFunction();
+
+  var container = elem('container6');
+  var target = elem('inside_anchor6');
+
+  mockControl_.$replayAll();
+
+  var eventInfo = null;
+
+  var e = new jsaction.EventContract;
+  e.addContainer(container);
+  e.addEvent(jsaction.EventType.CLICK);
+
+  // Replay a fake modified mouse button click event to trigger a DOM event on
+  // the target element.
+  var event = jsaction.createEvent({type: 'click', shiftKey: true});
+  jsaction.triggerEvent(target, event);
+
+  assertEquals(1, e.getQueue().length);
+  assertTrue(e.getQueue()[0].targetElement.isSameNode(target));
+  assertTrue(e.getQueue()[0].event === event);
+
   mockControl_.$verifyAll();
 }
