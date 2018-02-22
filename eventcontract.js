@@ -123,7 +123,8 @@ jsaction.EventContract = function() {
   this.queue_ = [];
 
   /**
-   * An event handler that is called when a triggered event is queued.
+   * An event handler that is called immediately before a triggered event is
+   * queued.
    * @type {function(!jsaction.EventInfo)}
    * @private
    */
@@ -1121,7 +1122,7 @@ jsaction.EventContract.prototype.getQueue = function() {
 };
 
 /**
- * Sets a new callback handler that is called when an event is queued.
+ * Sets a callback handler that is called immediately before an event is queued.
  * @param {function(!jsaction.EventInfo)} handler The callback function.
  */
 jsaction.EventContract.prototype.setOnEventQueuedHandler = function(handler) {
