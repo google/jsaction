@@ -144,10 +144,10 @@ jsaction.ActionFlow = function(
   /**
    * The set of duplicate ticks. They are reported in extra data in the
    * jsaction.Name.DUP key.
-   * @const {!Set}
+   * @const {!Object}
    * @private
    */
-  this.duplicateTicks_ = new Set();
+  this.duplicateTicks_ = {};
 
   /**
    * A flag that indicates that a report was sent for this
@@ -556,7 +556,7 @@ jsaction.ActionFlow.prototype.tick = function(name, opt_opts) {
   // If we have already recorded this tick, note that.
   if (name in this.ticks_) {
     // The duplicate ticks will get reported in extra data in the dup key.
-    this.duplicateTicks_.add(name);
+    this.duplicateTicks_[name] = true;
   }
 
   var time = opt_opts.time || goog.now();
@@ -734,13 +734,15 @@ jsaction.ActionFlow.prototype.report_ = function() {
     return true;
   }
 
-  if (this.duplicateTicks_.size > 0) {
-    let sep = '';
-    let dup = '';
-    this.duplicateTicks_.forEach(function(value) {
-      dup = dup + sep + value;
+  let sep = '';
+  let dup = '';
+  for (var k in this.duplicateTicks_) {
+    if (this.duplicateTicks_.hasOwnProperty(k)) {
+      dup = dup + sep + k;
       sep = '|';
-    });
+    }
+  }
+  if (dup) {
     this.extraData_[jsaction.Name.DUP] = dup;
   }
 
