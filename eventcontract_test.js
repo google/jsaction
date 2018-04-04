@@ -456,11 +456,9 @@ function testPreventDefaultForModClickOnAnchorChild() {
 }
 
 
-function testPreventDefaultForClickOnUnjsLink() {
+function testPreventDefaultForClickOnLinkWithoutDispatcher() {
   var container = elem('container18');
   var target = elem('inside_anchor18');
-
-  target.parentElement.setAttribute('data-unjs', 'true');
 
   var mockPreventDefault = mockControl_.createMethodMock(jsaction.event, 'preventDefault');
   mockPreventDefault(new goog.testing.mockmatchers.IgnoreArgument()).$never();
@@ -469,6 +467,7 @@ function testPreventDefaultForClickOnUnjsLink() {
   var e = new jsaction.EventContract;
   e.addContainer(container);
   e.addEvent(jsaction.EventType.CLICK);
+  // no dispatcher installed on e.
 
   jsaction.replayEvent({
     targetElement: target,

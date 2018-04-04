@@ -381,17 +381,14 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
       }
     }
 
-    // Prevent browser from following <a> node links if a jsaction is
-    // present. Note that the targetElement may be a child of an anchor that has
-    // a jsaction attached. For that reason, we need to check the actionElement
-    // rather than the targetElement.
-    // If the data-unjs attribute is true, allow default behavior until a
-    // dispatcher is registered.
+    // Prevent browser from following <a> node links if a jsaction is present
+    // and a dispatcher is present. Note that the targetElement may be a child
+    // of an anchor that has a jsaction attached. For that reason, we need to
+    // check the actionElement rather than the targetElement.
     if (eventInfo['actionElement'].tagName == goog.dom.TagName.A &&
         (eventInfo['eventType'] == jsaction.EventType.CLICK ||
          eventInfo['eventType'] == jsaction.EventType.CLICKMOD) &&
-        !(eventInfo['actionElement'].hasAttribute('data-unjs') &&
-          eventContract.dispatcher_ == null)) {
+        eventContract.dispatcher_ != null) {
       jsaction.event.preventDefault(e);
     }
 
