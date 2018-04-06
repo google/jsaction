@@ -12,6 +12,7 @@ goog.require('goog.events');
 goog.require('goog.object');
 goog.require('goog.testing.MockClock');
 goog.require('goog.testing.jsunit');
+goog.require('jsaction');
 goog.require('jsaction.ActionFlow');
 goog.require('jsaction.Branch');
 /** @suppress {extraRequire} */
@@ -1068,4 +1069,26 @@ function testInstanceRegistry() {
 
   flow.done(jsaction.Branch.MAIN);
   assertFalse(goog.array.contains(jsaction.ActionFlow.instances, flow));
+}
+
+function testGetDelayForReactive() {
+  var node = document.createElement('div');
+  node.foo = 1;
+  var event = jsaction.createEvent({type: 'click'});
+  event.originalTimestamp = 1;
+  var flow = new jsaction.ActionFlow('test', node, event);
+  flow.isWiz(false);
+  assertEquals(event.timeStamp - event.originalTimestamp, flow.getDelay());
+}
+
+function testGetDelayForWiz() {
+  var node = document.createElement('div');
+  node.foo = 1;
+  var event = jsaction.createEvent({type: 'click'});
+  event.originalTimestamp = 100;
+  mockClock_.tick(event.originalTimestamp);
+  var flow = new jsaction.ActionFlow('test', node, event);
+  flow.isWiz(true);
+  mockClock_.tick(500);
+  assertEquals(500, flow.getDelay());
 }

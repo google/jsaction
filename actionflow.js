@@ -192,6 +192,14 @@ jsaction.ActionFlow = function(
    */
   this.abandoned_ = false;
 
+  /**
+   * A flag that indicates if the action is from a wiz controller, false if it
+   * is from a reactive controller or native event.
+   * @type {boolean}
+   * @private
+   */
+  this.isWiz_ = false;
+
   // If event is a click (plain or modified), generically track the
   // action. Can possibly be extended to other event types.
   //
@@ -408,6 +416,15 @@ jsaction.ActionFlow.prototype.id = function() {
  */
 jsaction.ActionFlow.prototype.abandon = function() {
   this.abandoned_ = true;
+};
+
+
+/**
+ * Set whether this flow wraps a wiz event.
+ * @param {boolean} isWiz Set to true if it wraps a wiz event, false otherwise.
+ */
+jsaction.ActionFlow.prototype.isWiz = function(isWiz) {
+  this.isWiz_ = isWiz;
 };
 
 
@@ -1391,6 +1408,18 @@ jsaction.ActionFlow.prototype.value = function(key) {
       node.getAttribute ? node.getAttribute(key) : undefined;
 };
 
+
+/**
+ * @return {number} The queueing delay in milliseconds if the event has been
+ *     queued in the EventContract, waiting for the javascript handler, 0
+ *     otherwise.
+ */
+jsaction.ActionFlow.prototype.getDelay = function() {
+  return (this.event_ && this.event_.originalTimestamp) ?
+      (this.isWiz_ ? (goog.now() - this.event_.originalTimestamp) :
+                     (this.event_.timeStamp - this.event_.originalTimestamp)) :
+      0;
+};
 
 
 /**
