@@ -420,11 +420,10 @@ jsaction.ActionFlow.prototype.abandon = function() {
 
 
 /**
- * Set whether this flow wraps a wiz event.
- * @param {boolean} isWiz Set to true if it wraps a wiz event, false otherwise.
+ * Mark this flow wraps a wiz event.
  */
-jsaction.ActionFlow.prototype.isWiz = function(isWiz) {
-  this.isWiz_ = isWiz;
+jsaction.ActionFlow.prototype.setWiz = function() {
+  this.isWiz_ = true;
 };
 
 

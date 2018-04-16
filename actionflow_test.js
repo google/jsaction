@@ -1077,7 +1077,6 @@ function testGetDelayForReactive() {
   var event = jsaction.createEvent({type: 'click'});
   event.originalTimestamp = 1;
   var flow = new jsaction.ActionFlow('test', node, event);
-  flow.isWiz(false);
   assertEquals(event.timeStamp - event.originalTimestamp, flow.getDelay());
 }
 
@@ -1088,7 +1087,7 @@ function testGetDelayForWiz() {
   event.originalTimestamp = 100;
   mockClock_.tick(event.originalTimestamp);
   var flow = new jsaction.ActionFlow('test', node, event);
-  flow.isWiz(true);
+  flow.setWiz();
   mockClock_.tick(500);
   assertEquals(500, flow.getDelay());
 }
