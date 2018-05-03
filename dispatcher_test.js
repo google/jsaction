@@ -506,3 +506,33 @@ function testGlobalDispatchSkipsHandlersForDifferentEventType() {
 
   assertEquals(0, handler.getCallCount());
 }
+
+function testDispatchSetWiz() {
+  var eventInfo = {action: 'foo.bar', eventType: 'click'};
+  var d = new jsaction.Dispatcher(null, null, true);
+  var actions = {'bar': function() {}};
+  d.registerHandlers('foo', null, actions);
+
+  var mockSetWiz = mockControl_.createMethodMock(jsaction.ActionFlow.prototype,
+      'setWiz');
+  mockSetWiz().$times(1);
+
+  mockControl_.$replayAll();
+  d.dispatch(eventInfo);
+  mockControl_.$verifyAll();
+}
+
+function testDispatchNotSetWiz() {
+  var eventInfo = {action: 'foo.bar', eventType: 'click'};
+  var d = new jsaction.Dispatcher();
+  var actions = {'bar': function() {}};
+  d.registerHandlers('foo', null, actions);
+
+  var mockSetWiz = mockControl_.createMethodMock(jsaction.ActionFlow.prototype,
+      'setWiz');
+  mockSetWiz().$times(0);
+
+  mockControl_.$replayAll();
+  d.dispatch(eventInfo);
+  mockControl_.$verifyAll();
+}

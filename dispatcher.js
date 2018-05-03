@@ -46,9 +46,10 @@ jsaction.NamespaceAction;
  *     browser event. If not provided, a built-in one is used.
  * @param {function(jsaction.EventInfo):Function=} opt_getHandler A function
  *     that knows how to get the handler for a given event info.
+ * @param {boolean=} opt_isWiz Whether this dispatcher dispatches wiz events.
  * @constructor
  */
-jsaction.Dispatcher = function(opt_flowFactory, opt_getHandler) {
+jsaction.Dispatcher = function(opt_flowFactory, opt_getHandler, opt_isWiz) {
   /**
    * The actions that are registered for this jsaction.Dispatcher instance.
    *
@@ -97,12 +98,20 @@ jsaction.Dispatcher = function(opt_flowFactory, opt_getHandler) {
    */
   this.queue_ = [];
 
+  const factory = opt_flowFactory || jsaction.Dispatcher.createActionFlow_;
   /**
    * The ActionFlow factory.
    * @type {function(jsaction.EventInfo):jsaction.ActionFlow}
    * @private
    */
-  this.flowFactory_ = opt_flowFactory || jsaction.Dispatcher.createActionFlow_;
+  this.flowFactory_ = function(eventInfo) {
+    const actionFlow = factory(eventInfo);
+    if (actionFlow && opt_isWiz) {
+      actionFlow.setWiz();
+    }
+    return actionFlow;
+  };
+
 
   /**
    * A function to retrieve the handler function for a given event info.
