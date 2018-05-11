@@ -1119,6 +1119,16 @@ jsaction.EventContract.prototype.getQueue = function() {
 };
 
 /**
+ * Cancels an event that was queued.
+ * @param {!Event} e The Event instance to cancel.
+ */
+jsaction.EventContract.prototype.dequeueEvent = function(e) {
+  if (this.queue_) {
+    this.queue_ = goog.array.filter(this.queue_, info => info.event !== e);
+  }
+};
+
+/**
  * Sets a callback handler that is called immediately before an event is queued.
  * @param {function(!jsaction.EventInfo)} handler The callback function.
  */

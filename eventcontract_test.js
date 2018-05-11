@@ -1755,3 +1755,20 @@ function testGetQueue__getsQueue() {
 
   mockControl_.$verifyAll();
 }
+
+function testDequeueEvent__removesFromQueue() {
+  const container = elem('container6');
+  const target = elem('inside_anchor6');
+
+  mockControl_.$replayAll();
+
+  let e = new jsaction.EventContract;
+  e.addContainer(container);
+  e.addEvent(jsaction.EventType.CLICK);
+
+  let event = jsaction.createEvent({type: 'click', shiftKey: true});
+  jsaction.triggerEvent(target, event);
+  assertEquals(1, e.getQueue().length);
+  e.dequeueEvent(event);
+  assertEquals(0, e.getQueue().length);
+}
