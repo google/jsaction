@@ -154,14 +154,14 @@ jsaction.EventContract.isIos_ = typeof navigator != 'undefined' &&
 
 /**
  * @define {boolean} Support for jsnamespace attribute.  This flag can be
- *     overriden in a build rule to trim down the EventContract's binary size.
+ *     overridden in a build rule to trim down the EventContract's binary size.
  */
 goog.define('jsaction.EventContract.JSNAMESPACE_SUPPORT', true);
 
 
 /**
  * @define {boolean} Support for accessible click actions.  This flag can be
- *     overriden in a build rule.
+ *     overridden in a build rule.
  */
 goog.define('jsaction.EventContract.A11Y_CLICK_SUPPORT', false);
 
