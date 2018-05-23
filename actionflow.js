@@ -1415,11 +1415,22 @@ jsaction.ActionFlow.prototype.value = function(key) {
  */
 jsaction.ActionFlow.prototype.getDelay = function() {
   return (this.event_ && this.event_.originalTimestamp) ?
-      (this.isWiz_ ? (goog.now() - this.event_.originalTimestamp) :
-                     (this.event_.timeStamp - this.event_.originalTimestamp)) :
-      0;
+      (this.isWiz_ ?
+       (jsaction.ActionFlow.getTimestamp_() - this.event_.originalTimestamp) :
+       (this.event_.timeStamp - this.event_.originalTimestamp)) : 0;
 };
 
+/**
+ * @return {number} The current timestamp in milliseconds since epoch.
+ * @private
+ */
+jsaction.ActionFlow.getTimestamp_ = function() {
+  return (
+      (goog.getObjectByName('window.performance.timing.navigationStart') &&
+       goog.getObjectByName('window.performance.now')) ?
+          window.performance.timing.navigationStart + window.performance.now() :
+          goog.now());
+};
 
 /**
  * Event detail object for all the events defined above. This object

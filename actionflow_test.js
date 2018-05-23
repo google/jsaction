@@ -11,6 +11,7 @@ goog.require('goog.array');
 goog.require('goog.events');
 goog.require('goog.object');
 goog.require('goog.testing.MockClock');
+goog.require('goog.testing.MockControl');
 goog.require('goog.testing.jsunit');
 goog.require('jsaction');
 goog.require('jsaction.ActionFlow');
@@ -21,6 +22,7 @@ goog.require('jsaction.replayEvent');
 
 
 var mockClock_;
+var mockControl_;
 var reportSent;
 var reportTimingData;
 var reportActionData;
@@ -43,6 +45,7 @@ function setUpPage() {
 
 
 function setUp() {
+  mockControl_ = new goog.testing.MockControl();
   mockClock_ = new goog.testing.MockClock;
   mockClock_.install();
 
@@ -60,6 +63,7 @@ function setUp() {
 
 
 function tearDown() {
+  mockControl_.$tearDown();
   mockClock_.uninstall();
 
   if (savedGlobal_) {
@@ -1085,9 +1089,14 @@ function testGetDelayForWiz() {
   node.foo = 1;
   var event = jsaction.createEvent({type: 'click'});
   event.originalTimestamp = 100;
-  mockClock_.tick(event.originalTimestamp);
+  const delay = 300;
+  var mockGetTimestamp = mockControl_.createMethodMock(
+      jsaction.ActionFlow, 'getTimestamp_');
+  mockGetTimestamp().$returns(event.originalTimestamp + delay).$anyTimes();
   var flow = new jsaction.ActionFlow('test', node, event);
   flow.setWiz();
-  mockClock_.tick(500);
-  assertEquals(500, flow.getDelay());
+
+  mockControl_.$replayAll();
+  assertEquals(delay, flow.getDelay());
+  mockControl_.$verifyAll();
 }
