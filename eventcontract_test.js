@@ -1070,6 +1070,9 @@ function testEventContractMaybeCreateEventInfoFastClick_specialElements() {
   assertNotNull(
       sendEvent(jsaction.EventType.TOUCHSTART, elem('password12'), container));
   assertNull(jsaction.EventContract.fastClickNode_);
+  assertNotNull(sendEvent(
+      jsaction.EventType.TOUCHSTART, elem('contenteditable12'), container));
+  assertNull(jsaction.EventContract.fastClickNode_);
 }
 
 function testFastClick_distanceCancelsFastClick() {

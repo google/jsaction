@@ -959,8 +959,9 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
  */
 jsaction.EventContract.isInput_ = function(target) {
   var tagName = target.tagName || '';
-  return (tagName == 'TEXTAREA' || tagName == 'INPUT' || tagName == 'SELECT' ||
-      tagName == 'OPTION');
+  return (
+      tagName == 'TEXTAREA' || tagName == 'INPUT' || tagName == 'SELECT' ||
+      tagName == 'OPTION' || target.isContentEditable);
 };
 
 
