@@ -910,13 +910,19 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
       event.preventDefault();
       var clickEvent = jsaction.createMouseEvent(newEvent);
       clickEvent['_fastclick'] = true;
+      var focusableNode =
+          jsaction.EventContract.getFocusableAncestor_(newEvent.target);
+      if (focusableNode) {
+        focusableNode.focus();
+      }
       newEvent.target.dispatchEvent(clickEvent);
       if (!clickEvent.defaultPrevented) {
         // Remove the virtual keyboard since it's the default "touchend"
         // behavior that we cancelled above.
         if (document.activeElement &&
-                document.activeElement != clickEvent.target &&
-                jsaction.EventContract.isInput_(document.activeElement)) {
+            (document.activeElement != clickEvent.target &&
+             document.activeElement != focusableNode) &&
+            jsaction.EventContract.isInput_(document.activeElement)) {
           try {
             document.activeElement.blur();
           } catch (e) {
@@ -950,6 +956,38 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
   return event;
 };
 
+/**
+ * Returns focusable ancestor, target included, if one exists.
+ * @param {?EventTarget} target
+ * @return {?Element} The focusable target or null if none exists.
+ * @private
+ */
+jsaction.EventContract.getFocusableAncestor_ = function(target) {
+  var focusableNode = target;
+  while (focusableNode && focusableNode.getAttribute) {
+    // Pulled from goog.dom.isFocusable but stripped down to save bytes.
+    if (jsaction.EventContract.nativelySupportsFocus_(focusableNode) ||
+        focusableNode.getAttribute('tabIndex')) {
+      return focusableNode;
+    }
+    focusableNode = focusableNode.parentNode;
+  }
+  return null;
+};
+
+/**
+ * Returns true if the element is focusable even when tabIndex is not set.
+ * @param {!Element} element Element to check.
+ * @return {boolean} Whether the element natively supports focus.
+ * @private
+ */
+jsaction.EventContract.nativelySupportsFocus_ = function(element) {
+  var tagName = element.tagName || '';
+  return (
+      goog.dom.TagName.A == tagName || goog.dom.TagName.INPUT == tagName ||
+      goog.dom.TagName.TEXTAREA == tagName ||
+      goog.dom.TagName.SELECT == tagName || goog.dom.TagName.BUTTON == tagName);
+};
 
 /**
  * Returns true if the specified element is an input.
@@ -960,8 +998,9 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
 jsaction.EventContract.isInput_ = function(target) {
   var tagName = target.tagName || '';
   return (
-      tagName == 'TEXTAREA' || tagName == 'INPUT' || tagName == 'SELECT' ||
-      tagName == 'OPTION' || target.isContentEditable);
+      tagName == goog.dom.TagName.TEXTAREA ||
+      tagName == goog.dom.TagName.INPUT || tagName == goog.dom.TagName.SELECT ||
+      tagName == goog.dom.TagName.OPTION || target.isContentEditable);
 };
 
 

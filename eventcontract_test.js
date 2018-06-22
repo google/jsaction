@@ -18,7 +18,6 @@ goog.require('goog.testing.mockmatchers.SaveArgument');
 goog.require('goog.testing.recordFunction');
 goog.require('goog.userAgent');
 goog.require('jsaction');
-goog.require('jsaction.Attribute');
 goog.require('jsaction.EventContract');
 goog.require('jsaction.EventType');
 goog.require('jsaction.Property');
@@ -1396,6 +1395,52 @@ function testFastClick_clearSelectionNotCalled() {
     assertFalse(removeSelectionCalled);
   }
 }
+
+function testFastClick_focusAppliedToAncestorWithTabIndex() {
+  var element = elem('inside_span19');
+  var expectedFocusElement = elem('container19');
+
+  sendEvent(jsaction.EventType.TOUCHSTART, element, container);
+  var eventInfo = sendEvent(jsaction.EventType.TOUCHEND, element, container);
+  assertEquals(jsaction.EventType.TOUCHEND, eventInfo.event.type);
+
+  assertEquals(expectedFocusElement, document.activeElement);
+}
+
+function testFastClick_focusAppliedToAncestorButton() {
+  var element = elem('inside_span20');
+  var expectedFocusElement = elem('button20');
+
+  sendEvent(jsaction.EventType.TOUCHSTART, element, container);
+  var eventInfo = sendEvent(jsaction.EventType.TOUCHEND, element, container);
+  assertEquals(jsaction.EventType.TOUCHEND, eventInfo.event.type);
+
+  assertEquals(expectedFocusElement, document.activeElement);
+}
+
+function testFastClick_focusNotChangedDueToDisabledButton() {
+  var element = elem('inside_span21');
+  var expectedFocusElement = document.activeElement;
+
+  sendEvent(jsaction.EventType.TOUCHSTART, element, container);
+  var eventInfo = sendEvent(jsaction.EventType.TOUCHEND, element, container);
+  assertEquals(jsaction.EventType.TOUCHEND, eventInfo.event.type);
+
+  assertEquals(expectedFocusElement, document.activeElement);
+}
+
+
+function testFastClick_focusOnClickElementWithTabIndex() {
+  var element = elem('inside_span22');
+  var expectedFocusElement = element;
+
+  sendEvent(jsaction.EventType.TOUCHSTART, element, container);
+  var eventInfo = sendEvent(jsaction.EventType.TOUCHEND, element, container);
+  assertEquals(jsaction.EventType.TOUCHEND, eventInfo.event.type);
+
+  assertEquals(expectedFocusElement, document.activeElement);
+}
+
 
 function testPreventMouseEvents_notPrevented() {
   var container = elem('container12');
