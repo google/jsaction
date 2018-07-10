@@ -205,3 +205,27 @@ dispatcher.setEventReplayer(replayEvents);
 Now any events that happen during page load before the JS has loaded will be
 replayed when the primary JS does load, ensuring that user interactions are not
 lost.
+
+## Common events to use with JsAction
+
+This is a list of common events to listen to when configuring JsAction, although
+it's not comprehensive.
+
+```javascript
+contract.addEvent('click');
+contract.addEvent('dblclick');
+contract.addEvent('focus');
+contract.addEvent('blur');
+contract.addEvent('keydown');
+contract.addEvent('keyup');
+contract.addEvent('keypress');
+contract.addEvent('load');
+contract.addEvent('mouseover');
+contract.addEvent('mousein');
+contract.addEvent('mouseout');
+contract.addEvent('mouseleave');
+contract.addEvent('submit');
+contract.addEvent('touchstart');
+contract.addEvent('touchend');
+contract.addEvent('touchmove');
+```
