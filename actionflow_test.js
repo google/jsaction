@@ -26,6 +26,7 @@ var mockControl_;
 var reportSent;
 var reportTimingData;
 var reportActionData;
+var reportImpressionData;
 var savedGlobal_;
 var iframeDocument;
 
@@ -55,6 +56,7 @@ function setUp() {
   reportSent = false;
   reportTimingData = {};
   reportActionData = {};
+  reportImpressionData = {};
 
   savedGlobal_ = null;
 }
@@ -77,6 +79,7 @@ function reportHandler(e) {
   reportTimingData['cadData'] = e.flow.getExtraData();
 
   reportActionData = goog.object.clone(e.flow.getActionData());
+  reportImpressionData = goog.object.clone(e.flow.getImpressionData());
 }
 
 
@@ -535,6 +538,7 @@ function testAction() {
   assertEquals('barAction', reportActionData['ct']);
   assertEquals(1, reportActionData['cd']);
   assertEquals('oi:maps.foo.bar', reportActionData['cad']);
+  assertTrue(goog.object.isEmpty(reportImpressionData));
 }
 
 
@@ -547,6 +551,7 @@ function testAction2() {
   assertEquals('barAction', reportActionData['ct']);
   assertEquals(2, reportActionData['cd']);
   assertEquals('oi:maps.foo.bar', reportActionData['cad']);
+  assertTrue(goog.object.isEmpty(reportImpressionData));
 }
 
 
@@ -569,6 +574,7 @@ function testActionAcrossIframes() {
   assertEquals('barAction', reportActionData['ct']);
   assertEquals(1, reportActionData['cd']);
   assertEquals('oi:maps.foo.bar', reportActionData['cad']);
+  assertTrue(goog.object.isEmpty(reportImpressionData));
 }
 
 
@@ -582,6 +588,7 @@ function testActionFromConstructor() {
   assertEquals('barAction', reportActionData['ct']);
   assertEquals(1, reportActionData['cd']);
   assertEquals('oi:maps.foo.bar', reportActionData['cad']);
+  assertTrue(goog.object.isEmpty(reportImpressionData));
 }
 
 
@@ -618,6 +625,7 @@ function testActionWithNoOi() {
   assertEquals('fooAction', reportActionData['ct']);
   assertEquals(undefined, reportActionData['cd']);
   assertEquals(undefined, reportActionData['cad']);
+  assertTrue(goog.object.isEmpty(reportImpressionData));
 }
 
 
@@ -668,6 +676,34 @@ function testAddActionData() {
   assertTrue(reportSent);
   assertEquals('oi:maps.foo.bar,key1:value1,key2:value2',
                reportActionData['cad']);
+}
+
+
+function testImpressionWithTwoChildrenBothDisplayed() {
+  var flow = new jsaction.ActionFlow('test');
+  var target = document.getElementById('foo');
+  var bar = document.getElementById('bar1');
+  bar.style['display'] = '';
+  flow.impression(target);
+  flow.done(jsaction.Branch.MAIN);
+  assertTrue(reportSent);
+  assertTrue(goog.object.isEmpty(reportActionData));
+  assertEquals(1, reportImpressionData['maps.foo']);
+  assertEquals(3, reportImpressionData['maps.foo.bar']);
+}
+
+
+function testImpressionWithOneChildDisplayedAndOneChildHidden() {
+  var flow = new jsaction.ActionFlow('test');
+  var target = document.getElementById('foo');
+  var bar = document.getElementById('bar1');
+  bar.style['display'] = 'none';
+  flow.impression(target);
+  flow.done(jsaction.Branch.MAIN);
+  assertTrue(reportSent);
+  assertTrue(goog.object.isEmpty(reportActionData));
+  assertEquals(1, reportImpressionData['maps.foo']);
+  assertEquals(2, reportImpressionData['maps.foo.bar']);
 }
 
 
@@ -870,6 +906,33 @@ function testErrorReportTriggeredOnActionAfterFlowFinished() {
   assertNotNull(errorEvent);
 
   assertEquals(jsaction.ActionFlow.Error.ACTION, errorEvent.error);
+  assertUndefined(errorEvent.branch);
+  assertUndefined(errorEvent.tick);
+  assertTrue(errorEvent.finished);
+  assertEquals('errortest', errorEvent.flow.flowType());
+  assertTrue(goog.object.isEmpty(errorEvent.flow.branches()));
+}
+
+
+function testErrorReportTriggeredOnImpressionAfterFlowFinished() {
+  var target = document.getElementById('bar2');
+  var flow = new jsaction.ActionFlow('errortest');
+  var errorEvent = null;
+
+  goog.events.listen(jsaction.ActionFlow.report,
+      jsaction.ActionFlow.EventType.ERROR, function(e) {
+        if (!errorEvent) {
+          errorEvent = e;
+        }
+      });
+
+  flow.done(jsaction.Branch.MAIN);
+  assertNull(errorEvent);
+
+  flow.impression(target);
+  assertNotNull(errorEvent);
+
+  assertEquals(jsaction.ActionFlow.Error.IMPRESSION, errorEvent.error);
   assertUndefined(errorEvent.branch);
   assertUndefined(errorEvent.tick);
   assertTrue(errorEvent.finished);

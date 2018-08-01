@@ -10,11 +10,13 @@ goog.require('goog.dom');
 goog.require('goog.events.Event');
 goog.require('goog.events.EventTarget');
 goog.require('goog.object');
+goog.require('goog.style');
 goog.require('jsaction.Attribute');
 goog.require('jsaction.Branch');
 goog.require('jsaction.Char');
 goog.require('jsaction.Name');
 goog.require('jsaction.Property');
+goog.require('jsaction.Tick');
 goog.require('jsaction.UrlParam');
 goog.require('jsaction.event');
 
@@ -175,6 +177,14 @@ jsaction.ActionFlow = function(
   this.extraData_ = {};
 
   /**
+   * Collects the data for log impressions related to this ActionFlow
+   * instance. Set by impression().
+   * @type {!Object}
+   * @private
+   */
+  this.impressionData_ = {};
+
+  /**
    * Flag that indicates if the flow was abandoned. If it was, no report will
    * be sent when the flow completes.
    * @type {boolean}
@@ -323,6 +333,11 @@ jsaction.ActionFlow.Error = {
    * Method addExtraData() was called after the flow finished.
    */
   EXTRA_DATA: 'extradata',
+
+  /**
+   * Method impression() was called after the flow finished.
+   */
+  IMPRESSION: 'impression',
 
   /**
    * A tick was added on the flow after the flow finished.
@@ -1000,6 +1015,107 @@ jsaction.ActionFlow.prototype.getActionData = function() {
 
 
 /**
+ * Gets the data collected by the call to impression().
+ *
+ * @return {Object!} The impression data object.
+ */
+jsaction.ActionFlow.prototype.getImpressionData = function() {
+  return this.impressionData_;
+};
+
+
+/**
+ * Collects impression data when a jstemplate is rendered. It
+ * traverses the DOM tree rooted from the target node downwards,
+ * aggregates the number of nodes with the same hierarchical
+ * impression key, and appends them to the 'imp' parameter of the log
+ * request sent to MFE.
+ *
+ * An example: for a DOM tree
+ *   <div oi="tag1">
+ *      <div oi="tag2" jsinstance="1"></div>
+ *      <div oi="tag2" jsinstance="*2"></div>
+ *   </div>
+ *
+ * when the template is rendered, the log request will be:
+ * /maps/gen_204?imp=jsaction,tag1:1,tag1.tag2:2...
+ *
+ * @param {Element} target The DOM container element of the template.
+ */
+jsaction.ActionFlow.prototype.impression = function(target) {
+  if (this.reportSent_) {
+    this.error_(jsaction.ActionFlow.Error.IMPRESSION);
+  }
+
+  this.tick(jsaction.Tick.IMP0);
+
+  var ois = [];
+  if (target.parentNode) {
+    jsaction.ActionFlow.visitDomNodesUpwards_(
+        target.parentNode, function(element) {
+          var oi = jsaction.ActionFlow.getOi_(element);
+          if (oi) {
+            ois.unshift(oi);
+          }
+        });
+  }
+
+  var oiCounters = this.impressionData_;
+
+  /**
+   * The callback to be called when visiting a node.
+   *
+   * @param {Element} node The DOM node to be visited.
+   * @return {boolean} Whether some cleanup shall be done on calling
+   *     context before leaving the node.
+   */
+  var enterFn = function(node) {
+    var oi = jsaction.ActionFlow.getOi_(node);
+    if (oi) {
+      ois.push(oi);
+
+      var fullOi = ois.join(jsaction.Char.OI_SEPARATOR);
+      if (!oiCounters[fullOi]) {
+        oiCounters[fullOi] = 0;
+      }
+      oiCounters[fullOi]++;
+      return true;
+    }
+    return false;
+  };
+
+  /**
+   * The callback to be called when leaving a node.
+   */
+  var leaveFn = function() {
+    ois.pop();
+  };
+
+  jsaction.ActionFlow.visitDomNodesDownwards_(target, enterFn, leaveFn);
+
+  this.tick(jsaction.Tick.IMP1);
+};
+
+
+/**
+ * Checks whether the impression data whose tags match the given
+ * pattern exist.
+ *
+ * @param {RegExp} pattern The regular expression to be matched with
+ * impression tags.
+ * @return {boolean} True if the impression data are not empty.
+ */
+jsaction.ActionFlow.prototype.hasImpression = function(pattern) {
+  for (var tag in this.impressionData_) {
+    if (tag.match(pattern)) {
+      return true;
+    }
+  }
+  return false;
+};
+
+
+/**
  * Traverses the DOM tree from the start node upwards, and invokes the
  * callback provided on each node visited. Stops at document.body.
  *
@@ -1012,6 +1128,41 @@ jsaction.ActionFlow.visitDomNodesUpwards_ = function(start, visitFn) {
   for (var node = start; node && node.nodeType == goog.dom.NodeType.ELEMENT;
       node = node.parentNode) {
     visitFn(/** @type {!Element} */ (node));
+  }
+};
+
+
+/**
+ * Traverses the DOM tree from the start node downwards, and invokes
+ * the callbacks provided when entering a node or leaving it.
+ *
+ * @param {Element} start The node the traversal starts from.
+ * @param {Function} enterFn The callback to be invoked when visiting
+ *     a node.
+ * @param {Function} leaveFn The callback to be invoked when tracing
+ *     back to the parent of a node. enterFn returns a boolean value that
+ *     indicates whether leaveFn must be invoked or not.
+ * @private
+ */
+jsaction.ActionFlow.visitDomNodesDownwards_ =
+    function(start, enterFn, leaveFn) {
+  if (!goog.dom.isElement(start) ||
+      goog.style.getStyle(start, 'display') == 'none' ||
+      goog.style.getStyle(start, 'visibility') == 'hidden') {
+    // Hidden elements are not counted as impressions.
+    return;
+  }
+
+  var postCallbackNeeded = enterFn(start);
+
+  for (var node = start.firstChild; node; node = node.nextSibling) {
+    jsaction.ActionFlow.visitDomNodesDownwards_(
+        /** @type {Element} */(node),
+        enterFn, leaveFn);
+  }
+
+  if (postCallbackNeeded) {
+    leaveFn();
   }
 };
 
