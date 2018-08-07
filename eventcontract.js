@@ -463,7 +463,7 @@ jsaction.EventContract.createEventInfo_ = function(eventType, e, container) {
   //
   // For unmodified clicks, EventContract invokes the jsaction
   // 'gna.fu'. For modified clicks, EventContract won't find a
-  // suitable action and and leave the event to be handled by the
+  // suitable action and leave the event to be handled by the
   // browser.
   //
   // In order to also invoke a jsaction handler for a modifier click,
