@@ -320,8 +320,7 @@ jsaction.event.isMac_ = typeof navigator != 'undefined' &&
  */
 jsaction.event.isMiddleClick_ = function(e) {
   return (e.which == 2) ||
-      (e.which == null && e.button == 4) /* middle click for IE */ ||
-      (e.type == jsaction.EventType.AUXCLICK);
+      (e.which == null && e.button == 4); /* middle click for IE */
 };
 
 
