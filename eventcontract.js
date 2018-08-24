@@ -28,7 +28,6 @@
 goog.provide('jsaction.EventContract');
 goog.provide('jsaction.EventContractContainer');
 
-goog.require('goog.array');
 goog.require('goog.dom.TagName');
 goog.require('jsaction.Attribute');
 goog.require('jsaction.Cache');
@@ -121,14 +120,6 @@ jsaction.EventContract = function() {
    * @private
    */
   this.queue_ = [];
-
-  /**
-   * An event handler that is called immediately before a triggered event is
-   * queued.
-   * @type {function(!jsaction.EventInfo)}
-   * @private
-   */
-  this.onEventQueuedHandler_ = goog.nullFunction;
 
   if (jsaction.EventContract.CUSTOM_EVENT_SUPPORT) {
     this.addEvent(jsaction.EventType.CUSTOM);
@@ -395,7 +386,6 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
     if (eventContract.dispatcher_) {
       eventContract.dispatcher_(eventInfo);
     } else {
-      eventContract.onEventQueuedHandler_(eventInfo);
       var copiedEvent = jsaction.event.maybeCopyEvent(e);
       // The event is queued since there is no dispatcher registered
       // yet. Potentially make a copy of the event in order to extend its
@@ -1146,34 +1136,6 @@ jsaction.EventContract.containerHandlerInstaller_ = function(name, handler) {
     return jsaction.event.addEventListener(div, name, handler);
   };
   return installer;
-};
-
-/**
- * Gets the current event queue.
- * @return {!Array.<!jsaction.EventInfo>} The event queue.
- */
-jsaction.EventContract.prototype.getQueue = function() {
-  // Clone the array so that the caller can't purposefully or accidentally
-  // modify the internal queue.
-  return goog.array.clone(this.queue_) || [];
-};
-
-/**
- * Cancels an event that was queued.
- * @param {!Event} e The Event instance to cancel.
- */
-jsaction.EventContract.prototype.dequeueEvent = function(e) {
-  if (this.queue_) {
-    this.queue_ = goog.array.filter(this.queue_, info => info.event !== e);
-  }
-};
-
-/**
- * Sets a callback handler that is called immediately before an event is queued.
- * @param {function(!jsaction.EventInfo)} handler The callback function.
- */
-jsaction.EventContract.prototype.setOnEventQueuedHandler = function(handler) {
-  this.onEventQueuedHandler_ = handler;
 };
 
 /**
