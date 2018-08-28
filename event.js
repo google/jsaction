@@ -796,6 +796,7 @@ jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING = {
   'RADIOGROUP': jsaction.KeyCodes.SPACE,
   'RESET': 0,
   'SUBMIT': 0,
+  'SWITCH': jsaction.KeyCodes.SPACE,
   'TAB': 0,
   'TREE': jsaction.KeyCodes.ENTER,
   'TREEITEM': jsaction.KeyCodes.ENTER
