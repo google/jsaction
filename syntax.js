@@ -109,7 +109,10 @@ jsaction.Branch = {
 };
 
 
-/** All special characters used by jsaction. */
+/**
+ * All special characters used by jsaction.
+ * @const
+ */
 jsaction.Char = {
   /**
    * The separator between the namespace and the action name in the
