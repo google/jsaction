@@ -535,7 +535,10 @@ jsaction.ActionFlow.prototype.setType = function(flowType) {
  * Records one tick. The tick value is relative to the start tick that
  * was recorded in the constructor.
  * @param {string} name The name of the tick.
- * @param {Object=} opt_opts Options with the following optional fields:
+ * @param {?{time: (number|undefined),
+ *           doNotReportToServer: (boolean|undefined),
+ *           doNotIncludeInMaxtime: (boolean|undefined)}=} opt_opts Options with
+ *     the following optional fields:
  *     time: The timestamp, if it's not goog.now().
  *     doNotReportToServer: If true, do not report this tick to the
  *         server (e.g. csi or mfe).  The tick can still be used in puppet
