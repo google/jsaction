@@ -535,16 +535,7 @@ jsaction.ActionFlow.prototype.setType = function(flowType) {
  * Records one tick. The tick value is relative to the start tick that
  * was recorded in the constructor.
  * @param {string} name The name of the tick.
- * @param {?{time: (number|undefined),
- *           doNotReportToServer: (boolean|undefined),
- *           doNotIncludeInMaxtime: (boolean|undefined)}=} opt_opts Options with
- *     the following optional fields:
- *     time: The timestamp, if it's not goog.now().
- *     doNotReportToServer: If true, do not report this tick to the
- *         server (e.g. csi or mfe).  The tick can still be used in puppet
- *         tests.
- *     doNotIncludeInMaxTime: If true, do not use this tick when calculating
- *         'max time' ticks, e.g. pdt, plt.
+ * @param {?jsaction.ActionFlow.TickOptions=} opt_opts Options.
  */
 jsaction.ActionFlow.prototype.tick = function(name, opt_opts) {
   if (this.reportSent_) {
@@ -1037,10 +1028,10 @@ jsaction.ActionFlow.getOi_ = function(node) {
 /**
  * Calls tick on provided flow object if it is defined.
  *
- * @param {jsaction.ActionFlow|undefined} flow The jsaction.ActionFlow object.
+ * @param {?jsaction.ActionFlow|undefined} flow The jsaction.ActionFlow object.
  * @param {string} tick The tick name.
  * @param {number=} opt_time The timestamp, if it's not goog.now().
- * @param {Object=} opt_opts Options.  See ActionFlow.tick for details.
+ * @param {?jsaction.ActionFlow.TickOptions=} opt_opts Options.
  */
 jsaction.ActionFlow.tick = function(flow, tick, opt_time, opt_opts) {
   if (flow) {
@@ -1394,3 +1385,29 @@ jsaction.ActionFlow.EventType = {
    */
   ERROR: 'error'
 };
+
+
+/**
+ * Options for ActionFlow.tick().
+ * @record
+ */
+jsaction.ActionFlow.TickOptions = function() {};
+
+/**
+ * The timestamp, if it's not goog.now().
+ *  @type {number|undefined}
+ */
+jsaction.ActionFlow.TickOptions.prototype.time;
+
+/**
+ * If true, do not report this tick to the server (e.g. csi or mfe).  The tick
+ * can still be used in puppet tests.
+ * @type {boolean|undefined}
+ */
+jsaction.ActionFlow.TickOptions.prototype.doNotReportToServer;
+
+/**
+ * If true, do not use this tick when calculating 'max time' ticks, e.g. pdt, plt.
+ *  @type {boolean|undefined}
+ */
+jsaction.ActionFlow.TickOptions.prototype.doNotIncludeInMaxTime;
