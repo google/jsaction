@@ -128,7 +128,7 @@ jsaction.Dispatcher = function(opt_flowFactory, opt_getHandler, opt_isWiz) {
 
   /**
    * @private {?function(
-   *     !Array.<jsaction.EventInfo>, !jsaction.Dispatcher):void}
+   *     !Array.<?jsaction.EventInfo>, !jsaction.Dispatcher):void}
    */
   this.eventReplayer_ = null;
 };

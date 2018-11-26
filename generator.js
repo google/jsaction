@@ -30,10 +30,10 @@ jsaction.domGenerator.Generator.prototype.next = function() {};
  * @implements {jsaction.domGenerator.Generator}
  */
 jsaction.domGenerator.Ancestors = function() {
-  /** @private {Element} */
+  /** @private {?Element} */
   this.node_ = null;
 
-  /** @private {Element} */
+  /** @private {?Element} */
   this.container_ = null;
 };
 
@@ -82,7 +82,7 @@ jsaction.domGenerator.EventPath = function() {
   /** @private {number} */
   this.idx_ = 0;
 
-  /** @private {Element} */
+  /** @private {?Element} */
   this.container_ = null;
 
   /** @private {boolean} */
