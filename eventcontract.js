@@ -661,28 +661,18 @@ jsaction.EventContract.EMPTY_ACTION_MAP_ = {};
 
 
 /**
- * Accesses the jsaction map on a node and retrieves the name of the
- * action the given event is mapped to, if any. It parses the
- * attribute value and stores it in a property on the node for
- * subsequent retrieval without re-parsing and re-accessing the
- * attribute. In order to fully qualify jsaction names using a
- * namespace, the DOM is searched starting at the current node and
- * going through ancestor nodes until a jsnamespace attribute is
- * found.
+ * Parses and cached an element's jsaction element into a map.
  *
- * @param {!Element} node The DOM node to retrieve the jsaction map
- *     from.
- * @param {string} eventType The type of the event for which to
- *     retrieve the action.
- * @param {!Event} event The current browser event.
+ * This is primarily for internal use.
+ *
+ * @param {!Element} node The DOM node to retrieve the jsaction map from.
  * @param {!Node} container The node which limits the namespace lookup
  *     for a jsaction name. The container node itself will not be
  *     searched.
- * @return {jsaction.ActionInfo} The action info.
- * @private
+ * @return {!Object.<string, string>} Map from event to qualified name
+ *     of the jsaction bound to it.
  */
-jsaction.EventContract.getAction_ = function(node, eventType, event,
-    container) {
+jsaction.EventContract.parseActions = function(node, container) {
   var actionMap = jsaction.Cache.get(node);
   if (!actionMap) {
     var attvalue = jsaction.EventContract.getAttr_(
@@ -724,6 +714,34 @@ jsaction.EventContract.getAction_ = function(node, eventType, event,
       jsaction.Cache.set(node, actionMap);
     }
   }
+  return actionMap;
+};
+
+
+/**
+ * Accesses the jsaction map on a node and retrieves the name of the
+ * action the given event is mapped to, if any. It parses the
+ * attribute value and stores it in a property on the node for
+ * subsequent retrieval without re-parsing and re-accessing the
+ * attribute. In order to fully qualify jsaction names using a
+ * namespace, the DOM is searched starting at the current node and
+ * going through ancestor nodes until a jsnamespace attribute is
+ * found.
+ *
+ * @param {!Element} node The DOM node to retrieve the jsaction map
+ *     from.
+ * @param {string} eventType The type of the event for which to
+ *     retrieve the action.
+ * @param {!Event} event The current browser event.
+ * @param {!Node} container The node which limits the namespace lookup
+ *     for a jsaction name. The container node itself will not be
+ *     searched.
+ * @return {!jsaction.ActionInfo} The action info.
+ * @private
+ */
+jsaction.EventContract.getAction_ = function(
+    node, eventType, event, container) {
+  var actionMap = jsaction.EventContract.parseActions(node, container);
 
   if (jsaction.EventContract.A11Y_CLICK_SUPPORT) {
     if (eventType == jsaction.EventContract.CLICKKEY_) {
