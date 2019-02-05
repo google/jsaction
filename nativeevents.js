@@ -55,6 +55,19 @@ jsaction.testing.nativeEvents.fireScrollEvent = function(target) {
 
 
 /**
+ * Simulates a customizable event on the given target.
+ * @param {!goog.events.EventType} eventType The type of DOM event to fire.
+ * @param {!EventTarget} target The target for the event.
+ * @return {boolean} The returnValue of the event: false if preventDefault() was
+ *     called on it, true otherwise.
+ */
+jsaction.testing.nativeEvents.fireDomEvent = function(eventType, target) {
+  var e = new goog.testing.events.Event(eventType, target);
+  return jsaction.triggerEvent(target, jsaction.createUiEvent(e));
+};
+
+
+/**
  * Simulates a mousedown, mouseup, and then click on the given event target,
  * with the left mouse button.
  * @param {!EventTarget} target The target for the event.
