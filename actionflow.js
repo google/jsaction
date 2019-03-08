@@ -1152,27 +1152,35 @@ jsaction.ActionFlow.prototype.actionNamespace = function() {
  * ....
  * setTimeout(flow.callback(myCallback, 'branchfoo', 'tick0', 'tick1'), 0);
  *
- * @param {!Function} fn The callback that we want to track with the current
- *    actionflow.
+ * @param {function(this:SCOPE, ...?): RET} fn The callback that we want to
+ *     track with the current actionflow.
  * @param {string} branchName The name of the branch to be opened before the
  *    callback is used. The branch will be closed when the tracked callback
  *    returned by this method is called.
  * @param {string=} opt_branchTick An optional tick to be called on branch.
  * @param {string=} opt_doneTick An optional tick to be called on done.
- * @return {!Function} The tracked callback.
+ * @return {function(this:SCOPE, ...?): RET} The tracked callback.
+ * @template SCOPE, RET
  */
 jsaction.ActionFlow.prototype.callback =
     function(fn, branchName, opt_branchTick, opt_doneTick) {
   this.branch(branchName, opt_branchTick);
   var flow = this;
-  return function() {
+  /**
+   * @this {SCOPE}
+   * @param {...?} var_args
+   * @return {RET}
+   */
+  function wrapped(var_args) {
+    var self = /** @type {SCOPE} */ (this);
     try {
-      var ret = fn.apply(this, arguments);
+      var ret = fn.apply(self, arguments);
     } finally {
       flow.done(branchName, opt_doneTick);
     }
     return ret;
-  };
+  }
+  return wrapped;
 };
 
 
