@@ -131,7 +131,8 @@ jsaction.EventContract = function() {
  * @define {boolean} Controls the use of event.path logic for the dom
  * walking in createEventInfo_.
  */
-goog.define('jsaction.EventContract.USE_EVENT_PATH', false);
+jsaction.EventContract.USE_EVENT_PATH =
+    goog.define('jsaction.EventContract.USE_EVENT_PATH', false);
 
 
 /**
@@ -147,21 +148,24 @@ jsaction.EventContract.isIos_ = typeof navigator != 'undefined' &&
  * @define {boolean} Support for jsnamespace attribute.  This flag can be
  *     overridden in a build rule to trim down the EventContract's binary size.
  */
-goog.define('jsaction.EventContract.JSNAMESPACE_SUPPORT', true);
+jsaction.EventContract.JSNAMESPACE_SUPPORT =
+    goog.define('jsaction.EventContract.JSNAMESPACE_SUPPORT', true);
 
 
 /**
  * @define {boolean} Support for accessible click actions.  This flag can be
  *     overridden in a build rule.
  */
-goog.define('jsaction.EventContract.A11Y_CLICK_SUPPORT', false);
+jsaction.EventContract.A11Y_CLICK_SUPPORT =
+    goog.define('jsaction.EventContract.A11Y_CLICK_SUPPORT', false);
 
 
 /**
  * @define {boolean} Support for the non-bubbling mouseenter and mouseleave
  *     events.  This flag can be overridden in a build rule.
  */
-goog.define('jsaction.EventContract.MOUSE_SPECIAL_SUPPORT', false);
+jsaction.EventContract.MOUSE_SPECIAL_SUPPORT =
+    goog.define('jsaction.EventContract.MOUSE_SPECIAL_SUPPORT', false);
 
 
 /**
@@ -169,7 +173,8 @@ goog.define('jsaction.EventContract.MOUSE_SPECIAL_SUPPORT', false);
  *     that have a 300ms delay before they send the click event. This is
  *     currently EXPERIMENTAL.
  */
-goog.define('jsaction.EventContract.FAST_CLICK_SUPPORT', false);
+jsaction.EventContract.FAST_CLICK_SUPPORT =
+    goog.define('jsaction.EventContract.FAST_CLICK_SUPPORT', false);
 
 
 /**
@@ -179,7 +184,8 @@ goog.define('jsaction.EventContract.FAST_CLICK_SUPPORT', false);
  *      binds focus and blur events in the capture phase and thus with
  *      stopPropagation, none of your non-jsaction-handlers will ever see it.
  */
-goog.define('jsaction.EventContract.STOP_PROPAGATION', true);
+jsaction.EventContract.STOP_PROPAGATION =
+    goog.define('jsaction.EventContract.STOP_PROPAGATION', true);
 
 
 /**
@@ -187,7 +193,8 @@ goog.define('jsaction.EventContract.STOP_PROPAGATION', true);
  *      jsaction.EventType.CUSTOM. These are native DOM events with an
  *      additional type field and an optional payload.
  */
-goog.define('jsaction.EventContract.CUSTOM_EVENT_SUPPORT', false);
+jsaction.EventContract.CUSTOM_EVENT_SUPPORT =
+    goog.define('jsaction.EventContract.CUSTOM_EVENT_SUPPORT', false);
 
 
 /**

@@ -230,7 +230,8 @@ goog.inherits(jsaction.ActionFlow, goog.events.EventTarget);
  * @define {boolean} Whether to do generic event tracking based on the
  *     'oi' attribute on action targets or their parent nodes.
  */
-goog.define('jsaction.ActionFlow.ENABLE_GENERIC_EVENT_TRACKING', true);
+jsaction.ActionFlow.ENABLE_GENERIC_EVENT_TRACKING =
+    goog.define('jsaction.ActionFlow.ENABLE_GENERIC_EVENT_TRACKING', true);
 
 
 /**
