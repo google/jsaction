@@ -292,11 +292,11 @@ jsaction.testing.nativeEvents.fireKeyEvent = function(
  * Generates a series of events simulating a key press on the given element.
  * @param {!HTMLElement} node The event target.
  * @param {number} keyCode The key code.
- * @param {number} charCode The character code produced by the key.
+ * @param {number=} charCode The character code produced by the key.
  * @return {boolean} False if preventDefault() was called by any of the handlers
  */
 jsaction.testing.nativeEvents.simulateKeyPress = function(
-    node, keyCode, charCode) {
+    node, keyCode, charCode = keyCode) {
   var e;
 
   e = jsaction.testing.nativeEvents.fireKeyEvent(
