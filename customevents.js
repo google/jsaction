@@ -12,17 +12,11 @@ goog.require('jsaction.EventType');
  * removed in CustomEvents#dispose, which should be called from the test's
  * tearDown.
  */
-jsaction.testing.CustomEvents = goog.defineClass(goog.Disposable, {
-  statics: {
-    DEFAULT_FLOWTYPE: 'jsaction.test'
-  },
-
-
-  constructor: function() {
-    jsaction.testing.CustomEvents.base(this, 'constructor');
+jsaction.testing.CustomEvents = class extends goog.Disposable {
+  constructor() {
+    super();
     this.managedListeners_ = [];
-  },
-
+  }
 
   /**
    * Adds a listener for a jsaction custom event.
@@ -34,7 +28,7 @@ jsaction.testing.CustomEvents = goog.defineClass(goog.Disposable, {
    * @param {string=} opt_flowType The ActionFlow type given to the listener.
    * @template T
    */
-  listen: function(element, eventType, listener, opt_context, opt_flowType) {
+  listen(element, eventType, listener, opt_context, opt_flowType) {
     var jsactionListener = function(event) {
       if (event.detail['_type'] == eventType) {
         var actionFlow = new jsaction.ActionFlow(
@@ -47,13 +41,12 @@ jsaction.testing.CustomEvents = goog.defineClass(goog.Disposable, {
     element.addEventListener(jsaction.EventType.CUSTOM, jsactionListener);
     this.managedListeners_.push(
         {'element': element, 'listener': jsactionListener});
-  },
-
+  }
 
   /**
    * Removes all listeners.
    */
-  disposeInternal: function() {
+  disposeInternal() {
     for (var i = 0; i < this.managedListeners_.length; i++) {
       var listenerInfo = this.managedListeners_[i];
       listenerInfo['element'].removeEventListener(
@@ -61,4 +54,6 @@ jsaction.testing.CustomEvents = goog.defineClass(goog.Disposable, {
     }
     this.managedListeners_ = [];
   }
-});
+};
+
+jsaction.testing.CustomEvents.DEFAULT_FLOWTYPE = 'jsaction.test';
