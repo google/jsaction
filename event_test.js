@@ -668,6 +668,11 @@ function testShouldCallPreventDefaultOnNativeHtmlControl() {
     target: radio
   };
   assertFalse(jsaction.event.shouldCallPreventDefaultOnNativeHtmlControl(ev));
+  var select = document.createElement('select');
+  ev = {
+    target: select
+  };
+  assertFalse(jsaction.event.shouldCallPreventDefaultOnNativeHtmlControl(ev));
   var option = document.createElement('option');
   ev = {
     target: option

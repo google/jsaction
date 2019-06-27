@@ -413,9 +413,31 @@ jsaction.event.hasModifierKey_ = function(e) {
 jsaction.event.shouldCallPreventDefaultOnNativeHtmlControl = function(e) {
   var el = jsaction.event.getTarget(e);
   var tagName = (el.getAttribute('role') || el.tagName).toUpperCase();
-  return jsaction.event.isNativeHTMLControl(el) && tagName != 'A' &&
-      !jsaction.event.processSpace_(el) && !jsaction.event.isTextControl_(el) ||
-      tagName == 'BUTTON';
+
+  if (tagName == 'BUTTON') {
+    return true;
+  }
+  if (!jsaction.event.isNativeHTMLControl(el)) {
+    return false;
+  }
+  if (tagName == 'A') {
+    return false;
+  }
+  /**
+   * Fix for physical d-pads on feature phone platforms; the native event
+   * (ie. isTrusted: true) needs to fire to show the OPTION list. See
+   * b/135288469 for more info.
+   */
+  if (tagName == 'SELECT') {
+    return false;
+  }
+  if (jsaction.event.processSpace_(el)) {
+    return false;
+  }
+  if (jsaction.event.isTextControl_(el)) {
+    return false;
+  }
+  return true;
 };
 
 
@@ -795,6 +817,7 @@ jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING = {
   'RADIO': jsaction.KeyCodes.SPACE,
   'RADIOGROUP': jsaction.KeyCodes.SPACE,
   'RESET': 0,
+  //'SELECT': 0,
   'SUBMIT': 0,
   'SWITCH': jsaction.KeyCodes.SPACE,
   'TAB': 0,
