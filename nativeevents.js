@@ -19,6 +19,16 @@ goog.require('jsaction.triggerEvent');
 
 
 /**
+ * @typedef {{
+ *   ctrlKey:(boolean|undefined),
+ *   altKey:(boolean|undefined),
+ *   shiftKey:(boolean|undefined),
+ *   metaKey:(boolean|undefined),
+ * }}
+ */
+jsaction.testing.nativeEvents.Modifiers;
+
+/**
  * Simulates a blur event on the given target.
  * @param {!EventTarget} target The target for the event.
  * @return {boolean} The returnValue of the event: false if preventDefault() was
@@ -276,14 +286,16 @@ jsaction.testing.nativeEvents.fireMouseButtonEvent_ = function(
  * @param {!HTMLElement} node The event target.
  * @param {number} keyCode The key code.
  * @param {number} charCode The character code produced by the key.
+ * @param {!jsaction.testing.nativeEvents.Modifiers=} modifiers
  * @return {boolean} The value returned by the browser event,
  *     which returns false iff 'preventDefault' was invoked.
  */
 jsaction.testing.nativeEvents.fireKeyEvent = function(
-    eventType, node, keyCode, charCode) {
+    eventType, node, keyCode, charCode, modifiers = {}) {
   var e = new goog.testing.events.Event(eventType, node);
   e.charCode = charCode;
   e.keyCode = keyCode;
+  goog.object.extend(e, modifiers);
   return jsaction.triggerEvent(node, jsaction.createKeyboardEvent(e));
 };
 
@@ -293,17 +305,17 @@ jsaction.testing.nativeEvents.fireKeyEvent = function(
  * @param {!HTMLElement} node The event target.
  * @param {number} keyCode The key code.
  * @param {number=} charCode The character code produced by the key.
+ * @param {!jsaction.testing.nativeEvents.Modifiers=} modifiers
  * @return {boolean} False if preventDefault() was called by any of the handlers
  */
 jsaction.testing.nativeEvents.simulateKeyPress = function(
-    node, keyCode, charCode = keyCode) {
+    node, keyCode, charCode = keyCode, modifiers = {}) {
   var e;
-
   e = jsaction.testing.nativeEvents.fireKeyEvent(
-      goog.events.EventType.KEYDOWN, node, keyCode, charCode);
+      goog.events.EventType.KEYDOWN, node, keyCode, charCode, modifiers);
   e = jsaction.testing.nativeEvents.fireKeyEvent(
-      goog.events.EventType.KEYPRESS, node, keyCode, charCode) && e;
+      goog.events.EventType.KEYPRESS, node, keyCode, charCode, modifiers) && e;
   e = jsaction.testing.nativeEvents.fireKeyEvent(
-      goog.events.EventType.KEYUP, node, keyCode, charCode) && e;
+      goog.events.EventType.KEYUP, node, keyCode, charCode, modifiers) && e;
   return e;
 };
