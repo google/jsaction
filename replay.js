@@ -23,7 +23,7 @@ goog.require('jsaction.event');
  * @param {!jsaction.EventInfo} eventInfo The event info record.
  */
 jsaction.replayEvent = function(eventInfo) {
-  var event = jsaction.createEvent(eventInfo['event'], eventInfo['eventType']);
+  const event = jsaction.createEvent(eventInfo['event'], eventInfo['eventType']);
   jsaction.triggerEvent(eventInfo['targetElement'], event);
 };
 
@@ -87,7 +87,7 @@ jsaction.isUiEvent_ = function(eventType) {
  * @private
  */
 jsaction.createKeyboardModifiersList_ = function(alt, ctrl, meta, shift) {
-  var keys = [];
+  const keys = [];
   if (alt) {
     keys.push('Alt');
   }
@@ -112,7 +112,7 @@ jsaction.createKeyboardModifiersList_ = function(alt, ctrl, meta, shift) {
  * @return {!Event} The event object.
  */
 jsaction.createUiEvent = function(original, opt_eventType) {
-  var event;
+  let event;
   if (document.createEvent) {
     // Event creation as per W3C event model specification.  This codepath
     // is used by most non-IE browsers and also by IE 9 and later.
@@ -152,7 +152,7 @@ jsaction.createUiEvent = function(original, opt_eventType) {
  * @return {!Event} The event object.
  */
 jsaction.createKeyboardEvent = function(original, opt_eventType) {
-  var event;
+  let event;
   if (jsaction.event.isSafari) {
     // We have to fall back to a generic event for Safari, which has the WebKit
     // keyCode bug noted below, but is also incapable of fixing it with
@@ -174,7 +174,7 @@ jsaction.createKeyboardEvent = function(original, opt_eventType) {
     event = document.createEvent('KeyboardEvent');
     if (event.initKeyboardEvent) {
       // W3C DOM Level 3 Events model.
-      var modifiers = jsaction.createKeyboardModifiersList_(original.altKey,
+      const modifiers = jsaction.createKeyboardModifiersList_(original.altKey,
           original.ctrlKey, original.metaKey, original.shiftKey);
       event.initKeyboardEvent(
           opt_eventType || original.type,
@@ -197,7 +197,7 @@ jsaction.createKeyboardEvent = function(original, opt_eventType) {
       // properties are readonly.
       if (jsaction.event.isWebKit || jsaction.event.isIe ||
           jsaction.event.isGecko) {
-        var keyCodeGetter = goog.functions.constant(original.keyCode);
+        const keyCodeGetter = goog.functions.constant(original.keyCode);
         Object.defineProperty(event, 'keyCode', {
           get: keyCodeGetter
         });
@@ -249,7 +249,7 @@ jsaction.createKeyboardEvent = function(original, opt_eventType) {
  * @return {!MouseEvent} The event object.
  */
 jsaction.createMouseEvent = function(original, opt_eventType) {
-  var event;
+  let event;
   if (document.createEvent) {
     // Event creation as per W3C event model specification.  This codepath
     // is used by most non-IE browsers and also by IE 9 and later.
@@ -302,7 +302,7 @@ jsaction.createMouseEvent = function(original, opt_eventType) {
  * @private
  */
 jsaction.createGenericEvent_ = function(original, opt_eventType) {
-  var event;
+  let event;
   if (document.createEvent) {
     // Event creation as per W3C event model specification.  This codepath
     // is used by most non-IE browsers and also by IE 9 and later.
@@ -334,8 +334,8 @@ jsaction.createGenericEvent_ = function(original, opt_eventType) {
  * @return {!Event} The event object.
  */
 jsaction.createEvent = function(original, opt_eventType) {
-  var event;
-  var eventType;
+  let event;
+  let eventType;
   if (original.type == jsaction.EventType.CUSTOM) {
     eventType = jsaction.EventType.CUSTOM;
   } else {

@@ -50,8 +50,8 @@ jsaction.dom.contains = function(node, otherNode) {
  * @return {boolean}
 */
 jsaction.dom.hasAncestorInNodeList = function(element, nodeList) {
-  for (var i = 0; i < nodeList.length; ++i) {
-    var member = nodeList[i];
+  for (let idx = 0; idx < nodeList.length; ++idx) {
+    const member = nodeList[idx];
     if (member != element && jsaction.dom.contains(member, element)) {
       return true;
     }

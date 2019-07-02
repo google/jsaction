@@ -35,7 +35,7 @@ jsaction.testing.nativeEvents.Modifiers;
  *     called on it, true otherwise.
  */
 jsaction.testing.nativeEvents.fireBlurEvent = function(target) {
-  var e = new goog.testing.events.Event(goog.events.EventType.BLUR, target);
+  const e = new goog.testing.events.Event(goog.events.EventType.BLUR, target);
   return jsaction.triggerEvent(target, jsaction.createUiEvent(e));
 };
 
@@ -47,7 +47,7 @@ jsaction.testing.nativeEvents.fireBlurEvent = function(target) {
  *     called on it, true otherwise.
  */
 jsaction.testing.nativeEvents.fireFocusEvent = function(target) {
-  var e = new goog.testing.events.Event(goog.events.EventType.FOCUS, target);
+  const e = new goog.testing.events.Event(goog.events.EventType.FOCUS, target);
   return jsaction.triggerEvent(target, jsaction.createUiEvent(e));
 };
 
@@ -59,7 +59,7 @@ jsaction.testing.nativeEvents.fireFocusEvent = function(target) {
  *     called on it, true otherwise.
  */
 jsaction.testing.nativeEvents.fireScrollEvent = function(target) {
-  var e = new goog.testing.events.Event(goog.events.EventType.SCROLL, target);
+  const e = new goog.testing.events.Event(goog.events.EventType.SCROLL, target);
   return jsaction.triggerEvent(target, jsaction.createUiEvent(e));
 };
 
@@ -72,7 +72,7 @@ jsaction.testing.nativeEvents.fireScrollEvent = function(target) {
  *     called on it, true otherwise.
  */
 jsaction.testing.nativeEvents.fireDomEvent = function(eventType, target) {
-  var e = new goog.testing.events.Event(eventType, target);
+  const e = new goog.testing.events.Event(eventType, target);
   return jsaction.triggerEvent(target, jsaction.createUiEvent(e));
 };
 
@@ -192,7 +192,7 @@ jsaction.testing.nativeEvents.fireMouseOutEvent = function(target) {
  */
 jsaction.testing.nativeEvents.fireMouseMoveEvent = function(
     target, opt_coords) {
-  var e = new goog.testing.events.Event(
+  const e = new goog.testing.events.Event(
       goog.events.EventType.MOUSEMOVE, target);
   jsaction.testing.nativeEvents.setEventClientXY_(e, opt_coords);
   return jsaction.triggerEvent(target, jsaction.createMouseEvent(e));
@@ -216,7 +216,7 @@ jsaction.testing.nativeEvents.fireMouseMoveEvent = function(
 jsaction.testing.nativeEvents.createMouseButtonEvent = function(
     type, target, opt_button, opt_modifierKey, opt_coords,
     opt_eventProperties) {
-  var e = new goog.testing.events.Event(type, target);
+  const e = new goog.testing.events.Event(type, target);
   e.button = opt_button || goog.events.BrowserEvent.MouseButton.LEFT;
   jsaction.testing.nativeEvents.setEventClientXY_(e, opt_coords);
   if (opt_eventProperties) {
@@ -273,7 +273,7 @@ jsaction.testing.nativeEvents.setEventClientXY_ = function(event, opt_coords) {
  */
 jsaction.testing.nativeEvents.fireMouseButtonEvent_ = function(
     type, target, opt_button, opt_coords, opt_eventProperties) {
-  var e = jsaction.testing.nativeEvents.createMouseButtonEvent(
+  const e = jsaction.testing.nativeEvents.createMouseButtonEvent(
       type, target, opt_button, undefined, opt_coords, opt_eventProperties);
   return jsaction.triggerEvent(target, e);
 };
@@ -292,7 +292,7 @@ jsaction.testing.nativeEvents.fireMouseButtonEvent_ = function(
  */
 jsaction.testing.nativeEvents.fireKeyEvent = function(
     eventType, node, keyCode, charCode, modifiers = {}) {
-  var e = new goog.testing.events.Event(eventType, node);
+  const e = new goog.testing.events.Event(eventType, node);
   e.charCode = charCode;
   e.keyCode = keyCode;
   goog.object.extend(e, modifiers);
@@ -310,7 +310,7 @@ jsaction.testing.nativeEvents.fireKeyEvent = function(
  */
 jsaction.testing.nativeEvents.simulateKeyPress = function(
     node, keyCode, charCode = keyCode, modifiers = {}) {
-  var e;
+  let e;
   e = jsaction.testing.nativeEvents.fireKeyEvent(
       goog.events.EventType.KEYDOWN, node, keyCode, charCode, modifiers);
   e = jsaction.testing.nativeEvents.fireKeyEvent(

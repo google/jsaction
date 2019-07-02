@@ -217,10 +217,10 @@ jsaction.ActionFlow = function(
 
   // NOTE(user): Dispatching this event must always be the last line in
   // the constructor so that listeners will receive an initialized flow.
-  var event = new jsaction.ActionFlow.Event(
+  const evt = new jsaction.ActionFlow.Event(
       jsaction.ActionFlow.EventType.CREATED, this);
   if (jsaction.ActionFlow.report != null) {
-    jsaction.ActionFlow.report.dispatchEvent(event);
+    jsaction.ActionFlow.report.dispatchEvent(evt);
   }
 };
 goog.inherits(jsaction.ActionFlow, goog.events.EventTarget);
@@ -364,8 +364,8 @@ if (goog.DEBUG) {
   jsaction.ActionFlow.shouldLog = function(flowType) {
     // This is very inefficient, but it's debug time, so that's okay and we
     // prefer shorter simpler code.
-    for (var i = 0; i < jsaction.ActionFlow.LOG_FOR_FLOW_TYPES.length; i++) {
-      var flow = jsaction.ActionFlow.LOG_FOR_FLOW_TYPES[i];
+    for (let i = 0; i < jsaction.ActionFlow.LOG_FOR_FLOW_TYPES.length; i++) {
+      const flow = jsaction.ActionFlow.LOG_FOR_FLOW_TYPES[i];
       if (flow == '*' || flowType.indexOf(flow) == 0) {
         return true;
       }
@@ -444,10 +444,10 @@ jsaction.ActionFlow.prototype.getTick = function(name) {
  * @return {Array} An array of tick names.
  */
 jsaction.ActionFlow.prototype.getTickNames = function() {
-  var tickNames = [];
+  const tickNames = [];
   tickNames.push(jsaction.Name.START);
 
-  for (var i = 0; i < this.timers_.length; ++i) {
+  for (let i = 0; i < this.timers_.length; ++i) {
     tickNames.push(this.timers_[i][0]);
   }
 
@@ -555,15 +555,15 @@ jsaction.ActionFlow.prototype.tick = function(name, opt_opts) {
     this.duplicateTicks_[name] = true;
   }
 
-  var time = opt_opts.time || goog.now();
+  const time = opt_opts.time || goog.now();
   if (!opt_opts.doNotReportToServer &&
       !opt_opts.doNotIncludeInMaxTime && time > this.maxTickTime_) {
     // Only ticks that are reported to the server should affect max tick time.
     this.maxTickTime_ = time;
   }
 
-  var t = time - this.start_;
-  var i = this.timers_.length;
+  const t = time - this.start_;
+  let i = this.timers_.length;
 
   while (i > 0 && this.timers_[i - 1][1] > t) {
     i--;
@@ -723,16 +723,16 @@ jsaction.ActionFlow.prototype.report_ = function() {
   }
 
   if (this.abandoned_) {
-    var event = new jsaction.ActionFlow.Event(
+    const evt = new jsaction.ActionFlow.Event(
         jsaction.ActionFlow.EventType.ABANDONED, this);
-    this.dispatchEvent(event);
-    jsaction.ActionFlow.report.dispatchEvent(event);
+    this.dispatchEvent(evt);
+    jsaction.ActionFlow.report.dispatchEvent(evt);
     return true;
   }
 
   let sep = '';
   let dup = '';
-  for (var k in this.duplicateTicks_) {
+  for (let k in this.duplicateTicks_) {
     if (this.duplicateTicks_.hasOwnProperty(k)) {
       dup = dup + sep + k;
       sep = '|';
@@ -742,24 +742,24 @@ jsaction.ActionFlow.prototype.report_ = function() {
     this.extraData_[jsaction.Name.DUP] = dup;
   }
 
-  event = new jsaction.ActionFlow.Event(
+  const evt = new jsaction.ActionFlow.Event(
       jsaction.ActionFlow.EventType.BEFOREDONE, this);
 
   // BEFOREDONE fires on both the instance and the class.
-  if (!this.dispatchEvent(event) ||
-      !jsaction.ActionFlow.report.dispatchEvent(event)) {
+  if (!this.dispatchEvent(evt) ||
+      !jsaction.ActionFlow.report.dispatchEvent(evt)) {
     return false;
   }
 
   // Must come after the BEFOREDONE event fires because event handlers
   // can add additional data.
-  var cad = jsaction.ActionFlow.foldCadObject_(this.extraData_);
+  const cad = jsaction.ActionFlow.foldCadObject_(this.extraData_);
   if (cad) {
     this.actionData_[jsaction.UrlParam.CLICK_ADDITIONAL_DATA] = cad;
   }
 
-  event.type = jsaction.ActionFlow.EventType.DONE;
-  return jsaction.ActionFlow.report.dispatchEvent(event);
+  evt.type = jsaction.ActionFlow.EventType.DONE;
+  return jsaction.ActionFlow.report.dispatchEvent(evt);
 };
 
 
@@ -785,13 +785,13 @@ jsaction.ActionFlow.prototype.error_ = function(error, opt_branch, opt_tick) {
   if (!jsaction.ActionFlow.report) {
     return;
   }
-  var event = new jsaction.ActionFlow.Event(
+  const evt = new jsaction.ActionFlow.Event(
       jsaction.ActionFlow.EventType.ERROR, this);
-  event.error = error;
-  event.branch = opt_branch;
-  event.tick = opt_tick;
-  event.finished = this.reportSent_;
-  jsaction.ActionFlow.report.dispatchEvent(event);
+  evt.error = error;
+  evt.branch = opt_branch;
+  evt.tick = opt_tick;
+  evt.finished = this.reportSent_;
+  jsaction.ActionFlow.report.dispatchEvent(evt);
 };
 
 
@@ -813,12 +813,12 @@ jsaction.ActionFlow.prototype.error_ = function(error, opt_branch, opt_tick) {
  * @private
  */
 jsaction.ActionFlow.foldCadObject_ = function(object) {
-  var cadArray = [];
+  const cadArray = [];
   goog.object.forEach(object, function(value, key) {
-    var escKey = encodeURIComponent(key);
+    const escKey = encodeURIComponent(key);
     // Don't escape '|' to make it a practical character to use as a separator
     // within the value.
-    var escValue = encodeURIComponent(value).replace(/%7C/g, '|');
+    const escValue = encodeURIComponent(value).replace(/%7C/g, '|');
     cadArray.push(escKey + jsaction.Char.CAD_KEY_VALUE_SEPARATOR + escValue);
   });
 
@@ -856,14 +856,14 @@ jsaction.ActionFlow.prototype.action = function(target) {
     this.error_(jsaction.ActionFlow.Error.ACTION);
   }
 
-  var ois = [];
-  var jsinstance = null;
-  var jstrack = null;
-  var ved = null;
-  var vet = null;
+  const ois = [];
+  let jsinstance = null;
+  let jstrack = null;
+  let ved = null;
+  let vet = null;
 
   jsaction.ActionFlow.visitDomNodesUpwards_(target, function(element) {
-    var oi = jsaction.ActionFlow.getOi_(element);
+    const oi = jsaction.ActionFlow.getOi_(element);
     if (oi) {
       ois.unshift(oi);
       // Find the 1st node with the jsinstance attribute.
@@ -1004,7 +1004,7 @@ jsaction.ActionFlow.prototype.getActionData = function() {
  * @private
  */
 jsaction.ActionFlow.visitDomNodesUpwards_ = function(start, visitFn) {
-  for (var node = start; node && node.nodeType == goog.dom.NodeType.ELEMENT;
+  for (let node = start; node && node.nodeType == goog.dom.NodeType.ELEMENT;
       node = node.parentNode) {
     visitFn(/** @type {!Element} */ (node));
   }
@@ -1036,7 +1036,7 @@ jsaction.ActionFlow.getOi_ = function(node) {
  */
 jsaction.ActionFlow.tick = function(flow, tick, opt_time, opt_opts) {
   if (flow) {
-    var opts = opt_opts || {};
+    const opts = opt_opts || {};
     opts.time = opts.time || opt_time;
     // Technically we do not need to specify doNotReportToServer or
     // doNotIncludeMaxTime here since the default is false, but
@@ -1135,7 +1135,7 @@ jsaction.ActionFlow.prototype.flowType = function() {
  *     the empty string.
  */
 jsaction.ActionFlow.prototype.actionNamespace = function() {
-  var type = this.unobfuscatedFlowType_;
+  const type = this.unobfuscatedFlowType_;
   return type.substr(0, type.indexOf(jsaction.Char.NAMESPACE_ACTION_SEPARATOR));
 };
 
@@ -1147,7 +1147,7 @@ jsaction.ActionFlow.prototype.actionNamespace = function() {
  * respectively.
  *
  * Example:
- * var myCallback = function() {
+ * function myCallback() {
  * ...
  * };
  * ....
@@ -1166,16 +1166,17 @@ jsaction.ActionFlow.prototype.actionNamespace = function() {
 jsaction.ActionFlow.prototype.callback =
     function(fn, branchName, opt_branchTick, opt_doneTick) {
   this.branch(branchName, opt_branchTick);
-  var flow = this;
+  const flow = this;
   /**
    * @this {SCOPE}
    * @param {...?} var_args
    * @return {RET}
    */
   function wrapped(var_args) {
-    var self = /** @type {SCOPE} */ (this);
+    const self = /** @type {SCOPE} */ (this);
+    let ret;
     try {
-      var ret = fn.apply(self, arguments);
+      ret = fn.apply(self, arguments);
     } finally {
       flow.done(branchName, opt_doneTick);
     }
@@ -1252,7 +1253,7 @@ jsaction.ActionFlow.prototype.target = function() {
  * @return {*} The value of the property or attribute.
  */
 jsaction.ActionFlow.prototype.value = function(key) {
-  var node = this.node_;
+  const node = this.node_;
   return !node ? undefined :
       key in node ? node[key] :
       // HACK(user): The getAttribute check protects against gratuitous mocks.

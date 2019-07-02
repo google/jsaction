@@ -18,13 +18,13 @@ goog.require('jsaction.dom');
  * @return {!Event} The new custom event.
  */
 jsaction.createCustomEvent = function(type, opt_data, opt_triggeringEvent) {
-  var event;
+  let event;
 
   // We use '_type' for the event contract, which lives in a separate
   // compilation unit, but also include the renamable keys so that event
   // consumers can access the data directly, e.g. detail.type instead of
   // detail['type'].
-  var detail = {
+  const detail = {
     '_type': type,
     type: type,
     data: opt_data,
@@ -61,7 +61,7 @@ jsaction.createCustomEvent = function(type, opt_data, opt_triggeringEvent) {
  */
 jsaction.fireCustomEvent = function(
     target, type, opt_data, opt_triggeringEvent) {
-  var event = jsaction.createCustomEvent(type, opt_data, opt_triggeringEvent);
+  const event = jsaction.createCustomEvent(type, opt_data, opt_triggeringEvent);
   target.dispatchEvent(event);
 };
 
@@ -77,13 +77,14 @@ jsaction.fireCustomEvent = function(
  * @param {string} type The type of the action, e.g. 'submit'. Because of an
  *     implementation detail, type may not be 'click'.
  * @param {!Object.<string, *>=} opt_data An optional data payload.
-*/
+ */
 jsaction.broadcastCustomEvent = function(target, type, opt_data) {
   goog.asserts.assert(type != 'click');
-  var matched = target.querySelectorAll('[jsaction^="' + type + ':"], ' +
+  const matched = target.querySelectorAll(
+      '[jsaction^="' + type + ':"], ' +
       '[jsaction*=";' + type + ':"], [jsaction*=" ' + type + ':"]');
-  for (var i = 0; i < matched.length; ++i) {
-    var match = matched[i];
+  for (let idx = 0; idx < matched.length; ++idx) {
+    const match = matched[idx];
     if (!jsaction.dom.hasAncestorInNodeList(match, matched)) {
       jsaction.fireCustomEvent(match, type, opt_data);
     }

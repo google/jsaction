@@ -29,9 +29,9 @@ jsaction.testing.CustomEvents = class extends goog.Disposable {
    * @template T
    */
   listen(element, eventType, listener, opt_context, opt_flowType) {
-    var jsactionListener = function(event) {
+    const jsactionListener = function(event) {
       if (event.detail['_type'] == eventType) {
-        var actionFlow = new jsaction.ActionFlow(
+        const actionFlow = new jsaction.ActionFlow(
             opt_flowType || jsaction.testing.CustomEvents.DEFAULT_FLOWTYPE,
             element, event, undefined /* startTime */, eventType);
         listener.call(opt_context, actionFlow);
@@ -47,8 +47,8 @@ jsaction.testing.CustomEvents = class extends goog.Disposable {
    * Removes all listeners.
    */
   disposeInternal() {
-    for (var i = 0; i < this.managedListeners_.length; i++) {
-      var listenerInfo = this.managedListeners_[i];
+    for (let idx = 0; idx < this.managedListeners_.length; idx++) {
+      const listenerInfo = this.managedListeners_[idx];
       listenerInfo['element'].removeEventListener(
           jsaction.EventType.CUSTOM, listenerInfo['listener']);
     }

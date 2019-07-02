@@ -153,7 +153,7 @@ jsaction.event.addEventListener = function(element, eventType, handler) {
   // Error and load events (i.e. on images) do not bubble so they are also
   // handled in the capture phase. These errors are also not supported in IE8
   // but we set them up here to be used in newer browsers.
-  var capture = false;
+  let capture = false;
 
   // Mouseenter and mouseleave events are not handled directly because they
   // are not available everywhere. In browsers where they are available, they
@@ -285,7 +285,7 @@ jsaction.event.preventDefault = function(e) {
 jsaction.event.getTarget = function(e) {
   // In IE8 and older the 'target' property is not supported and the
   // 'srcElement' property has to be used instead.
-  var el = e.target || e.srcElement;
+  let el = e.target || e.srcElement;
 
   // In Firefox, the event may have a text node as its target. We always
   // want the parent Element the text node belongs to, however.
@@ -386,7 +386,7 @@ jsaction.event.isValidActionKeyTarget_ = function(el) {
   if (!('getAttribute' in el)) {
     return false;
   }
-  var tagName = (el.getAttribute('role') || el.tagName).toUpperCase();
+  const tagName = (el.getAttribute('role') || el.tagName).toUpperCase();
   return !jsaction.event.isTextControl_(el) &&
       (tagName != 'COMBOBOX' || tagName != 'INPUT') && !el.isContentEditable;
 };
@@ -411,8 +411,8 @@ jsaction.event.hasModifierKey_ = function(e) {
  * @return {boolean} If preventDefault should be called.
  */
 jsaction.event.shouldCallPreventDefaultOnNativeHtmlControl = function(e) {
-  var el = jsaction.event.getTarget(e);
-  var tagName = (el.getAttribute('role') || el.tagName).toUpperCase();
+  const el = jsaction.event.getTarget(e);
+  const tagName = (el.getAttribute('role') || el.tagName).toUpperCase();
 
   if (tagName == 'BUTTON') {
     return true;
@@ -451,15 +451,15 @@ jsaction.event.shouldCallPreventDefaultOnNativeHtmlControl = function(e) {
  * @return {boolean} True, if the event emulates a DOM click.
  */
 jsaction.event.isActionKeyEvent = function(e) {
-  var key = e.which || e.keyCode || e.key;
+  let key = e.which || e.keyCode || e.key;
   if (jsaction.event.isWebKit && key == jsaction.KeyCodes.MAC_ENTER) {
     key = jsaction.KeyCodes.ENTER;
   }
   if (key != jsaction.KeyCodes.ENTER && key != jsaction.KeyCodes.SPACE) {
     return false;
   }
-  var el = jsaction.event.getTarget(e);
-  var type = (el.getAttribute('role') || el.type || el.tagName).toUpperCase();
+  const el = jsaction.event.getTarget(e);
+  const type = (el.getAttribute('role') || el.type || el.tagName).toUpperCase();
   if (e.type != jsaction.EventType.KEYDOWN ||
       !jsaction.event.isValidActionKeyTarget_(el) ||
       jsaction.event.hasModifierKey_(e)) {
@@ -479,10 +479,10 @@ jsaction.event.isActionKeyEvent = function(e) {
     return false;
   }
 
-  var hasType = el.tagName.toUpperCase() != 'INPUT' || el.type;
-  var isSpecificTriggerKey =
+  const hasType = el.tagName.toUpperCase() != 'INPUT' || el.type;
+  const isSpecificTriggerKey =
       jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING[type] % key == 0;
-  var isDefaultTriggerKey =
+  const isDefaultTriggerKey =
       !(type in jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING) &&
       key == jsaction.KeyCodes.ENTER;
   return (isSpecificTriggerKey || isDefaultTriggerKey) && !!hasType;
@@ -513,7 +513,7 @@ jsaction.event.hasSpecifiedTabIndex_ = function(element) {
   // IE returns 0 for an unset tabIndex, so we must use getAttributeNode(),
   // which returns an object with a 'specified' property if tabIndex is
   // specified.  This works on other browsers, too.
-  var attrNode = element.getAttributeNode('tabindex'); // Must be lowercase!
+  const attrNode = element.getAttributeNode('tabindex'); // Must be lowercase!
   return goog.isDefAndNotNull(attrNode) && attrNode.specified;
 };
 
@@ -536,9 +536,9 @@ jsaction.event.NATIVELY_FOCUSABLE_ELEMENTS_ = {
  * @return {boolean} True, if the Space key was pressed.
  */
 jsaction.event.isSpaceKeyEvent = function(e) {
-  var key = e.which || e.keyCode || e.key;
-  var el = jsaction.event.getTarget(e);
-  var elementName = (el.type || el.tagName).toUpperCase();
+  const key = e.which || e.keyCode || e.key;
+  const el = jsaction.event.getTarget(e);
+  const elementName = (el.type || el.tagName).toUpperCase();
   return key == jsaction.KeyCodes.SPACE && elementName != 'CHECKBOX';
 };
 
@@ -561,7 +561,7 @@ jsaction.event.isSpaceKeyEvent = function(e) {
  * @return {boolean} True if the event is a mouseenter/mouseleave event.
  */
 jsaction.event.isMouseSpecialEvent = function(e, type, element) {
-  var related = /** @type {!Node} */ (e.relatedTarget);
+  const related = /** @type {!Node} */ (e.relatedTarget);
 
   return ((e.type == jsaction.EventType.MOUSEOVER &&
            type == jsaction.EventType.MOUSEENTER) ||
@@ -591,8 +591,8 @@ jsaction.event.createMouseSpecialEvent = function(e, target) {
   // Since we're making a copy anyways, we might as well attempt to convert
   // this event into a pseudo-real mouseenter/mouseleave event by adjusting
   // its type.
-  var copy = {};
-  for (var i in e) {
+  const copy = {};
+  for (const i in e) {
     if (typeof e[i] === 'function' || i === 'srcElement' || i === 'target') {
       continue;
     }
@@ -621,7 +621,7 @@ jsaction.event.createMouseSpecialEvent = function(e, target) {
  *     screenY: number}}
  */
 jsaction.event.getTouchData = function(event) {
-  var touch = (event.changedTouches && event.changedTouches[0]) ||
+  const touch = (event.changedTouches && event.changedTouches[0]) ||
       (event.touches && event.touches[0]);
   if (!touch) {
     return null;
@@ -648,11 +648,11 @@ jsaction.event.getTouchData = function(event) {
  *     passed into this function.
  */
 jsaction.event.recreateTouchEventAsClick = function(event) {
-  var click = {};
+  const click = {};
   click['originalEventType'] = event.type;
   click['type'] = jsaction.EventType.CLICK;
-  for (var p in event) {
-    var v = event[p];
+  for (const p in event) {
+    const v = event[p];
     if (p != 'type' && p != 'srcElement' && !goog.isFunction(v)) {
       click[p] = v;
     }
@@ -670,7 +670,7 @@ jsaction.event.recreateTouchEventAsClick = function(event) {
   click['stopPropagation'] = jsaction.event.syntheticStopPropagation_;
 
   // Emulate click coordinates using touch info
-  var touch = jsaction.event.getTouchData(event);
+  const touch = jsaction.event.getTouchData(event);
   if (touch) {
     click['clientX'] = touch.clientX;
     click['clientY'] = touch.clientY;
@@ -761,7 +761,7 @@ jsaction.event.syntheticStopPropagation_ = function() {
  * TODO(user): Add tests for this function.
  */
 jsaction.event.maybeCopyEvent = function(e) {
-  var doc = goog.global['document'];
+  const doc = goog.global['document'];
   // We test the following:
   //
   // The document may not exist in dom-less tests.
@@ -834,7 +834,7 @@ jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING = {
  * @private
  */
 jsaction.event.processSpace_ = function(element) {
-  var type = (element.getAttribute('type') || element.tagName).toUpperCase();
+  const type = (element.getAttribute('type') || element.tagName).toUpperCase();
   return type in jsaction.event.PROCESS_SPACE_;
 };
 
@@ -846,7 +846,7 @@ jsaction.event.processSpace_ = function(element) {
  * @private
  */
 jsaction.event.isTextControl_ = function(el) {
-  var type = (el.getAttribute('type') || el.tagName).toUpperCase();
+  const type = (el.getAttribute('type') || el.tagName).toUpperCase();
   return type in jsaction.event.TEXT_CONTROLS_;
 };
 

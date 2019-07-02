@@ -2,7 +2,6 @@
 
 
 goog.provide('jsaction.Dispatcher');
-goog.provide('jsaction.Loader');
 
 goog.require('goog.array');
 goog.require('goog.async.run');
@@ -12,15 +11,8 @@ goog.require('jsaction.ActionFlow');
 goog.require('jsaction.Branch');
 goog.require('jsaction.Char');
 goog.require('jsaction.event');
+goog.requireType('jsaction.Loader');
 
-
-/**
- * A loader is a function that will do whatever is necessary to register
- * handlers for a given namespace. A loader takes a dispatcher and a namespace
- * as parameters.
- * @typedef {function(!jsaction.Dispatcher,string,jsaction.EventInfo):void}
- */
-jsaction.Loader;
 
 
 /**
@@ -170,11 +162,11 @@ jsaction.Dispatcher.prototype.dispatch = function(
   if (opt_globalDispatch) {
     // Skip everything related to jsaction handlers, and execute the global
     // handlers.
-    var ev = eventInfo['event'];
-    var eventTypeHandlers = this.globalHandlers_[eventInfo['eventType']];
+    const ev = eventInfo['event'];
+    const eventTypeHandlers = this.globalHandlers_[eventInfo['eventType']];
+    let shouldPreventDefault = false;
     if (eventTypeHandlers) {
-      var shouldPreventDefault = false;
-      for (var i = 0, handler; handler = eventTypeHandlers[i++];) {
+      for (let idx = 0, handler; handler = eventTypeHandlers[idx++];) {
         if (handler(ev) === false) {
           shouldPreventDefault = true;
         }
@@ -186,11 +178,11 @@ jsaction.Dispatcher.prototype.dispatch = function(
     return;
   }
 
-  var action = eventInfo['action'];
-  var namespace = jsaction.Dispatcher.getNamespace_(action);
-  var namespaceAction = this.namespaceActions_[namespace];
+  const action = eventInfo['action'];
+  const namespace = jsaction.Dispatcher.getNamespace_(action);
+  const namespaceAction = this.namespaceActions_[namespace];
 
-  var handler;
+  let handler;
   if (this.getHandler_) {
     handler = this.getHandler_(eventInfo);
   } else if (!namespaceAction) {
@@ -200,7 +192,7 @@ jsaction.Dispatcher.prototype.dispatch = function(
   }
 
   if (handler) {
-    var stats = this.flowFactory_(
+    const stats = this.flowFactory_(
         /** @type {jsaction.EventInfo} */ (eventInfo));
     handler(stats);
     stats.done(jsaction.Branch.MAIN);
@@ -209,7 +201,7 @@ jsaction.Dispatcher.prototype.dispatch = function(
 
   // No handler was found. Potentially make a copy of the event to extend its
   // life and queue it.
-  var eventCopy = jsaction.event.maybeCopyEvent(eventInfo['event']);
+  const eventCopy = jsaction.event.maybeCopyEvent(eventInfo['event']);
   eventInfo['event'] = eventCopy;
   this.queue_.push(eventInfo);
 
@@ -286,7 +278,7 @@ jsaction.Dispatcher.prototype.registerNamespaceHandler = function(
  */
 jsaction.Dispatcher.prototype.maybeInvokeLoader_ = function(
     namespace, eventInfo) {
-  var loaderInfo = this.loaders_[namespace];
+  const loaderInfo = this.loaders_[namespace];
   if (!loaderInfo) {
     if (this.defaultLoader_ && !(namespace in this.defaultLoaderNamespaces_)) {
       this.defaultLoaderNamespaces_[namespace] = true;
@@ -349,13 +341,13 @@ jsaction.Dispatcher.createActionFlow_ = function(eventInfo) {
 jsaction.Dispatcher.prototype.registerHandlers = function(
     namespace, instance, methods) {
   goog.object.forEach(methods, goog.bind(function(method, name) {
-    var handler = instance ? goog.bind(method, instance) : method;
+    const handler = instance ? goog.bind(method, instance) : method;
     // Include a '.' separator between namespace name and action name.
     // In the case that no namespace name is provided, the jsaction name
     // consists of the action name only (no period).
     if (namespace) {
-      var fullName = namespace + jsaction.Char.NAMESPACE_ACTION_SEPARATOR +
-          name;
+      const fullName =
+          namespace + jsaction.Char.NAMESPACE_ACTION_SEPARATOR + name;
       this.actions_[fullName] = handler;
     } else {
       this.actions_[name] = handler;
@@ -373,12 +365,9 @@ jsaction.Dispatcher.prototype.registerHandlers = function(
  * @param {string} name The action name to unbind.
  */
 jsaction.Dispatcher.prototype.unregisterHandler = function(namespace, name) {
-  var fullName = null;
-  if (namespace) {
-    fullName = namespace + jsaction.Char.NAMESPACE_ACTION_SEPARATOR + name;
-  } else {
-    fullName = name;
-  }
+  const fullName = namespace ?
+      namespace + jsaction.Char.NAMESPACE_ACTION_SEPARATOR + name :
+      name;
   delete this.actions_[fullName];
 };
 
@@ -433,11 +422,11 @@ jsaction.Dispatcher.prototype.hasAction = function(name) {
  * @return {boolean}
  */
 jsaction.Dispatcher.prototype.canDispatch = function(eventInfo) {
-  var name = eventInfo['action'];
+  const name = eventInfo['action'];
   if (this.actions_.hasOwnProperty(name)) {
     return true;
   }
-  var ns = jsaction.Dispatcher.getNamespace_(name);
+  const ns = jsaction.Dispatcher.getNamespace_(name);
   if (this.namespaceActions_.hasOwnProperty(ns)) {
     return this.namespaceActions_[ns].accept(eventInfo);
   }
@@ -492,10 +481,10 @@ jsaction.Dispatcher.prototype.replayQueuedEvents_ = function() {
  *
  * Example: An event replayer that replays only the last event.
  *
- *   var dispatcher = new Dispatcher;
+ *   const dispatcher = new Dispatcher;
  *   // ...
  *   dispatcher.setEventReplayer(function(queue, dispatcher) {
- *     var lastEventInfo = goog.array.peek(queue);
+ *     const lastEventInfo = goog.array.peek(queue);
  *     if (dispatcher.canDispatch(lastEventInfo.action) {
  *       jsaction.replay.replayEvent(lastEventInfo);
  *       goog.array.clear(queue);

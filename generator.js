@@ -57,7 +57,7 @@ jsaction.domGenerator.Ancestors.prototype.reset_ =
 jsaction.domGenerator.Ancestors.prototype.next = function() {
   // Walk to the parent node, unless the node has a different owner in
   // which case we walk to the owner.
-  var curr = this.node_;
+  const curr = this.node_;
   if (this.node_ && this.node_ != this.container_) {
     this.node_ = this.node_[jsaction.Property.OWNER] || this.node_.parentNode;
   } else {
@@ -115,7 +115,7 @@ jsaction.domGenerator.EventPath.prototype.next = function() {
     return jsaction.domGenerator.ancestors_.next();
   }
   if (this.idx_ != this.path_.length) {
-    var curr = this.path_[this.idx_];
+    const curr = this.path_[this.idx_];
     this.idx_++;
     if (curr != this.container_) {
       // NOTE(user): The presence of the OWNER property indicates that

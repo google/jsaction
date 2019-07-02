@@ -4,7 +4,7 @@
  */
 goog.provide('jsaction.ActionLogger');
 
-goog.require('jsaction.ActionFlow');
+goog.requireType('jsaction.ActionFlow');
 
 goog.scope(function() {
 
@@ -17,9 +17,6 @@ goog.scope(function() {
  */
 jsaction.ActionLogger = function() {};
 
-var ActionLogger = jsaction.ActionLogger;
-
-
 /**
  * Logs when an action is actually dispatched. Should be invoked by handler
  * before the action is actually handled.
@@ -28,6 +25,6 @@ var ActionLogger = jsaction.ActionLogger;
  * @param {string=} opt_info optional string to identify information on
  *     the controller that handles the action.
  */
-ActionLogger.prototype.logDispatch = function(actionFlow, opt_info) {};
+jsaction.ActionLogger.prototype.logDispatch = function(actionFlow, opt_info) {};
 
 });   // goog.scope

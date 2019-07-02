@@ -213,16 +213,14 @@ jsaction.EventContract.CLICKKEY_ = 'clickkey';
  *
  * @param {string} str  Input string.
  * @return {string}  Trimmed string.
- * @private
+ * @private @const
  */
-jsaction.EventContract.stringTrim_ = String.prototype.trim ?
-    function(str) {
-      return str.trim();
-    } :
-    function(str) {
-      var trimmedLeft = str.replace(/^\s+/, '');
-      return trimmedLeft.replace(/\s+$/, '');
-    };
+jsaction.EventContract.stringTrim_ = String.prototype.trim ? function(str) {
+  return str.trim();
+} : function(str) {
+  const trimmedLeft = str.replace(/^\s+/, '');
+  return trimmedLeft.replace(/\s+$/, '');
+};
 
 
 /**
@@ -322,14 +320,14 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
    * @param {!Event} e Event.
    * @this {!Element}
    */
-  var handler = function(e) {
-    var container = this;
+  const handler = function(e) {
+    const container = this;
     // Store eventType's value in a local variable so that multiple calls do not
     // modify the shared eventType variable.
-    var eventTypeForDispatch = eventType;
+    let eventTypeForDispatch = eventType;
     if (jsaction.EventContract.CUSTOM_EVENT_SUPPORT &&
         eventTypeForDispatch == jsaction.EventType.CUSTOM) {
-      var detail = e['detail'];
+      const detail = e['detail'];
       // For custom events, use a secondary dispatch based on the internal
       // custom type of the event.
       if (!detail || !detail['_type']) {
@@ -339,11 +337,11 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
       eventTypeForDispatch = detail['_type'];
     }
 
-    var eventInfo = jsaction.EventContract.createEventInfo_(
+    const eventInfo = jsaction.EventContract.createEventInfo_(
         eventTypeForDispatch, e, container);
 
     if (eventContract.dispatcher_) {
-      var globalEventInfo = jsaction.EventContract.createEventInfoInternal_(
+      const globalEventInfo = jsaction.EventContract.createEventInfoInternal_(
           eventInfo['eventType'], eventInfo['event'],
           eventInfo['targetElement'], eventInfo['action'],
           eventInfo['actionElement'], eventInfo['timeStamp']);
@@ -367,7 +365,7 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
     if (jsaction.EventContract.STOP_PROPAGATION) {
       if (jsaction.event.isGecko &&
           (eventInfo['targetElement'].tagName == goog.dom.TagName.INPUT ||
-            eventInfo['targetElement'].tagName == goog.dom.TagName.TEXTAREA) &&
+           eventInfo['targetElement'].tagName == goog.dom.TagName.TEXTAREA) &&
           (eventInfo['eventType'] == jsaction.EventType.FOCUS)) {
         // Do nothing since stopping propagation a focus event on an input
         // element in Firefox makes the text cursor disappear:
@@ -393,7 +391,7 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
     if (eventContract.dispatcher_) {
       eventContract.dispatcher_(eventInfo);
     } else {
-      var copiedEvent = jsaction.event.maybeCopyEvent(e);
+      const copiedEvent = jsaction.event.maybeCopyEvent(e);
       // The event is queued since there is no dispatcher registered
       // yet. Potentially make a copy of the event in order to extend its
       // life. The copy will later be used when attempting to replay.
@@ -415,7 +413,7 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
 jsaction.EventContract.afterEventHandler_ = function(eventInfo) {
   // Setup sweeper if mouse events have been canceled.
   if (eventInfo.event.type == jsaction.EventType.TOUCHEND &&
-     jsaction.event.isMouseEventsPrevented(eventInfo.event)) {
+      jsaction.event.isMouseEventsPrevented(eventInfo.event)) {
     jsaction.EventContract.preventingMouseEvents_ = /** @type {!Event} */ (
         jsaction.event.recreateTouchEventAsClick(eventInfo.event));
   }
@@ -481,13 +479,14 @@ jsaction.EventContract.createEventInfo_ = function(eventType, e, container) {
   if (eventType == jsaction.EventType.CLICK &&
       jsaction.event.isModifiedClickEvent(e)) {
     eventType = jsaction.EventType.CLICKMOD;
-  } else if (jsaction.EventContract.A11Y_CLICK_SUPPORT &&
-             jsaction.event.isActionKeyEvent(e)) {
+  } else if (
+      jsaction.EventContract.A11Y_CLICK_SUPPORT &&
+      jsaction.event.isActionKeyEvent(e)) {
     eventType = jsaction.EventContract.CLICKKEY_;
   }
 
-  var target = /** @type {!Element} */(e.srcElement || e.target);
-  var eventInfo = jsaction.EventContract.createEventInfoInternal_(
+  const target = /** @type {!Element} */ (e.srcElement || e.target);
+  let eventInfo = jsaction.EventContract.createEventInfoInternal_(
       eventType, e, target, '', null);
 
   // NOTE(user): In order to avoid complicating the code that calculates the
@@ -497,20 +496,19 @@ jsaction.EventContract.createEventInfo_ = function(eventType, e, container) {
   // performance.
 
   /** @type {jsaction.ActionInfo} */
-  var actionInfo;
+  let actionInfo;
   // NOTE(user): This is a work around some issues with custom dispatchers.
-  var element;
+  let element;
   if (jsaction.EventContract.USE_EVENT_PATH) {
-    var generator = jsaction.domGenerator.getGenerator(
-        e, target, /** @type {!Element} */(container));
-    for (var node; node = generator.next();) {
+    const generator = jsaction.domGenerator.getGenerator(
+        e, target, /** @type {!Element} */ (container));
+    for (let node; node = generator.next();) {
       element = node;
-      actionInfo = jsaction.EventContract.getAction_(
-          element, eventType, e, container);
+      actionInfo =
+          jsaction.EventContract.getAction_(element, eventType, e, container);
       eventInfo = jsaction.EventContract.createEventInfoInternal_(
           actionInfo.eventType, actionInfo.event || e, target,
-          actionInfo.action || '', element,
-          eventInfo['timeStamp']);
+          actionInfo.action || '', element, eventInfo['timeStamp']);
 
       // TODO(user): If we can get rid of the break on actionInfo.ignore
       // these loops can collapse down to one and the contents can live in
@@ -526,13 +524,13 @@ jsaction.EventContract.createEventInfo_ = function(eventType, e, container) {
       }
     }
   } else {
-    for (var node = target; node && node != container;
-      // Walk to the parent node, unless the node has a different owner in
-      // which case we walk to the owner.
-      node = node[jsaction.Property.OWNER] || node.parentNode) {
+    for (let node = target; node && node != container;
+         // Walk to the parent node, unless the node has a different owner in
+         // which case we walk to the owner.
+         node = node[jsaction.Property.OWNER] || node.parentNode) {
       element = node;
-      actionInfo = jsaction.EventContract.getAction_(
-          element, eventType, e, container);
+      actionInfo =
+          jsaction.EventContract.getAction_(element, eventType, e, container);
 
       // Stop walking the DOM prematurely if we will ignore this event.  This is
       // used solely for fastbutton's implementation.
@@ -547,8 +545,7 @@ jsaction.EventContract.createEventInfo_ = function(eventType, e, container) {
     if (actionInfo) {
       eventInfo = jsaction.EventContract.createEventInfoInternal_(
           actionInfo.eventType, actionInfo.event || e, target,
-          actionInfo.action || '', element,
-          eventInfo['timeStamp']);
+          actionInfo.action || '', element, eventInfo['timeStamp']);
     }
   }
 
@@ -582,7 +579,7 @@ jsaction.EventContract.createEventInfo_ = function(eventType, e, container) {
         // registered. Both handlers will see the same event instance
         // so we create a copy to avoid interfering with the dispatching of
         // the mouseover/mouseout event.
-        var copiedEvent = jsaction.event.createMouseSpecialEvent(
+        const copiedEvent = jsaction.event.createMouseSpecialEvent(
             e, /** @type {!Element} */ (element));
         eventInfo['event'] = /** @type {!Event} */ (copiedEvent);
         // Since the mouseenter/mouseleave events do not bubble, the target
@@ -643,7 +640,7 @@ jsaction.EventContract.createEventInfoInternal_ = function(
  * @private
  */
 jsaction.EventContract.getAttr_ = function(node, attribute) {
-  var value = null;
+  let value = null;
   // NOTE(user): Nodes in IE do not always have a getAttribute
   // method defined. This is the case where sourceElement has in
   // fact been removed from the DOM before eventContract begins
@@ -680,10 +677,10 @@ jsaction.EventContract.EMPTY_ACTION_MAP_ = {};
  *     of the jsaction bound to it.
  */
 jsaction.EventContract.parseActions = function(node, container) {
-  var actionMap = jsaction.Cache.get(node);
+  let actionMap = jsaction.Cache.get(node);
   if (!actionMap) {
-    var attvalue = jsaction.EventContract.getAttr_(
-        node, jsaction.Attribute.JSACTION);
+    const attvalue =
+        jsaction.EventContract.getAttr_(node, jsaction.Attribute.JSACTION);
     if (!attvalue) {
       actionMap = jsaction.EventContract.EMPTY_ACTION_MAP_;
       jsaction.Cache.set(node, actionMap);
@@ -691,19 +688,21 @@ jsaction.EventContract.parseActions = function(node, container) {
       actionMap = jsaction.Cache.getParsed(attvalue);
       if (!actionMap) {
         actionMap = {};
-        var values = attvalue.split(jsaction.EventContract.REGEXP_SEMICOLON_);
-        for (var i = 0, I = values ? values.length : 0; i < I; i++) {
-          var value = values[i];
+        const values = attvalue.split(jsaction.EventContract.REGEXP_SEMICOLON_);
+        const I = values ? values.length : 0;
+        for (let idx = 0; idx < I; idx++) {
+          const value = values[idx];
           if (!value) {
             continue;
           }
-          var colon = value.indexOf(jsaction.Char.EVENT_ACTION_SEPARATOR);
-          var hasColon = colon != -1;
-          var type = hasColon ?
+          const colon = value.indexOf(jsaction.Char.EVENT_ACTION_SEPARATOR);
+          const hasColon = colon != -1;
+          const type = hasColon ?
               jsaction.EventContract.stringTrim_(value.substr(0, colon)) :
               jsaction.EventContract.defaultEventType_;
-          var action = hasColon ? jsaction.EventContract.stringTrim_(
-              value.substr(colon + 1)) : value;
+          const action = hasColon ?
+              jsaction.EventContract.stringTrim_(value.substr(colon + 1)) :
+              value;
           actionMap[type] = action;
         }
         jsaction.Cache.setParsed(attvalue, actionMap);
@@ -711,9 +710,9 @@ jsaction.EventContract.parseActions = function(node, container) {
       // If namespace support is active we need to augment the (potentially
       // cached) jsaction mapping with the namespace.
       if (jsaction.EventContract.JSNAMESPACE_SUPPORT) {
-        var noNs = actionMap;
+        const noNs = actionMap;
         actionMap = {};
-        for (var type in noNs) {
+        for (let type in noNs) {
           actionMap[type] = jsaction.EventContract.getQualifiedName_(
               noNs[type], node, container);
         }
@@ -748,14 +747,15 @@ jsaction.EventContract.parseActions = function(node, container) {
  */
 jsaction.EventContract.getAction_ = function(
     node, eventType, event, container) {
-  var actionMap = jsaction.EventContract.parseActions(node, container);
+  const actionMap = jsaction.EventContract.parseActions(node, container);
 
   if (jsaction.EventContract.A11Y_CLICK_SUPPORT) {
     if (eventType == jsaction.EventContract.CLICKKEY_) {
       // A 'click' triggered by a DOM keypress should be mapped to the 'click'
       // jsaction.
       eventType = jsaction.EventType.CLICK;
-    } else if (eventType == jsaction.EventType.CLICK &&
+    } else if (
+        eventType == jsaction.EventType.CLICK &&
         !actionMap[jsaction.EventType.CLICK]) {
       // A 'click' triggered by a DOM click should be mapped to the 'click'
       // jsaction, if available, or else fallback to the 'clickonly' jsaction.
@@ -765,22 +765,17 @@ jsaction.EventContract.getAction_ = function(
     }
   }
 
-  var overrideEvent = null;
+  let overrideEvent = null;
   if (jsaction.EventContract.FAST_CLICK_SUPPORT &&
       // Don't want fast click behavior? Just bind clickonly instead.
       actionMap[jsaction.EventType.CLICK]) {
-    var fastEvent = jsaction.EventContract.getFastClickEvent_(node,
-        event, actionMap);
+    const fastEvent =
+        jsaction.EventContract.getFastClickEvent_(node, event, actionMap);
     if (!fastEvent) {
       // Null means to stop looking for further events, as the logic event
       // has already been handled or the event started a sequence that may
       // eventually lead to a logic click event.
-      return {
-        eventType: eventType,
-        action: '',
-        event: null,
-        ignore: true
-      };
+      return {eventType: eventType, action: '', event: null, ignore: true};
     } else if (fastEvent != event) {
       overrideEvent = fastEvent;
       eventType = fastEvent.type;
@@ -789,7 +784,7 @@ jsaction.EventContract.getAction_ = function(
 
   // An empty action indicates that no jsaction attribute was found in the given
   // DOM node.
-  var actionName = actionMap[eventType] || '';
+  const actionName = actionMap[eventType] || '';
 
   return {
     eventType: eventType,
@@ -823,9 +818,9 @@ jsaction.EventContract.getQualifiedName_ = function(name, start, container) {
       return name;
     }
 
-    for (var node = start; node; node = node.parentNode) {
-      var ns = jsaction.EventContract.getNamespace_(
-          /** @type {!Element} */(node));
+    for (let node = start; node; node = node.parentNode) {
+      const ns = jsaction.EventContract.getNamespace_(
+          /** @type {!Element} */ (node));
       if (ns) {
         return ns + jsaction.Char.NAMESPACE_ACTION_SEPARATOR + name;
       }
@@ -872,8 +867,8 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
     return event;
   }
 
-  var fastClickNode = jsaction.EventContract.fastClickNode_;
-  var target = event.target;
+  const fastClickNode = jsaction.EventContract.fastClickNode_;
+  const target = event.target;
   if (target) {
     // Don't do anything special for clicks on elements with elaborate built in
     // click and focus behavior.
@@ -882,7 +877,7 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
     }
   }
 
-  var touch = jsaction.event.getTouchData(event);
+  const touch = jsaction.event.getTouchData(event);
 
   // When a touchstart is fired, remember the action node in a global variable.
   // When a subsequent touchend arrives, it'll be interpreted as a click.
@@ -892,40 +887,43 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
       !actionMap[jsaction.EventType.TOUCHSTART] &&
       !actionMap[jsaction.EventType.TOUCHEND]) {
     jsaction.EventContract.fastClickNode_ = {
-            node: node,
-            x: touch ? touch.clientX : 0,
-            y: touch ? touch.clientY : 0};
+      node: node,
+      x: touch ? touch.clientX : 0,
+      y: touch ? touch.clientY : 0
+    };
     jsaction.EventContract.preventingMouseEvents_ = null;
     clearTimeout(jsaction.EventContract.fastClickTimeout_);
 
     // If touchend doesn't arrive within a reasonable amount of time, this is
     // a long click and not a click, so we throw away and will ignore
     // a later touchend.
-    jsaction.EventContract.fastClickTimeout_ = setTimeout(
-        jsaction.EventContract.resetFastClickNode_, 400);
+    jsaction.EventContract.fastClickTimeout_ =
+        setTimeout(jsaction.EventContract.resetFastClickNode_, 400);
     return null;
   }
 
   // If a touchend was fired on what had a previous touchstart, count the event
   // as a click.
-  else if (event.type == jsaction.EventType.TOUCHEND &&
-              fastClickNode && fastClickNode.node == node) {
+  else if (
+      event.type == jsaction.EventType.TOUCHEND && fastClickNode &&
+      fastClickNode.node == node) {
     // If the touchend is more than 4px Manhattan away from the touchstart event
     // don't consider this a click even when on the same element. This is
     // necessary when dragging an element and mousemove events are cancelled.
     if (!event.defaultPrevented &&
-        !(touch && (Math.abs(touch.clientX - fastClickNode.x) +
-            Math.abs(touch.clientY - fastClickNode.y)) > 4)) {
-      var newEvent = /** @type {!Event} */ (jsaction.event.
-              recreateTouchEventAsClick(event));
+        !(touch &&
+          (Math.abs(touch.clientX - fastClickNode.x) +
+           Math.abs(touch.clientY - fastClickNode.y)) > 4)) {
+      const newEvent = /** @type {!Event} */ (
+          jsaction.event.recreateTouchEventAsClick(event));
       jsaction.EventContract.preventingMouseEvents_ = newEvent;
 
       // Cancel "touchend" and send the emulated "click" event.
       event.stopPropagation();
       event.preventDefault();
-      var clickEvent = jsaction.createMouseEvent(newEvent);
+      const clickEvent = jsaction.createMouseEvent(newEvent);
       clickEvent['_fastclick'] = true;
-      var focusableNode =
+      const focusableNode =
           jsaction.EventContract.getFocusableAncestor_(newEvent.target);
       if (focusableNode) {
         focusableNode.focus();
@@ -963,8 +961,9 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
   else if (event.type == jsaction.EventType.TOUCHMOVE && fastClickNode) {
     // Ignore jitters: iOS often sends +/- 2px touchmove events. Thus we will
     // ignore any moves with the Manhattan distance 4 pixels or less.
-    if (touch && (Math.abs(touch.clientX - fastClickNode.x) +
-            Math.abs(touch.clientY - fastClickNode.y)) > 4) {
+    if (touch &&
+        (Math.abs(touch.clientX - fastClickNode.x) +
+         Math.abs(touch.clientY - fastClickNode.y)) > 4) {
       jsaction.EventContract.resetFastClickNode_();
     }
   }
@@ -978,7 +977,7 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
  * @private
  */
 jsaction.EventContract.getFocusableAncestor_ = function(target) {
-  var focusableNode = target;
+  let focusableNode = target;
   while (focusableNode && focusableNode.getAttribute) {
     // Pulled from goog.dom.isFocusable but stripped down to save bytes.
     if (jsaction.EventContract.nativelySupportsFocus_(focusableNode) ||
@@ -997,7 +996,7 @@ jsaction.EventContract.getFocusableAncestor_ = function(target) {
  * @private
  */
 jsaction.EventContract.nativelySupportsFocus_ = function(element) {
-  var tagName = element.tagName || '';
+  const tagName = element.tagName || '';
   return (
       goog.dom.TagName.A == tagName || goog.dom.TagName.INPUT == tagName ||
       goog.dom.TagName.TEXTAREA == tagName ||
@@ -1011,7 +1010,7 @@ jsaction.EventContract.nativelySupportsFocus_ = function(element) {
  * @private
  */
 jsaction.EventContract.isInput_ = function(target) {
-  var tagName = target.tagName || '';
+  const tagName = target.tagName || '';
   return (
       tagName == goog.dom.TagName.TEXTAREA ||
       tagName == goog.dom.TagName.INPUT || tagName == goog.dom.TagName.SELECT ||
@@ -1044,7 +1043,7 @@ jsaction.EventContract.sweepupPreventedMouseEvents_ = function(event) {
     return;
   }
 
-  var fastClickEvent = jsaction.EventContract.preventingMouseEvents_;
+  const fastClickEvent = jsaction.EventContract.preventingMouseEvents_;
   if (!fastClickEvent) {
     // No recent "fastclick" - proceed uninterrupted.
     return;
@@ -1072,13 +1071,13 @@ jsaction.EventContract.sweepupPreventedMouseEvents_ = function(event) {
   // it's not always the case, as when the content is scrolled or when
   // overlays are shown quickly after click. In the latter case, we have to
   // measure the distance between the events.
-  var isSameTarget = fastClickEvent.target == event.target;
+  const isSameTarget = fastClickEvent.target == event.target;
 
   // Similar to "touchend" sometimes there can be a drift of the click event.
   // In tests it never was more than 2px in either direction, thus we
   // check for 4px Manhattan distance.
-  var isNear = (Math.abs(event.clientX - fastClickEvent.clientX) +
-      Math.abs(event.clientY - fastClickEvent.clientY)) <= 4;
+  const isNear = (Math.abs(event.clientX - fastClickEvent.clientX) +
+                  Math.abs(event.clientY - fastClickEvent.clientY)) <= 4;
 
   // If neither condition is true all mouse-events canceling for all subsequent
   // mouse events is canceled.
@@ -1121,7 +1120,7 @@ if (jsaction.EventContract.JSNAMESPACE_SUPPORT) {
    * @private
    */
   jsaction.EventContract.getNamespace_ = function(node) {
-    var jsnamespace = jsaction.Cache.getNamespace(node);
+    let jsnamespace = jsaction.Cache.getNamespace(node);
     // Only query for the attribute if it has not been queried for
     // before. jsaction.EventContract.getAttr_() returns null if an
     // attribute is not present. Thus, jsnamespace is string|null if
@@ -1157,7 +1156,7 @@ jsaction.EventContract.containerHandlerInstaller_ = function(name, handler) {
    * @return {jsaction.EventHandlerInfo} The event name and the
    *    handler installed by the function.
    */
-  var installer = function(div) {
+  const installer = function(div) {
     return jsaction.event.addEventListener(div, name, handler);
   };
   return installer;
@@ -1188,18 +1187,18 @@ jsaction.EventContract.prototype.addEvent = function(name, opt_prefixedName) {
     return;
   }
 
-  var handler = jsaction.EventContract.eventHandler_(this, name);
+  const handler = jsaction.EventContract.eventHandler_(this, name);
 
   // Install the callback which handles events on the container.
-  var installer = jsaction.EventContract.containerHandlerInstaller_(
+  const installer = jsaction.EventContract.containerHandlerInstaller_(
       opt_prefixedName || name, handler);
 
   // Store the callback to allow us to replay events.
   this.events_[name] = handler;
 
   this.installers_.push(installer);
-  for (var i = 0; i < this.containers_.length; ++i) {
-    this.containers_[i].installHandler(installer);
+  for (let idx = 0; idx < this.containers_.length; ++idx) {
+    this.containers_[idx].installHandler(installer);
   }
 
   // Automatically install a keypress/keydown event handler if support for
@@ -1230,11 +1229,14 @@ jsaction.EventContract.prototype.initializeFastClick_ = function() {
   // even though the TOUCHEND has been canceled.
   // This is ignored on IE8 which doesn't have touch support.
   if (document.addEventListener) {
-    document.addEventListener(jsaction.EventType.CLICK,
+    document.addEventListener(
+        jsaction.EventType.CLICK,
         jsaction.EventContract.sweepupPreventedMouseEvents_, true);
-    document.addEventListener(jsaction.EventType.MOUSEUP,
+    document.addEventListener(
+        jsaction.EventType.MOUSEUP,
         jsaction.EventContract.sweepupPreventedMouseEvents_, true);
-    document.addEventListener(jsaction.EventType.MOUSEDOWN,
+    document.addEventListener(
+        jsaction.EventType.MOUSEDOWN,
         jsaction.EventContract.sweepupPreventedMouseEvents_, true);
   }
 };
@@ -1266,7 +1268,7 @@ jsaction.EventContract.prototype.handler = function(name) {
  *     created.
  */
 jsaction.EventContract.prototype.addContainer = function(div) {
-  var container = new jsaction.EventContractContainer(div);
+  const container = new jsaction.EventContractContainer(div);
   if (!jsaction.EventContract.STOP_PROPAGATION) {
     if (this.hasContainerFor_(div)) {
       // This container has an ancestor that is already a contract container.
@@ -1298,12 +1300,12 @@ jsaction.EventContract.prototype.addContainer = function(div) {
  * @private
  */
 jsaction.EventContract.prototype.updateNestedContainers_ = function() {
-  var allContainers = this.nestedContainers_.concat(this.containers_);
-  var newNestedContainers = [];
-  var newContainers = [];
+  const allContainers = this.nestedContainers_.concat(this.containers_);
+  const newNestedContainers = [];
+  const newContainers = [];
 
-  for (var i = 0; i < this.containers_.length; ++i) {
-    var container = this.containers_[i];
+  for (let idx = 0; idx < this.containers_.length; ++idx) {
+    const container = this.containers_[idx];
     if (jsaction.EventContractContainer.isNested_(container, allContainers)) {
       newNestedContainers.push(container);
       // Remove the event listeners from the nested container.
@@ -1313,8 +1315,8 @@ jsaction.EventContract.prototype.updateNestedContainers_ = function() {
     }
   }
 
-  for (var i = 0; i < this.nestedContainers_.length; ++i) {
-    var container = this.nestedContainers_[i];
+  for (let idx = 0; idx < this.nestedContainers_.length; ++idx) {
+    const container = this.nestedContainers_[idx];
     if (jsaction.EventContractContainer.isNested_(container, allContainers)) {
       newNestedContainers.push(container);
     } else {
@@ -1336,7 +1338,7 @@ jsaction.EventContract.prototype.updateNestedContainers_ = function() {
  * @private
  */
 jsaction.EventContract.prototype.setUpContainer_ = function(container) {
-  var div = container.div;
+  const div = container.div;
 
   // In iOS, event bubbling doesn't happen automatically in any DOM element,
   // unless it has an onclick attribute or DOM event handler attached to it.
@@ -1353,8 +1355,8 @@ jsaction.EventContract.prototype.setUpContainer_ = function(container) {
     div.style.cursor = 'pointer';
   }
 
-  for (var i = 0; i < this.installers_.length; ++i) {
-    container.installHandler(this.installers_[i]);
+  for (let idx = 0; idx < this.installers_.length; ++idx) {
+    container.installHandler(this.installers_[idx]);
   }
 };
 
@@ -1369,8 +1371,8 @@ jsaction.EventContract.prototype.setUpContainer_ = function(container) {
  * @private
  */
 jsaction.EventContract.prototype.hasContainerFor_ = function(div) {
-  for (var i = 0; i < this.containers_.length; i++) {
-    if (this.containers_[i].containsNode(div)) {
+  for (let idx = 0; idx < this.containers_.length; idx++) {
+    if (this.containers_[idx].containsNode(div)) {
       return true;
     }
   }
@@ -1386,19 +1388,19 @@ jsaction.EventContract.prototype.hasContainerFor_ = function(div) {
  */
 jsaction.EventContract.prototype.removeContainer = function(container) {
   container.cleanUp();
-  var removed = false;
-  for (var i = 0; i < this.containers_.length; ++i) {
-    if (this.containers_[i] === container) {
-      this.containers_.splice(i, 1);
+  let removed = false;
+  for (let idx = 0; idx < this.containers_.length; ++idx) {
+    if (this.containers_[idx] === container) {
+      this.containers_.splice(idx, 1);
       removed = true;
       break;
     }
   }
 
   if (!removed) {
-    for (var i = 0; i < this.nestedContainers_.length; ++i) {
-      if (this.nestedContainers_[i] === container) {
-        this.nestedContainers_.splice(i, 1);
+    for (let idx = 0; idx < this.nestedContainers_.length; ++idx) {
+      if (this.nestedContainers_[idx] === container) {
+        this.nestedContainers_.splice(idx, 1);
         break;
       }
     }
@@ -1482,12 +1484,12 @@ jsaction.EventContractContainer.prototype.containsNode = function(node) {
  * @private
  */
 jsaction.EventContractContainer.isNested_ = function(container, list) {
-  for (var i = 0; i < list.length; ++i) {
-    if (list[i].div == container.div) {
+  for (let idx = 0; idx < list.length; ++idx) {
+    if (list[idx].div == container.div) {
       continue;
     }
 
-    if (list[i].containsNode(container.div)) {
+    if (list[idx].containsNode(container.div)) {
       return true;
     }
   }
@@ -1529,8 +1531,8 @@ jsaction.EventContractContainer.prototype.installHandler = function(installer) {
  * Removes all the handlers installed on this container.
  */
 jsaction.EventContractContainer.prototype.cleanUp = function() {
-  for (var i = 0; i < this.handlers_.length; ++i) {
-    var handlerInfo = this.handlers_[i];
+  for (let idx = 0; idx < this.handlers_.length; ++idx) {
+    const handlerInfo = this.handlers_[idx];
     jsaction.event.removeEventListener(this.div, handlerInfo);
   }
 
