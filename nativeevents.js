@@ -283,7 +283,7 @@ jsaction.testing.nativeEvents.fireMouseButtonEvent_ = function(
  * Creates and initializes a key event.
  * @param {string} eventType The type of event to create ("keydown", "keyup",
  *     or "keypress").
- * @param {!HTMLElement} node The event target.
+ * @param {!EventTarget} target The event target.
  * @param {number} keyCode The key code.
  * @param {number} charCode The character code produced by the key.
  * @param {!jsaction.testing.nativeEvents.Modifiers=} modifiers
@@ -291,31 +291,31 @@ jsaction.testing.nativeEvents.fireMouseButtonEvent_ = function(
  *     which returns false iff 'preventDefault' was invoked.
  */
 jsaction.testing.nativeEvents.fireKeyEvent = function(
-    eventType, node, keyCode, charCode, modifiers = {}) {
-  const e = new goog.testing.events.Event(eventType, node);
+    eventType, target, keyCode, charCode, modifiers = {}) {
+  const e = new goog.testing.events.Event(eventType, target);
   e.charCode = charCode;
   e.keyCode = keyCode;
   goog.object.extend(e, modifiers);
-  return jsaction.triggerEvent(node, jsaction.createKeyboardEvent(e));
+  return jsaction.triggerEvent(target, jsaction.createKeyboardEvent(e));
 };
 
 
 /**
  * Generates a series of events simulating a key press on the given element.
- * @param {!HTMLElement} node The event target.
+ * @param {!EventTarget} target The event target.
  * @param {number} keyCode The key code.
  * @param {number=} charCode The character code produced by the key.
  * @param {!jsaction.testing.nativeEvents.Modifiers=} modifiers
  * @return {boolean} False if preventDefault() was called by any of the handlers
  */
 jsaction.testing.nativeEvents.simulateKeyPress = function(
-    node, keyCode, charCode = keyCode, modifiers = {}) {
+    target, keyCode, charCode = keyCode, modifiers = {}) {
   let e;
   e = jsaction.testing.nativeEvents.fireKeyEvent(
-      goog.events.EventType.KEYDOWN, node, keyCode, charCode, modifiers);
+      goog.events.EventType.KEYDOWN, target, keyCode, charCode, modifiers);
   e = jsaction.testing.nativeEvents.fireKeyEvent(
-      goog.events.EventType.KEYPRESS, node, keyCode, charCode, modifiers) && e;
+      goog.events.EventType.KEYPRESS, target, keyCode, charCode, modifiers) && e;
   e = jsaction.testing.nativeEvents.fireKeyEvent(
-      goog.events.EventType.KEYUP, node, keyCode, charCode, modifiers) && e;
+      goog.events.EventType.KEYUP, target, keyCode, charCode, modifiers) && e;
   return e;
 };
