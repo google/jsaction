@@ -208,7 +208,8 @@ jsaction.createKeyboardEvent = function(original, opt_eventType) {
 
     } else {
       // Gecko only supports an older/deprecated version from DOM Level 2. See
-      // https://developer.mozilla.org/en/DOM/event.initKeyEvent for details.
+      // https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/initKeyEvent
+      // for details.
       goog.asserts.assert(event.initKeyEvent);
       event.initKeyEvent(
           opt_eventType || original.type,
