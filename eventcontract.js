@@ -377,31 +377,62 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
       }
     }
 
-    // Prevent browser from following <a> node links if a jsaction is present
-    // and a dispatcher is present. Note that the targetElement may be a child
-    // of an anchor that has a jsaction attached. For that reason, we need to
-    // check the actionElement rather than the targetElement.
-    if (eventInfo['actionElement'].tagName == goog.dom.TagName.A &&
-        (eventInfo['eventType'] == jsaction.EventType.CLICK ||
-         eventInfo['eventType'] == jsaction.EventType.CLICKMOD) &&
-        eventContract.dispatcher_ != null) {
-      jsaction.event.preventDefault(e);
-    }
-
     if (eventContract.dispatcher_) {
+      if (jsaction.EventContract.shouldPreventDefaultBeforeDispatching(
+              eventInfo)) {
+        jsaction.event.preventDefault(e);
+      }
+
       eventContract.dispatcher_(eventInfo);
     } else {
-      const copiedEvent = jsaction.event.maybeCopyEvent(e);
-      // The event is queued since there is no dispatcher registered
-      // yet. Potentially make a copy of the event in order to extend its
-      // life. The copy will later be used when attempting to replay.
-      eventInfo['event'] = copiedEvent;
-      eventContract.queue_.push(eventInfo);
+      jsaction.EventContract.queueEvent(eventContract, eventInfo, e);
     }
 
     jsaction.EventContract.afterEventHandler_(eventInfo);
   };
   return handler;
+};
+
+
+/**
+ * Returns true if the default action of this event should be prevented before
+ * this event is dispatched.
+ *
+ * This is primarily for internal use.
+ *
+ * @param {!jsaction.EventInfo} eventInfo The event info object.
+ * @return {boolean}
+ */
+jsaction.EventContract.shouldPreventDefaultBeforeDispatching = function(
+    eventInfo) {
+  // Prevent browser from following <a> node links if a jsaction is present
+  // and we are dispatching the action now. Note that the targetElement may be a
+  // child of an anchor that has a jsaction attached. For that reason, we need
+  // to check the actionElement rather than the targetElement.
+  return eventInfo['actionElement'].tagName == goog.dom.TagName.A &&
+      (eventInfo['eventType'] == jsaction.EventType.CLICK ||
+       eventInfo['eventType'] == jsaction.EventType.CLICKMOD);
+};
+
+
+/**
+ * Queue an event to be replayed. This is called when an event is handled but no
+ * dispatcher is registered yet to handle it.
+ *
+ * This is primarily for internal use.
+ *
+ * @param {!jsaction.EventContract} eventContract The EventContract
+ *     instance to queue the event on.
+ * @param {!jsaction.EventInfo} eventInfo The event info object.
+ * @param {!Event} e Event.
+ */
+jsaction.EventContract.queueEvent = function(eventContract, eventInfo, e) {
+  const copiedEvent = jsaction.event.maybeCopyEvent(e);
+  // The event is queued since there is no dispatcher registered
+  // yet. Potentially make a copy of the event in order to extend its
+  // life. The copy will later be used when attempting to replay.
+  eventInfo['event'] = copiedEvent;
+  eventContract.queue_.push(eventInfo);
 };
 
 
