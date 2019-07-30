@@ -586,7 +586,7 @@ jsaction.EventContract.createEventInfo_ = function(eventType, e, container) {
   }
 
   if (actionInfo && actionInfo.action) {
-    // Prevent scrolling if the Space key was pressed and prevent the browser's
+    // Prevent scrolling if the Space key was pressed or prevent the browser's
     // default action for native HTML controls.
     if (jsaction.EventContract.A11Y_CLICK_SUPPORT &&
         eventType == jsaction.EventContract.CLICKKEY_ &&

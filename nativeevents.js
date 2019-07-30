@@ -12,6 +12,7 @@ goog.require('goog.events.EventType');
 goog.require('goog.object');
 goog.require('goog.style');
 goog.require('goog.testing.events.Event');
+goog.require('jsaction.KeyCodes');
 goog.require('jsaction.createKeyboardEvent');
 goog.require('jsaction.createMouseEvent');
 goog.require('jsaction.createUiEvent');
@@ -314,8 +315,28 @@ jsaction.testing.nativeEvents.simulateKeyPress = function(
   e = jsaction.testing.nativeEvents.fireKeyEvent(
       goog.events.EventType.KEYDOWN, target, keyCode, charCode, modifiers);
   e = jsaction.testing.nativeEvents.fireKeyEvent(
-      goog.events.EventType.KEYPRESS, target, keyCode, charCode, modifiers) && e;
+          goog.events.EventType.KEYPRESS, target, keyCode, charCode,
+          modifiers) &&
+      e;
+
+  // A click event is fired by browsers when pressing Enter on <button>
+  // elements, for a11y.
+  if ((keyCode == jsaction.KeyCodes.ENTER ||
+       keyCode == jsaction.KeyCodes.MAC_ENTER) &&
+      target.nodeName == 'BUTTON') {
+    e = jsaction.testing.nativeEvents.fireClickEvent(
+            target, undefined, undefined, modifiers) &&
+        e;
+  }
+
   e = jsaction.testing.nativeEvents.fireKeyEvent(
-      goog.events.EventType.KEYUP, target, keyCode, charCode, modifiers) && e;
+          goog.events.EventType.KEYUP, target, keyCode, charCode, modifiers) &&
+      e;
+  // Same as the Enter "click", but for Space it happens after keyup.
+  if ((keyCode == jsaction.KeyCodes.SPACE) && target.nodeName == 'BUTTON') {
+    e = jsaction.testing.nativeEvents.fireClickEvent(
+            target, undefined, undefined, modifiers) &&
+        e;
+  }
   return e;
 };

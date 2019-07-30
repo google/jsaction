@@ -9,16 +9,12 @@ goog.setTestOnly('jsaction.eventTest');
 
 goog.require('goog.dom');
 goog.require('goog.dom.TagName');
-goog.require('goog.functions');
-goog.require('goog.testing.PropertyReplacer');
 goog.require('goog.testing.events.Event');
 goog.require('goog.testing.jsunit');
 goog.require('jsaction.EventType');
 goog.require('jsaction.KeyCodes');
 goog.require('jsaction.event');
 
-
-var stubs = new goog.testing.PropertyReplacer();
 
 function DivMock() {
   this.listeners = [];
@@ -45,11 +41,6 @@ var roleTarget =
 
 function setUp() {
   div_ = new DivMock;
-}
-
-
-function tearDown() {
-  stubs.reset();
 }
 
 
@@ -210,7 +201,6 @@ function baseIsActionKeyEvent(keyCode, opt_target, opt_originalTarget) {
     originalTarget: opt_originalTarget || opt_target || validTarget
   };
 
-  stubs.set(jsaction.event, 'isValidActionKeyTarget_', goog.functions.TRUE);
   try {
     // isFocusable() in IE calls getBoundingClientRect(), which fails on orphans
     document.body.appendChild(event.target);
@@ -271,18 +261,19 @@ function testIsActionKeyDisabledControl() {
   assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, control));
 }
 
-function testIsActionKeyNormalControl() {
-  var control = goog.dom.createDom(goog.dom.TagName.BUTTON);
-  assertTrue(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, control));
+function testIsActionKeyNonTabbableControl() {
+  let control = goog.dom.createDom(goog.dom.TagName.DIV);
+  // Adding role=button will make jsaction treat the div (normally not
+  // interactable) as a control, although it will remain non-tabbable.
+  control.setAttribute('role', 'button');
+  assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, control));
 }
 
-function testIsActionKeyNonTabbableControl() {
-  var control = goog.dom.createDom(goog.dom.TagName.BUTTON, {tabIndex: '-1'});
-  assertTrue(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, control));
-  control = goog.dom.createDom(goog.dom.TagName.DIV);
-  control.setAttribute('role', 'button');
-  control.removeAttribute('tabindex');
+function testIsActionKeyNativelyActivatableControl() {
+  var control = goog.dom.createDom(goog.dom.TagName.BUTTON);
+  assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.SPACE, control));
   assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, control));
+  assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.MAC_ENTER, control));
 }
 
 function testIsActionKeyEventNotInMap() {

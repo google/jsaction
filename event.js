@@ -386,9 +386,17 @@ jsaction.event.isValidActionKeyTarget_ = function(el) {
   if (!('getAttribute' in el)) {
     return false;
   }
-  const tagName = (el.getAttribute('role') || el.tagName).toUpperCase();
-  return !jsaction.event.isTextControl_(el) &&
-      (tagName != 'COMBOBOX' || tagName != 'INPUT') && !el.isContentEditable;
+  if (jsaction.event.isTextControl_(el)) {
+    return false;
+  }
+  if (jsaction.event.isNativelyActivatable_(el)) {
+    return false;
+  }
+  if (el.isContentEditable) {
+    return false;
+  }
+
+  return true;
 };
 
 
@@ -859,6 +867,19 @@ jsaction.event.isTextControl_ = function(el) {
 jsaction.event.isNativeHTMLControl = function(el) {
   return el.tagName.toUpperCase() in jsaction.event.NATIVE_HTML_CONTROLS_;
 };
+
+/**
+ * Returns if the given element is natively activatable. Browsers emit click
+ * events for natively activatable elements, even when activated via keyboard.
+ * For these elements, we don't need to raise a11y click events.
+ * @param {!Element} el The element.
+ * @return {boolean} If the given element is a native HTML control.
+ * @private
+ */
+jsaction.event.isNativelyActivatable_ = function(el) {
+  return el.tagName.toUpperCase() == 'BUTTON';
+};
+
 
 
 /**
