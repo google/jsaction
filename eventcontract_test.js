@@ -1442,6 +1442,20 @@ function testFastClick_focusOnClickElementWithTabIndex() {
 }
 
 
+function testFastClick_focusOnClickUnfocusableElement() {
+  var initiallyFocusedBtn = elem('initiallyfocused_button23');
+  var element = elem('unfocusable_span23');
+  var expectedFocusElement = document.body;
+
+  initiallyFocusedBtn.focus();
+  sendEvent(jsaction.EventType.TOUCHSTART, element, container);
+  var eventInfo = sendEvent(jsaction.EventType.TOUCHEND, element, container);
+  assertEquals(jsaction.EventType.TOUCHEND, eventInfo.event.type);
+
+  assertEquals(expectedFocusElement, document.activeElement);
+}
+
+
 function testPreventMouseEvents_notPrevented() {
   var container = elem('container12');
   var element = elem('action12-1');

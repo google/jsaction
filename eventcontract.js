@@ -958,6 +958,11 @@ jsaction.EventContract.getFastClickEvent_ = function(node, event, actionMap) {
           jsaction.EventContract.getFocusableAncestor_(newEvent.target);
       if (focusableNode) {
         focusableNode.focus();
+      } else if (document.activeElement) {
+        // If nothing focusable was touched, simulate the default behavior to
+        // remove focus that the real browser click would have done. See
+        // b/135859925 for more context.
+        document.activeElement.blur();
       }
       newEvent.target.dispatchEvent(clickEvent);
       if (!clickEvent.defaultPrevented) {
