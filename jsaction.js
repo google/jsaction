@@ -7,6 +7,7 @@ goog.provide('jsaction');
 goog.require('goog.asserts');
 goog.require('jsaction.EventType');
 goog.require('jsaction.dom');
+goog.requireType('jsaction.CustomEventDetail');
 
 /**
  * Create a custom event with the specified data.
@@ -24,7 +25,7 @@ jsaction.createCustomEvent = function(type, opt_data, opt_triggeringEvent) {
   // compilation unit, but also include the renamable keys so that event
   // consumers can access the data directly, e.g. detail.type instead of
   // detail['type'].
-  const detail = {
+  const /** !jsaction.CustomEventDetail */ detail = {
     '_type': type,
     type: type,
     data: opt_data,
