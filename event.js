@@ -420,15 +420,16 @@ jsaction.event.hasModifierKey_ = function(e) {
  */
 jsaction.event.shouldCallPreventDefaultOnNativeHtmlControl = function(e) {
   const el = jsaction.event.getTarget(e);
-  const tagName = (el.getAttribute('role') || el.tagName).toUpperCase();
+  const tagName = el.tagName.toUpperCase();
+  const role = (el.getAttribute('role') || '').toUpperCase();
 
-  if (tagName == 'BUTTON') {
+  if (tagName === 'BUTTON' || role === 'BUTTON') {
     return true;
   }
   if (!jsaction.event.isNativeHTMLControl(el)) {
     return false;
   }
-  if (tagName == 'A') {
+  if (tagName === 'A') {
     return false;
   }
   /**
@@ -436,7 +437,7 @@ jsaction.event.shouldCallPreventDefaultOnNativeHtmlControl = function(e) {
    * (ie. isTrusted: true) needs to fire to show the OPTION list. See
    * b/135288469 for more info.
    */
-  if (tagName == 'SELECT') {
+  if (tagName === 'SELECT') {
     return false;
   }
   if (jsaction.event.processSpace_(el)) {

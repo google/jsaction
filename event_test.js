@@ -641,6 +641,12 @@ function testShouldCallPreventDefaultOnNativeHtmlControl() {
     target: button
   };
   assertTrue(jsaction.event.shouldCallPreventDefaultOnNativeHtmlControl(ev));
+  var divWithButtonRole = document.createElement('div');
+  divWithButtonRole.setAttribute('role', 'button');
+  ev = {
+    target: divWithButtonRole
+  };
+  assertTrue(jsaction.event.shouldCallPreventDefaultOnNativeHtmlControl(ev));
   var input = document.createElement('input');
   input.type = 'button';
   ev = {
@@ -673,6 +679,13 @@ function testShouldCallPreventDefaultOnNativeHtmlControl() {
   link.setAttribute('href', 'http://www.google.com');
   ev = {
     target: link
+  };
+  assertFalse(jsaction.event.shouldCallPreventDefaultOnNativeHtmlControl(ev));
+  var linkWithRole = document.createElement('a');
+  linkWithRole.setAttribute('href', 'http://www.google.com');
+  linkWithRole.setAttribute('role', 'menuitem');
+  ev = {
+    target: linkWithRole
   };
   assertFalse(jsaction.event.shouldCallPreventDefaultOnNativeHtmlControl(ev));
 }
