@@ -29,6 +29,7 @@ goog.provide('jsaction.EventContract');
 goog.provide('jsaction.EventContractContainer');
 
 goog.require('goog.dom.TagName');
+goog.require('jsaction.A11y');
 goog.require('jsaction.Attribute');
 goog.require('jsaction.Cache');
 goog.require('jsaction.Char');
@@ -153,11 +154,31 @@ jsaction.EventContract.JSNAMESPACE_SUPPORT =
 
 
 /**
+ * @define {boolean} Handles a11y click casting in the dispatcher rather than
+ * the event contract. When enabled, it will enable
+ * jsaction.EventContract.A11Y_CLICK_SUPPORT as well as both are required for
+ * this functionality.
+ */
+jsaction.EventContract.A11Y_SUPPORT_IN_DISPATCHER =
+    goog.define('jsaction.EventContract.A11Y_SUPPORT_IN_DISPATCHER', false);
+
+
+/**
  * @define {boolean} Support for accessible click actions.  This flag can be
  *     overridden in a build rule.
+ * @private
+ */
+jsaction.EventContract.A11Y_CLICK_SUPPORT_FLAG_ENABLED_ =
+    goog.define('jsaction.EventContract.A11Y_CLICK_SUPPORT', false);
+
+
+/**
+ * Forces A11y click support when the A11Y_SUPPORT_IN_DISPATCHER flag is true.
+ * @type {boolean}
  */
 jsaction.EventContract.A11Y_CLICK_SUPPORT =
-    goog.define('jsaction.EventContract.A11Y_CLICK_SUPPORT', false);
+    jsaction.EventContract.A11Y_CLICK_SUPPORT_FLAG_ENABLED_ ||
+    jsaction.EventContract.A11Y_SUPPORT_IN_DISPATCHER;
 
 
 /**
@@ -340,7 +361,8 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
     const eventInfo = jsaction.EventContract.createEventInfo_(
         eventTypeForDispatch, e, container);
 
-    if (eventContract.dispatcher_) {
+    if (eventContract.dispatcher_ &&
+        !eventInfo['event'][jsaction.A11y.SKIP_GLOBAL_DISPATCH]) {
       const globalEventInfo = jsaction.EventContract.createEventInfoInternal_(
           eventInfo['eventType'], eventInfo['event'],
           eventInfo['targetElement'], eventInfo['action'],
@@ -357,8 +379,7 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
           globalEventInfo, /* dispatch global event */ true);
     }
 
-    // Return early if no action element found while walking up the DOM tree.
-    if (!eventInfo['actionElement']) {
+    if (jsaction.EventContract.canSkipDispatch_(eventInfo)) {
       return;
     }
 
@@ -409,7 +430,8 @@ jsaction.EventContract.shouldPreventDefaultBeforeDispatching = function(
   // and we are dispatching the action now. Note that the targetElement may be a
   // child of an anchor that has a jsaction attached. For that reason, we need
   // to check the actionElement rather than the targetElement.
-  return eventInfo['actionElement'].tagName == goog.dom.TagName.A &&
+  return eventInfo['actionElement'] &&
+      eventInfo['actionElement'].tagName == goog.dom.TagName.A &&
       (eventInfo['eventType'] == jsaction.EventType.CLICK ||
        eventInfo['eventType'] == jsaction.EventType.CLICKMOD);
 };
@@ -511,6 +533,15 @@ jsaction.EventContract.createEventInfo_ = function(eventType, e, container) {
       jsaction.event.isModifiedClickEvent(e)) {
     eventType = jsaction.EventType.CLICKMOD;
   } else if (
+      jsaction.EventContract.A11Y_SUPPORT_IN_DISPATCHER &&
+      jsaction.EventContract.A11Y_CLICK_SUPPORT &&
+      eventType == jsaction.EventType.KEYDOWN &&
+      !e[jsaction.A11y.SKIP_A11Y_CHECK]) {
+    // We use a string literal as this value needs to be referenced in the
+    // dispatcher's binary.
+    eventType = jsaction.A11y.MAYBE_CLICK_EVENT_TYPE;
+  } else if (
+      !jsaction.EventContract.A11Y_SUPPORT_IN_DISPATCHER &&
       jsaction.EventContract.A11Y_CLICK_SUPPORT &&
       jsaction.event.isActionKeyEvent(e)) {
     eventType = jsaction.EventContract.CLICKKEY_;
@@ -588,7 +619,8 @@ jsaction.EventContract.createEventInfo_ = function(eventType, e, container) {
   if (actionInfo && actionInfo.action) {
     // Prevent scrolling if the Space key was pressed or prevent the browser's
     // default action for native HTML controls.
-    if (jsaction.EventContract.A11Y_CLICK_SUPPORT &&
+    if (!jsaction.EventContract.A11Y_SUPPORT_IN_DISPATCHER &&
+        jsaction.EventContract.A11Y_CLICK_SUPPORT &&
         eventType == jsaction.EventContract.CLICKKEY_ &&
         (jsaction.event.isSpaceKeyEvent(e) ||
          jsaction.event.shouldCallPreventDefaultOnNativeHtmlControl(e))) {
@@ -659,6 +691,31 @@ jsaction.EventContract.createEventInfoInternal_ = function(
   });
 };
 
+/**
+ * Determines if we can skip triggering the dispatcher based on the eventType
+ * and action found.
+ *
+ * @param {!jsaction.EventInfo} eventInfo
+ * @return {boolean}
+ * @private
+ */
+jsaction.EventContract.canSkipDispatch_ = function(eventInfo) {
+  // Return early if no action element found while walking up the DOM tree.
+  if (!jsaction.EventContract.A11Y_SUPPORT_IN_DISPATCHER &&
+      !eventInfo['actionElement']) {
+    return true;
+  }
+  // Return early in A11Y_SUPPORT_IN_DISPATCHER mode only if the eventType is
+  // not MAYBE_CLICK_EVENT_TYPE, because if it is, we want the dispatcher to
+  // check the key event and retrigger the event if necessary.
+  if (jsaction.EventContract.A11Y_SUPPORT_IN_DISPATCHER &&
+      !eventInfo['actionElement'] &&
+      eventInfo['eventType'] != jsaction.A11y.MAYBE_CLICK_EVENT_TYPE) {
+    return true;
+  }
+
+  return false;
+};
 
 /**
  * Accesses the event handler attribute value of a DOM node. It guards
@@ -696,7 +753,7 @@ jsaction.EventContract.EMPTY_ACTION_MAP_ = {};
 
 
 /**
- * Parses and cached an element's jsaction element into a map.
+ * Parses and caches an element's jsaction element into a map.
  *
  * This is primarily for internal use.
  *
@@ -779,9 +836,16 @@ jsaction.EventContract.parseActions = function(node, container) {
 jsaction.EventContract.getAction_ = function(
     node, eventType, event, container) {
   const actionMap = jsaction.EventContract.parseActions(node, container);
-
+  let originalEventType;
   if (jsaction.EventContract.A11Y_CLICK_SUPPORT) {
-    if (eventType == jsaction.EventContract.CLICKKEY_) {
+    if (eventType == jsaction.A11y.MAYBE_CLICK_EVENT_TYPE &&
+        actionMap[jsaction.EventType.CLICK]) {
+      // We'll take the first CLICK action we find and have the dispatcher check
+      // if the keydown event can be used as a CLICK. If not, the dispatcher
+      // will retrigger the event so that we can find a keydown event instead.
+      originalEventType = eventType;
+      eventType = jsaction.EventType.CLICK;
+    } else if (eventType == jsaction.EventContract.CLICKKEY_) {
       // A 'click' triggered by a DOM keypress should be mapped to the 'click'
       // jsaction.
       eventType = jsaction.EventType.CLICK;
@@ -817,8 +881,12 @@ jsaction.EventContract.getAction_ = function(
   // DOM node.
   const actionName = actionMap[eventType] || '';
 
+  // When we get MAYBE_CLICK_EVENT_TYPE as an eventType, we want to retrieve the
+  // action corresponding to CLICK, but still keep the eventType as
+  // MAYBE_CLICK_EVENT_TYPE. The dispatcher uses this event type to determine if
+  // it should get the handler for the action.
   return {
-    eventType: eventType,
+    eventType: originalEventType ? originalEventType : eventType,
     action: actionName,
     event: overrideEvent,
     ignore: false

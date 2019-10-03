@@ -7,6 +7,7 @@ goog.require('goog.array');
 goog.require('goog.async.run');
 goog.require('goog.functions');
 goog.require('goog.object');
+goog.require('jsaction.A11y');
 goog.require('jsaction.ActionFlow');
 goog.require('jsaction.Branch');
 goog.require('jsaction.Char');
@@ -154,9 +155,17 @@ jsaction.Dispatcher.prototype.dispatch = function(
   if (goog.isArray(eventInfo)) {
     // We received the queued events from EventContract. Copy them and try to
     // replay.
-    this.queue_ = goog.array.clone(eventInfo);
+    this.queue_ = this.cloneEventInfoQueue(eventInfo);
     this.replayQueuedEvents_();
     return;
+  }
+
+  const resolvedA11yEvent =
+      this.maybeResolveA11yEvent(eventInfo, opt_globalDispatch);
+  if (!resolvedA11yEvent) {
+    return;
+  } else {
+    eventInfo = /** @type {!jsaction.EventInfo} */ (resolvedA11yEvent);
   }
 
   if (opt_globalDispatch) {
@@ -216,15 +225,55 @@ jsaction.Dispatcher.prototype.dispatch = function(
 
 
 /**
- * Registers a loader function to be called in case a jsaction is encountered
- * for which there is no handler registered.
- * The loader is expected to register the jsaction handlers for the given
- * namespace.
+ * Returns a shallow copy of an EventInfo queue. For internal use only.
+ *
+ * @param {!Array<!jsaction.EventInfo>} eventInfoQueue
+ * @return {!Array<!jsaction.EventInfo>}
+ * @package
+ */
+jsaction.Dispatcher.prototype.cloneEventInfoQueue = function(eventInfoQueue) {
+  return goog.array.clone(eventInfoQueue);
+};
+
+
+/**
+ * Returns the original eventInfo object, or null if the event contract has
+ * a11y_support_in_disaptcher enabled while the dispatcher doesn't. Meant to be
+ * overridden in experiments.
+ *
+ * If a MAYBE_CLICK_EVENT_TYPE event is received here, it means that the
+ * experimental version of the event contract is loaded while the experimental
+ * dispatcher isn't. This is not a normal case in production, but may be
+ * triggered through experiments to isolate the effects to event contract. In
+ * this case, we will swallow the event, as that most closely matches the
+ * behavior of not having a11y support enabled on mobile. Consequently, this
+ * means all keydown events are ignored by the dispatcher.
+ *
+ * @param {!jsaction.EventInfo} eventInfo
+ * @param {boolean=} isGlobalDispatch Whether the eventInfo is meant to be
+ *     dispatched to the global handlers.
+ * @return {?jsaction.EventInfo}
+ * @package
+ */
+jsaction.Dispatcher.prototype.maybeResolveA11yEvent = function(
+    eventInfo, isGlobalDispatch = false) {
+  if (eventInfo['eventType'] === jsaction.A11y.MAYBE_CLICK_EVENT_TYPE) {
+    return null;
+  } else {
+    return eventInfo;
+  }
+};
+
+
+/**
+ * Registers a loader function to be called in case a jsaction is
+ * encountered for which there is no handler registered. The loader is
+ * expected to register the jsaction handlers for the given namespace.
  *
  * @param {string} actionNamespace The action namespace.
  * @param {jsaction.Loader} loaderFn The loader that will install the action
- *     handlers for this namespace. It takes the dispatcher and the namespace
- *     as parameters.
+ *     handlers for this namespace. It takes the dispatcher and the namespace as
+ *     parameters.
  */
 jsaction.Dispatcher.prototype.registerLoader = function(
     actionNamespace, loaderFn) {

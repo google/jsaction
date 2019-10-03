@@ -18,6 +18,7 @@ goog.require('goog.testing.mockmatchers.SaveArgument');
 goog.require('goog.testing.recordFunction');
 goog.require('goog.userAgent');
 goog.require('jsaction');
+goog.require('jsaction.A11y');
 goog.require('jsaction.EventContract');
 goog.require('jsaction.EventType');
 goog.require('jsaction.Property');
@@ -41,6 +42,7 @@ function setUp() {
   jsaction.EventContract.MOUSE_SPECIAL_SUPPORT = true;
   jsaction.EventContract.STOP_PROPAGATION = true;
   jsaction.EventContract.FAST_CLICK_SUPPORT = true;
+  jsaction.EventContract.A11Y_SUPPORT_IN_DISPATCHER = true;
 }
 
 
@@ -421,6 +423,64 @@ function testPreventDefaultForClickOnAnchorChild() {
   mockControl_.$verifyAll();
 }
 
+function testPreventDefaultForActionKeydownOnAnchorChild() {
+  jsaction.EventContract.A11Y_SUPPORT_IN_DISPATCHER = false;
+  const container = elem('container6');
+  const target = elem('inside_anchor6');
+
+  const mockPreventDefault =
+      mockControl_.createMethodMock(jsaction.event, 'preventDefault');
+  mockPreventDefault(new goog.testing.mockmatchers.IgnoreArgument())
+      .$atLeastOnce();
+  propertyReplacer_.replace(jsaction.event, 'isActionKeyEvent', () => true);
+  mockControl_.$replayAll();
+
+  let eventInfo = null;
+  const dispatchCallback = function(ei) {
+    eventInfo = ei;
+  };
+
+  const e = new jsaction.EventContract;
+  e.addContainer(container);
+  e.addEvent(jsaction.EventType.CLICK);
+  e.dispatchTo(dispatchCallback);
+
+  jsaction.replayEvent(
+      {targetElement: target, event: jsaction.createEvent({type: 'keydown'})});
+  assertEquals('myaction', eventInfo.action);
+
+  mockControl_.$verifyAll();
+}
+
+function
+testPreventDefault_withA11ySupportInDispatcher_preventsDefaultInDispatcher() {
+  jsaction.EventContract.A11Y_SUPPORT_IN_DISPATCHER = true;
+  const container = elem('container6');
+  const target = elem('inside_anchor6');
+
+  const mockPreventDefault =
+      mockControl_.createMethodMock(jsaction.event, 'preventDefault');
+  mockPreventDefault(new goog.testing.mockmatchers.IgnoreArgument()).$never();
+  mockControl_.$replayAll();
+
+  let eventInfo = null;
+  const dispatchCallback = function(ei) {
+    eventInfo = ei;
+  };
+
+  const e = new jsaction.EventContract;
+  e.addContainer(container);
+  e.addEvent(jsaction.EventType.CLICK);
+  e.dispatchTo(dispatchCallback);
+
+  jsaction.replayEvent(
+      {targetElement: target, event: jsaction.createEvent({type: 'keydown'})});
+
+  assertEquals('myaction', eventInfo.action);
+  mockControl_.$verifyAll();
+}
+
+// we don't prevent default for link clicks when no dispatcher is loaded
 
 function testPreventDefaultForModClickOnAnchorChild() {
   var container = elem('container6');
@@ -760,6 +820,7 @@ function testNestedContainersWithoutStopPropagation_RemoveContainers() {
 
 
 function testEventContractMaybeCreateEventInfoAddsTimestamp() {
+  jsaction.EventContract.A11Y_SUPPORT_IN_DISPATCHER = false;
   var container = elem('container10');
   var element = document.getElementById('action10-1');
   var event = {
@@ -786,6 +847,7 @@ function testEventContractMaybeCreateEventInfoAddsTimestamp() {
 }
 
 function testEventContractMaybeCreateEventInfoClick() {
+  jsaction.EventContract.A11Y_SUPPORT_IN_DISPATCHER = false;
   var container = elem('container8');
   var element = document.getElementById('action8-1');
   var event = {
@@ -830,6 +892,7 @@ function testEventContractMaybeCreateEventInfoClickMod() {
 
 
 function testEventContractMaybeCreateEventInfoClickKey() {
+  jsaction.EventContract.A11Y_SUPPORT_IN_DISPATCHER = false;
   var container = elem('container8');
   var element = document.getElementById('action8-1');
   var event = {
@@ -850,7 +913,28 @@ function testEventContractMaybeCreateEventInfoClickKey() {
 }
 
 
+function
+testEventContractMaybeCreateEventInfo_a11yInDispatcher_maybeA11yClick() {
+  jsaction.EventContract.A11Y_SUPPORT_IN_DISPATCHER = true;
+  var container = elem('container8');
+  var element = document.getElementById('action8-1');
+  var event = {
+    type: jsaction.EventType.KEYDOWN,
+    srcElement: element,
+    target: element
+  };
+
+  mockControl_.$replayAll();
+  var eventInfo = jsaction.EventContract.createEventInfo_(
+      jsaction.EventType.KEYDOWN, event, container);
+  assertEquals(jsaction.A11y.MAYBE_CLICK_EVENT_TYPE, eventInfo.eventType);
+  assertEquals('action8', eventInfo.action);
+  mockControl_.$verifyAll();
+}
+
+
 function testEventContractMaybeCreateEventInfoKeypress() {
+  jsaction.EventContract.A11Y_SUPPORT_IN_DISPATCHER = false;
   var container = elem('container8');
   var element = document.getElementById('action8-3');
   var event = {
@@ -870,6 +954,43 @@ function testEventContractMaybeCreateEventInfoKeypress() {
   mockControl_.$verifyAll();
 }
 
+
+function
+testCreateEventInfo_withA11yInDispatcher_castsKeydownToMaybeA11yClick() {
+  jsaction.EventContract.A11Y_SUPPORT_IN_DISPATCHER = true;
+  const container = elem('container8');
+  const element = document.getElementById('action8-1');
+  const event = /** @type {!Event} */ (
+      {type: jsaction.EventType.KEYDOWN, srcElement: element, target: element});
+  mockControl_.$replayAll();
+
+  const eventInfo = jsaction.EventContract.createEventInfo_(
+      jsaction.EventType.KEYDOWN, event, container);
+
+  assertEquals(jsaction.A11y.MAYBE_CLICK_EVENT_TYPE, eventInfo.eventType);
+  assertEquals('action8', eventInfo.action);
+  mockControl_.$verifyAll();
+}
+
+function testCreateEventInfo_withSkipA11yCheckEvent_doesNotCastKeydown() {
+  jsaction.EventContract.A11Y_SUPPORT_IN_DISPATCHER = true;
+  const container = elem('container8');
+  const element = document.getElementById('action8-3');
+  const event = /** @type {!Event} */ ({
+    type: jsaction.EventType.KEYDOWN,
+    srcElement: element,
+    target: element,
+    [jsaction.A11y.SKIP_A11Y_CHECK]: true,
+  });
+  mockControl_.$replayAll();
+
+  const eventInfo = jsaction.EventContract.createEventInfo_(
+      jsaction.EventType.KEYDOWN, event, container);
+
+  assertEquals('keydown', eventInfo.eventType);
+  assertEquals('action8', eventInfo.action);
+  mockControl_.$verifyAll();
+}
 
 function testEventContractMaybeCreateEventInfoMouseenter() {
   var container = elem('container9');
@@ -1604,6 +1725,18 @@ function testEventContractGetActionClickKeyMapsToClick() {
   assertEquals('foo', actionInfo.action);
 }
 
+function
+testEventContractGetAction_withA11yInDispatcher_mapsMaybeA11yClickToClickAction() {
+  const elem = createElement('div');
+  elem.setAttribute('jsaction', 'foo;');
+
+  const actionInfo = jsaction.EventContract.getAction_(
+      elem, jsaction.A11y.MAYBE_CLICK_EVENT_TYPE, elem);
+
+  assertEquals(jsaction.A11y.MAYBE_CLICK_EVENT_TYPE, actionInfo.eventType);
+  assertEquals('foo', actionInfo.action);
+}
+
 
 function testEventContractGetActionClickMapsToClickOnlyIfNoClick() {
   var elem = createElement('div');
@@ -1722,7 +1855,6 @@ function testEventContractGetNamespace_Undefined() {
   assertNull(jsnamespace);
   assertNull(jsaction.Cache.getNamespace(elem));
 }
-
 
 function testCustomEvents_DispatchedCorrectly() {
   if (goog.userAgent.IE && !goog.userAgent.isVersionOrHigher('9')) {
