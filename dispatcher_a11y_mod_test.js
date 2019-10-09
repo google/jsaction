@@ -96,7 +96,7 @@ goog.testing.testSuite({
         .$returns(true);
     const mockPreventDefault =
         mockControl.createMethodMock(jsaction.event, 'preventDefault');
-    mockPreventDefault(new goog.testing.mockmatchers.IgnoreArgument()).$once();
+    mockPreventDefault(_).$once();
     mockControl.$replayAll();
 
     dispatcher.maybeResolveA11yEvent(eventInfo);
@@ -126,6 +126,26 @@ goog.testing.testSuite({
     mockControl.$replayAll();
 
     dispatcher.maybeResolveA11yEvent(eventInfo);
+
+    mockControl.$verifyAll();
+  },
+
+  testMaybeResolveA11yEvent_withGlobalA11yEventAndNoActionElement_doesNotPreventDefault() {
+    const dispatcher = new jsaction.Dispatcher();
+    const mockEvent = {'type': 'keydown'};
+    const eventInfo = createEventInfo({
+      actionElement: null,
+      event: mockEvent,
+      eventType: jsaction.A11y.MAYBE_CLICK_EVENT_TYPE,
+    });
+    mockControl.createMethodMock(jsaction.event, 'isActionKeyEvent');
+    jsaction.event.isActionKeyEvent(mockEvent).$returns(true);
+    const mockPreventDefault =
+        mockControl.createMethodMock(jsaction.event, 'preventDefault');
+    mockPreventDefault(_).$never();
+    mockControl.$replayAll();
+
+    dispatcher.maybeResolveA11yEvent(eventInfo, true);
 
     mockControl.$verifyAll();
   },
@@ -185,6 +205,48 @@ goog.testing.testSuite({
     mockClock.tick();
 
     assertNull(resolvedEvent);
+    mockControl.$verifyAll();
+  },
+
+  testMaybeResolveA11yEvent_withA11yEventWithNoActionElement_getsRetriggered() {
+    const dispatcher = new jsaction.Dispatcher();
+    const mockEvent = {'type': 'keydown'};
+    const eventInfo = createEventInfo({
+      actionElement: null,
+      event: mockEvent,
+      eventType: jsaction.A11y.MAYBE_CLICK_EVENT_TYPE,
+    });
+    const mockIsActionKeyEvent =
+        mockControl.createMethodMock(jsaction.event, 'isActionKeyEvent');
+    const mockTriggerEvent =
+        mockControl.createMethodMock(jsaction, 'triggerEvent');
+    mockIsActionKeyEvent(_).$never();
+    mockTriggerEvent(_, _).$once();
+    mockControl.$replayAll();
+
+    const resolvedEvent = dispatcher.maybeResolveA11yEvent(eventInfo);
+    mockClock.tick();
+
+    assertNull(resolvedEvent);
+    mockControl.$verifyAll();
+  },
+
+  testMaybeResolveA11yEvent_withGlobalA11yEventAndNoActionElement_changesEventTypeToClick() {
+    const dispatcher = new jsaction.Dispatcher();
+    const mockEvent = {'type': 'keydown'};
+    const eventInfo = createEventInfo({
+      actionElement: null,
+      event: mockEvent,
+      eventType: jsaction.A11y.MAYBE_CLICK_EVENT_TYPE,
+      targetElement: {},
+    });
+    mockControl.createMethodMock(jsaction.event, 'isActionKeyEvent');
+    jsaction.event.isActionKeyEvent(mockEvent).$returns(true);
+    mockControl.$replayAll();
+
+    const resolvedEvent = dispatcher.maybeResolveA11yEvent(eventInfo, true);
+
+    assertEquals('click', resolvedEvent['eventType']);
     mockControl.$verifyAll();
   },
 
@@ -279,7 +341,7 @@ function createEventInfo({
   event = undefined,
   targetElement = undefined,
   action = null,
-  actionElement = null,
+  actionElement = 'el',
   timeStamp = Date.now(),
 } = {}) {
   return /** @type {!jsaction.EventInfo} */ (

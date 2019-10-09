@@ -59,16 +59,15 @@ jsaction.Dispatcher.prototype.maybeResolveA11yEvent = function(
       /** @type {!jsaction.EventInfo} */ ({...eventInfo});
   const event = eventInfoCopy['event'];
 
-  // If the keydown event can be treated as a click, we change the eventType to
-  // 'click' so that the dispatcher can retrieve the right handler for it. Even
-  // though EventInfo['action'] corresponds to the click action, the global
-  // handler and any custom 'getHandler' implementations may rely on the
-  // eventType instead.
-  if (jsaction.event.isActionKeyEvent(event)) {
+  if (this.isA11yClickEvent_(eventInfo, isGlobalDispatch)) {
     if (this.shouldPreventDefault_(eventInfoCopy)) {
       jsaction.event.preventDefault(event);
     }
-    // Then this event is valid and we should proceed as if it were a click.
+    // If the keydown event can be treated as a click, we change the eventType
+    // to 'click' so that the dispatcher can retrieve the right handler for it.
+    // Even though EventInfo['action'] corresponds to the click action, the
+    // global handler and any custom 'getHandler' implementations may rely on
+    // the eventType instead.
     eventInfoCopy['eventType'] = jsaction.EventType.CLICK;
     return eventInfoCopy;
   } else {
@@ -100,6 +99,20 @@ jsaction.Dispatcher.prototype.maybeResolveA11yEvent = function(
   return null;
 };
 
+/**
+ * Returns true if the given key event can be treated as a "click".
+ *
+ * @param {!jsaction.EventInfo} eventInfo
+ * @param {boolean=} isGlobalDispatch Whether the eventInfo is meant to be
+ *     dispatched to the global handlers.
+ * @return {boolean}
+ * @private
+ */
+jsaction.Dispatcher.prototype.isA11yClickEvent_ = function(
+    eventInfo, isGlobalDispatch) {
+  return (isGlobalDispatch || eventInfo['actionElement']) &&
+      jsaction.event.isActionKeyEvent(eventInfo['event']);
+};
 
 /**
  * Returns true if the default action for this event should be prevented
@@ -110,6 +123,10 @@ jsaction.Dispatcher.prototype.maybeResolveA11yEvent = function(
  * @private
  */
 jsaction.Dispatcher.prototype.shouldPreventDefault_ = function(eventInfo) {
+  // For parity with no-a11y-support behavior.
+  if (!eventInfo['actionElement']) {
+    return false;
+  }
   const event = eventInfo['event'];
   // Prevent scrolling if the Space key was pressed
   if (jsaction.event.isSpaceKeyEvent(event)) {
