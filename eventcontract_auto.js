@@ -19,7 +19,7 @@ goog.require('jsaction.EventContract');
  * @return {boolean} True, if events were successfully bound.
  */
 function bindEventsForContainer(contract, container) {
-  if (goog.isNull(container)) {
+  if (container === null) {
     return false;
   }
   var eventTypes = container.getAttribute('data-jsaction-events');

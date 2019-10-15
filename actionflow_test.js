@@ -423,14 +423,14 @@ function testTrackedCallback() {
 
   var trackedCallback = flow.callback(fn, 'testbranch', 't0', 't1');
 
-  assertTrue(goog.isDef(flow.getTick('t0')));
+  assertTrue(flow.getTick('t0') !== undefined);
 
   jsaction.ActionFlow.done(flow, jsaction.Branch.MAIN);
   assertFalse(reportSent);
 
   trackedCallback();
 
-  assertTrue(goog.isDef(flow.getTick('t1')));
+  assertTrue(flow.getTick('t1') !== undefined);
   assertTrue(callbackCalled);
   assertTrue(reportSent);
 }
@@ -446,7 +446,7 @@ function testTrackedCallbackThrows() {
 
   var trackedCallback = flow.callback(fn, 'testbranch', 't0', 't1');
 
-  assertTrue(goog.isDef(flow.getTick('t0')));
+  assertTrue(flow.getTick('t0') !== undefined);
 
   jsaction.ActionFlow.done(flow, jsaction.Branch.MAIN);
   assertFalse(reportSent);
@@ -457,7 +457,7 @@ function testTrackedCallbackThrows() {
     assertEquals('foo', e);
   }
 
-  assertTrue(goog.isDef(flow.getTick('t1')));
+  assertTrue(flow.getTick('t1') !== undefined);
   assertTrue(callbackCalled);
   assertTrue(reportSent);
 }
@@ -684,7 +684,7 @@ function testStaticTickBranchDone() {
   assertEquals(0, flow.getTick('tick'));
 
   jsaction.ActionFlow.branch(flow, 'testbranch', 'branchtick');
-  assertTrue(goog.isDef(flow.getTick('tick')));
+  assertTrue(flow.getTick('tick') !== undefined);
 
   flow.done('testbranch');
   assertFalse(reportSent);

@@ -479,7 +479,7 @@ jsaction.ActionFlow.prototype.getMaxTickTime = function() {
  *    the opened branches.
  */
 jsaction.ActionFlow.prototype.adopt = function(timers, opt_branches) {
-  if (!timers || !goog.isDef(timers[jsaction.Name.START])) {
+  if (!timers || timers[jsaction.Name.START] === undefined) {
     return;
   }
   this.start_ = timers[jsaction.Name.START];

@@ -1230,7 +1230,7 @@ if (jsaction.EventContract.JSNAMESPACE_SUPPORT) {
     // attribute is not present. Thus, jsnamespace is string|null if
     // the query took place in the past, or undefined if the query did
     // not take place.
-    if (!goog.isDef(jsnamespace)) {
+    if (jsnamespace === undefined) {
       jsnamespace =
           jsaction.EventContract.getAttr_(node, jsaction.Attribute.JSNAMESPACE);
       jsaction.Cache.setNamespace(node, jsnamespace);

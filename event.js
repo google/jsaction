@@ -523,7 +523,7 @@ jsaction.event.hasSpecifiedTabIndex_ = function(element) {
   // which returns an object with a 'specified' property if tabIndex is
   // specified.  This works on other browsers, too.
   const attrNode = element.getAttributeNode('tabindex'); // Must be lowercase!
-  return goog.isDefAndNotNull(attrNode) && attrNode.specified;
+  return attrNode != null && attrNode.specified;
 };
 
 

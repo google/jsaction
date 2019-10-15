@@ -16,7 +16,7 @@ goog.provide('jsaction.dom');
  * @return {boolean} True if otherNode is contained within node.
  */
 jsaction.dom.contains = function(node, otherNode) {
-  if (goog.isNull(otherNode)) {
+  if (otherNode === null) {
     return false;
   }
 
