@@ -468,7 +468,6 @@ jsaction.event.isActionKeyEvent = function(e) {
     return false;
   }
   const el = jsaction.event.getTarget(e);
-  const type = (el.getAttribute('role') || el.type || el.tagName).toUpperCase();
   if (e.type != jsaction.EventType.KEYDOWN ||
       !jsaction.event.isValidActionKeyTarget_(el) ||
       jsaction.event.hasModifierKey_(e)) {
@@ -488,13 +487,14 @@ jsaction.event.isActionKeyEvent = function(e) {
     return false;
   }
 
-  const hasType = el.tagName.toUpperCase() != 'INPUT' || el.type;
+  const type = (el.getAttribute('role') || el.type || el.tagName).toUpperCase();
   const isSpecificTriggerKey =
       jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING[type] % key == 0;
   const isDefaultTriggerKey =
       !(type in jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING) &&
       key == jsaction.KeyCodes.ENTER;
-  return (isSpecificTriggerKey || isDefaultTriggerKey) && !!hasType;
+  const hasType = el.tagName.toUpperCase() != 'INPUT' || !!el.type;
+  return (isSpecificTriggerKey || isDefaultTriggerKey) && hasType;
 };
 
 
@@ -814,6 +814,7 @@ jsaction.event.IDENTIFIER_TO_KEY_TRIGGER_MAPPING = {
   'BUTTON': 0,
   'CHECKBOX': jsaction.KeyCodes.SPACE,
   'COMBOBOX': jsaction.KeyCodes.ENTER,
+  'FILE': 0,
   'GRIDCELL': jsaction.KeyCodes.ENTER,
   'LINK': jsaction.KeyCodes.ENTER,
   'LISTBOX': jsaction.KeyCodes.ENTER,
@@ -878,7 +879,8 @@ jsaction.event.isNativeHTMLControl = function(el) {
  * @private
  */
 jsaction.event.isNativelyActivatable_ = function(el) {
-  return el.tagName.toUpperCase() == 'BUTTON';
+  return el.tagName.toUpperCase() == 'BUTTON' ||
+      (el.type && el.type.toUpperCase() == 'FILE');
 };
 
 
@@ -892,7 +894,10 @@ jsaction.event.isNativelyActivatable_ = function(el) {
  * @private @const {!Object<string, boolean>}
  */
 jsaction.event.PROCESS_SPACE_ = {
-  'CHECKBOX': true, 'OPTION': true, 'RADIO': true
+  'CHECKBOX': true,
+  'FILE': true,
+  'OPTION': true,
+  'RADIO': true
 };
 
 

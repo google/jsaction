@@ -276,6 +276,13 @@ function testIsActionKeyNativelyActivatableControl() {
   assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.MAC_ENTER, control));
 }
 
+function testIsActionKeyFileInput() {
+  var control = goog.dom.createDom(goog.dom.TagName.INPUT, {type: 'file'});
+  assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.SPACE, control));
+  assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, control));
+  assertFalse(baseIsActionKeyEvent(jsaction.KeyCodes.MAC_ENTER, control));
+}
+
 function testIsActionKeyEventNotInMap() {
   var control = goog.dom.createDom(goog.dom.TagName.DIV, {tabIndex: 0});
   assertTrue(baseIsActionKeyEvent(jsaction.KeyCodes.ENTER, control));
