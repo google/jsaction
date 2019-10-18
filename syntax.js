@@ -196,6 +196,12 @@ jsaction.EventType = {
   AUXCLICK: 'auxclick',
 
   /**
+   * The change event fired by browsers when the `value` attribute of input,
+   * select, and textarea elements are changed.
+   */
+  CHANGE: 'change',
+
+  /**
    * The click event. In addEvent() refers to all click events, in the
    * jsaction attribute it refers to the unmodified click and Enter/Space
    * keypress events.  In the latter case, a jsaction click will be triggered,
