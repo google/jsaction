@@ -1263,14 +1263,14 @@ jsaction.ActionFlow.prototype.value = function(key) {
 
 /**
  * @return {number} The queueing delay in milliseconds if the event has been
- *     queued in the EventContract, waiting for the javascript handler, -1
+ *     queued in the EventContract, waiting for the javascript handler, 0
  *     otherwise.
  */
 jsaction.ActionFlow.prototype.getDelay = function() {
   return (this.event_ && this.event_.originalTimestamp) ?
       (this.isWiz_ ?
        (jsaction.ActionFlow.getTimestamp_() - this.event_.originalTimestamp) :
-       (this.event_.timeStamp - this.event_.originalTimestamp)) : -1;
+       (this.event_.timeStamp - this.event_.originalTimestamp)) : 0;
 };
 
 /**
