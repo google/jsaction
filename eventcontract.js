@@ -109,7 +109,7 @@ jsaction.EventContract = function() {
    * unobfuscated.
    *
    * @type {?function((!jsaction.EventInfo|!Array.<!jsaction.EventInfo>),
-   *                  boolean=)}
+   *                  boolean=):(!Event|void)}
    * @private
    */
   this.dispatcher_ = null;
@@ -339,9 +339,11 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
   /**
    * See description above.
    * @param {!Event} e Event.
+   * @param {boolean=} allowRehandling Used in the case of a11y click casting to
+   *   prevent us from trying to rehandle in an infinite loop.
    * @this {!Element}
    */
-  const handler = function(e) {
+  const handler = function handleEvent(e, allowRehandling = true) {
     const container = this;
     // Store eventType's value in a local variable so that multiple calls do not
     // modify the shared eventType variable.
@@ -369,7 +371,7 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
           eventInfo['actionElement'], eventInfo['timeStamp']);
 
       // In some cases, createEventInfo_() will rewrite click events to
-      // clickonly.  Revert back to a regular click, otherwise we won't be able
+      // clickonly. Revert back to a regular click, otherwise we won't be able
       // to execute global event handlers registered on click events.
       if (globalEventInfo['eventType'] == jsaction.EventType.CLICKONLY) {
         globalEventInfo['eventType'] = jsaction.EventType.CLICK;
@@ -383,7 +385,9 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
       return;
     }
 
-    if (jsaction.EventContract.STOP_PROPAGATION) {
+    let stopPropagationAfterDispatch = false;
+    if (jsaction.EventContract.STOP_PROPAGATION &&
+        eventInfo['eventType'] !== jsaction.A11y.MAYBE_CLICK_EVENT_TYPE) {
       if (jsaction.event.isGecko &&
           (eventInfo['targetElement'].tagName == goog.dom.TagName.INPUT ||
            eventInfo['targetElement'].tagName == goog.dom.TagName.TEXTAREA) &&
@@ -396,6 +400,12 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
         // this event.
         jsaction.event.stopPropagation(e);
       }
+    } else if (
+        jsaction.EventContract.STOP_PROPAGATION &&
+        eventInfo['eventType'] === jsaction.A11y.MAYBE_CLICK_EVENT_TYPE) {
+      // We first need to let the dispatcher determine whether we can treat this
+      // event as a click event.
+      stopPropagationAfterDispatch = true;
     }
 
     if (eventContract.dispatcher_) {
@@ -404,7 +414,17 @@ jsaction.EventContract.eventHandler_ = function(eventContract, eventType) {
         jsaction.event.preventDefault(e);
       }
 
-      eventContract.dispatcher_(eventInfo);
+      const eventToRetry = eventContract.dispatcher_(eventInfo);
+      if (eventToRetry && allowRehandling) {
+        // The dispatcher only returns an event for MAYBE_CLICK_EVENT_TYPE
+        // events that can't be casted to a click. We run it through the
+        // handler again to find keydown actions for it.
+        handleEvent.call(this, eventToRetry, /* allowRehandling =*/ false);
+        return;
+      }
+      if (stopPropagationAfterDispatch) {
+        jsaction.event.stopPropagation(eventInfo['event']);
+      }
     } else {
       jsaction.EventContract.queueEvent(eventContract, eventInfo, e);
     }
@@ -1523,7 +1543,7 @@ jsaction.EventContract.prototype.removeContainer = function(container) {
  * once the dispatcher is registered. Clears the event queue to null.
  *
  * @param {function((!jsaction.EventInfo|!Array.<!jsaction.EventInfo>),
- *                  boolean=):void} dispatcher The dispatcher function.
+ *                  boolean=):(!Event|void)} dispatcher The dispatcher function.
  */
 jsaction.EventContract.prototype.dispatchTo = function(dispatcher) {
   this.dispatcher_ = dispatcher;

@@ -33,14 +33,14 @@ goog.require('jsaction.replayEvent');
   var stats = new jsaction.ActionFlow('test_flow');
   stats.tick('t0');
 
-  jsaction.replayEvent({
-      'action': 'foo.bar',
-      'event': /** @type {!Event} */({}),
-      'eventType': 'click',
-      'targetElement': /** @type {!Element} */({}),
-      'actionElement': /** @type {!Element} */({}),
-      'timeStamp': 1234
-  });
+  jsaction.replayEvent(/** @type {!jsaction.EventInfo} */ ({
+    'action': 'foo.bar',
+    'event': /** @type {!Event} */ ({}),
+    'eventType': 'click',
+    'targetElement': /** @type {!Element} */ ({}),
+    'actionElement': /** @type {!Element} */ ({}),
+    'timeStamp': 1234
+  }));
 
   // See eventcontract_main.js.
   window['dispatcherOnLoad'](goog.bind(d.dispatch, d));

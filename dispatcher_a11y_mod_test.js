@@ -1,7 +1,6 @@
 goog.provide('jsaction.DispatcherA11yModTest');
 goog.setTestOnly();
 
-goog.require('goog.testing.MockClock');
 goog.require('goog.testing.MockControl');
 goog.require('goog.testing.jsunit');
 goog.require('goog.testing.mockmatchers.IgnoreArgument');
@@ -13,22 +12,18 @@ goog.require('jsaction.DispatcherA11yMod');
 goog.require('jsaction.event');
 
 const isObject = goog.testing.mockmatchers.isObject;
+const mockKeydownEvent = /** @type {!Event} */ ({'type': 'keydown'});
 const _ = new goog.testing.mockmatchers.IgnoreArgument();
 
-let mockClock;
 let mockControl;
 
 goog.testing.testSuite({
   setUp() {
     mockControl = new goog.testing.MockControl;
-    mockClock = new goog.testing.MockClock;
-    mockClock.install();
   },
 
   tearDown() {
-    mockClock.tick(Infinity);
     mockControl.$tearDown();
-    mockClock.uninstall();
   },
 
   testMaybeResolveA11yEvent_withNonActionKeyA11yEvent_returnsSameEvent() {
@@ -47,13 +42,14 @@ goog.testing.testSuite({
 
   testMaybeResolveA11yEvent_withA11yEvent_changesEventTypeToClick() {
     const dispatcher = new jsaction.Dispatcher();
-    const mockEvent = {'type': 'keydown'};
-    const eventInfo = createEventInfo(
-        {eventType: jsaction.A11y.MAYBE_CLICK_EVENT_TYPE, event: mockEvent});
+    const eventInfo = createEventInfo({
+      eventType: jsaction.A11y.MAYBE_CLICK_EVENT_TYPE,
+      event: mockKeydownEvent
+    });
     mockControl.createMethodMock(jsaction.event, 'isActionKeyEvent');
     mockControl.createMethodMock(jsaction.event, 'isSpaceKeyEvent');
-    jsaction.event.isActionKeyEvent(mockEvent).$returns(true);
-    jsaction.event.isSpaceKeyEvent(mockEvent).$returns(true);
+    jsaction.event.isActionKeyEvent(mockKeydownEvent).$returns(true);
+    jsaction.event.isSpaceKeyEvent(mockKeydownEvent).$returns(true);
     mockControl.$replayAll();
 
     const resolvedEvent = dispatcher.maybeResolveA11yEvent(eventInfo);
@@ -64,13 +60,14 @@ goog.testing.testSuite({
 
   testMaybeResolveA11yEvent_withSpaceKeyA11yEvent_preventsEventDefault() {
     const dispatcher = new jsaction.Dispatcher();
-    const mockEvent = {'type': 'keydown'};
-    const eventInfo = createEventInfo(
-        {eventType: jsaction.A11y.MAYBE_CLICK_EVENT_TYPE, event: mockEvent});
+    const eventInfo = createEventInfo({
+      eventType: jsaction.A11y.MAYBE_CLICK_EVENT_TYPE,
+      event: mockKeydownEvent
+    });
     mockControl.createMethodMock(jsaction.event, 'isActionKeyEvent');
     mockControl.createMethodMock(jsaction.event, 'isSpaceKeyEvent');
-    jsaction.event.isActionKeyEvent(mockEvent).$returns(true);
-    jsaction.event.isSpaceKeyEvent(mockEvent).$returns(true);
+    jsaction.event.isActionKeyEvent(mockKeydownEvent).$returns(true);
+    jsaction.event.isSpaceKeyEvent(mockKeydownEvent).$returns(true);
     const mockPreventDefault =
         mockControl.createMethodMock(jsaction.event, 'preventDefault');
     mockPreventDefault(_).$once();
@@ -83,16 +80,17 @@ goog.testing.testSuite({
 
   testMaybeResolveA11yEvent_withA11yEventOnNativeElement_preventsEventDefault() {
     const dispatcher = new jsaction.Dispatcher();
-    const mockEvent = {'type': 'keydown'};
-    const eventInfo = createEventInfo(
-        {eventType: jsaction.A11y.MAYBE_CLICK_EVENT_TYPE, event: mockEvent});
+    const eventInfo = createEventInfo({
+      eventType: jsaction.A11y.MAYBE_CLICK_EVENT_TYPE,
+      event: mockKeydownEvent
+    });
     mockControl.createMethodMock(jsaction.event, 'isActionKeyEvent');
     mockControl.createMethodMock(jsaction.event, 'isSpaceKeyEvent');
     mockControl.createMethodMock(
         jsaction.event, 'shouldCallPreventDefaultOnNativeHtmlControl');
-    jsaction.event.isActionKeyEvent(mockEvent).$returns(true);
-    jsaction.event.isSpaceKeyEvent(mockEvent).$returns(false);
-    jsaction.event.shouldCallPreventDefaultOnNativeHtmlControl(mockEvent)
+    jsaction.event.isActionKeyEvent(mockKeydownEvent).$returns(true);
+    jsaction.event.isSpaceKeyEvent(mockKeydownEvent).$returns(false);
+    jsaction.event.shouldCallPreventDefaultOnNativeHtmlControl(mockKeydownEvent)
         .$returns(true);
     const mockPreventDefault =
         mockControl.createMethodMock(jsaction.event, 'preventDefault');
@@ -106,19 +104,18 @@ goog.testing.testSuite({
 
   testMaybeResolveA11yEvent_withA11yEventOnAnchorTag_preventsEventDefault() {
     const dispatcher = new jsaction.Dispatcher();
-    const mockEvent = {'type': 'keydown'};
     const eventInfo = createEventInfo({
       eventType: jsaction.A11y.MAYBE_CLICK_EVENT_TYPE,
-      event: mockEvent,
+      event: mockKeydownEvent,
       actionElement: {tagName: 'A'},
     });
     mockControl.createMethodMock(jsaction.event, 'isActionKeyEvent');
     mockControl.createMethodMock(jsaction.event, 'isSpaceKeyEvent');
     mockControl.createMethodMock(
         jsaction.event, 'shouldCallPreventDefaultOnNativeHtmlControl');
-    jsaction.event.isActionKeyEvent(mockEvent).$returns(true);
-    jsaction.event.isSpaceKeyEvent(mockEvent).$returns(false);
-    jsaction.event.shouldCallPreventDefaultOnNativeHtmlControl(mockEvent)
+    jsaction.event.isActionKeyEvent(mockKeydownEvent).$returns(true);
+    jsaction.event.isSpaceKeyEvent(mockKeydownEvent).$returns(false);
+    jsaction.event.shouldCallPreventDefaultOnNativeHtmlControl(mockKeydownEvent)
         .$returns(false);
     const mockPreventDefault =
         mockControl.createMethodMock(jsaction.event, 'preventDefault');
@@ -132,14 +129,13 @@ goog.testing.testSuite({
 
   testMaybeResolveA11yEvent_withGlobalA11yEventAndNoActionElement_doesNotPreventDefault() {
     const dispatcher = new jsaction.Dispatcher();
-    const mockEvent = {'type': 'keydown'};
     const eventInfo = createEventInfo({
       actionElement: null,
-      event: mockEvent,
+      event: mockKeydownEvent,
       eventType: jsaction.A11y.MAYBE_CLICK_EVENT_TYPE,
     });
     mockControl.createMethodMock(jsaction.event, 'isActionKeyEvent');
-    jsaction.event.isActionKeyEvent(mockEvent).$returns(true);
+    jsaction.event.isActionKeyEvent(mockKeydownEvent).$returns(true);
     const mockPreventDefault =
         mockControl.createMethodMock(jsaction.event, 'preventDefault');
     mockPreventDefault(_).$never();
@@ -152,11 +148,12 @@ goog.testing.testSuite({
 
   testMaybeResolveA11yEvent_withGlobalNonActionKeyA11yEvent_changesEventTypeToKeydown() {
     const dispatcher = new jsaction.Dispatcher();
-    const mockEvent = {'type': 'keydown'};
-    const eventInfo = createEventInfo(
-        {eventType: jsaction.A11y.MAYBE_CLICK_EVENT_TYPE, event: mockEvent});
+    const eventInfo = createEventInfo({
+      eventType: jsaction.A11y.MAYBE_CLICK_EVENT_TYPE,
+      event: mockKeydownEvent
+    });
     mockControl.createMethodMock(jsaction.event, 'isActionKeyEvent');
-    jsaction.event.isActionKeyEvent(mockEvent).$returns(false);
+    jsaction.event.isActionKeyEvent(mockKeydownEvent).$returns(false);
     mockControl.$replayAll();
 
     const resolvedEvent = dispatcher.maybeResolveA11yEvent(eventInfo, true);
@@ -167,81 +164,65 @@ goog.testing.testSuite({
 
   testMaybeResolveA11yEvent_withNonActionKeyA11yEvent_getsRetriggered() {
     const dispatcher = new jsaction.Dispatcher();
-    const mockEvent = {'type': 'keydown'};
     const eventInfo = createEventInfo({
       eventType: jsaction.A11y.MAYBE_CLICK_EVENT_TYPE,
-      event: mockEvent,
+      event: mockKeydownEvent,
       targetElement: {},
     });
     mockControl.createMethodMock(jsaction.event, 'isActionKeyEvent');
-    jsaction.event.isActionKeyEvent(mockEvent).$returns(false);
-    const mockTriggerEvent =
-        mockControl.createMethodMock(jsaction, 'triggerEvent');
-    mockTriggerEvent(_, _).$once();
+    jsaction.event.isActionKeyEvent(mockKeydownEvent).$returns(false);
     mockControl.$replayAll();
 
     const resolvedEvent = dispatcher.maybeResolveA11yEvent(eventInfo);
-    mockClock.tick();
 
-    assertNull(resolvedEvent);
+    assertTrue(resolvedEvent['needsRetrigger']);
     mockControl.$verifyAll();
   },
 
-  testMaybeResolveA11yEvent_withNonActionKeyA11yEvent_returnsNull() {
+  testMaybeResolveA11yEvent_withNonActionKeyA11yEvent_changesEventTypeToKeydown() {
     const dispatcher = new jsaction.Dispatcher();
-    const mockEvent = {'type': 'keydown'};
     const eventInfo = createEventInfo({
       eventType: jsaction.A11y.MAYBE_CLICK_EVENT_TYPE,
-      event: mockEvent,
+      event: mockKeydownEvent,
     });
     mockControl.createMethodMock(jsaction.event, 'isActionKeyEvent');
-    jsaction.event.isActionKeyEvent(mockEvent).$returns(false);
-    const mockTriggerEvent =
-        mockControl.createMethodMock(jsaction, 'triggerEvent');
-    mockTriggerEvent(_, _).$once();
+    jsaction.event.isActionKeyEvent(mockKeydownEvent).$returns(false);
     mockControl.$replayAll();
 
     const resolvedEvent = dispatcher.maybeResolveA11yEvent(eventInfo);
-    mockClock.tick();
 
-    assertNull(resolvedEvent);
+    assertEquals('keydown', resolvedEvent['eventType']);
     mockControl.$verifyAll();
   },
 
   testMaybeResolveA11yEvent_withA11yEventWithNoActionElement_getsRetriggered() {
     const dispatcher = new jsaction.Dispatcher();
-    const mockEvent = {'type': 'keydown'};
     const eventInfo = createEventInfo({
       actionElement: null,
-      event: mockEvent,
+      event: mockKeydownEvent,
       eventType: jsaction.A11y.MAYBE_CLICK_EVENT_TYPE,
     });
     const mockIsActionKeyEvent =
         mockControl.createMethodMock(jsaction.event, 'isActionKeyEvent');
-    const mockTriggerEvent =
-        mockControl.createMethodMock(jsaction, 'triggerEvent');
     mockIsActionKeyEvent(_).$never();
-    mockTriggerEvent(_, _).$once();
     mockControl.$replayAll();
 
     const resolvedEvent = dispatcher.maybeResolveA11yEvent(eventInfo);
-    mockClock.tick();
 
-    assertNull(resolvedEvent);
+    assertTrue(resolvedEvent['needsRetrigger']);
     mockControl.$verifyAll();
   },
 
   testMaybeResolveA11yEvent_withGlobalA11yEventAndNoActionElement_changesEventTypeToClick() {
     const dispatcher = new jsaction.Dispatcher();
-    const mockEvent = {'type': 'keydown'};
     const eventInfo = createEventInfo({
       actionElement: null,
-      event: mockEvent,
+      event: mockKeydownEvent,
       eventType: jsaction.A11y.MAYBE_CLICK_EVENT_TYPE,
       targetElement: {},
     });
     mockControl.createMethodMock(jsaction.event, 'isActionKeyEvent');
-    jsaction.event.isActionKeyEvent(mockEvent).$returns(true);
+    jsaction.event.isActionKeyEvent(mockKeydownEvent).$returns(true);
     mockControl.$replayAll();
 
     const resolvedEvent = dispatcher.maybeResolveA11yEvent(eventInfo, true);
@@ -288,16 +269,15 @@ goog.testing.testSuite({
   testCloneEventInfoQueue_convertsMaybeA11yClicksToClicks() {
     const dispatcher = new jsaction.Dispatcher();
     const queue = [];
-    const mockEvent = {'type': 'keydown'};
     const eventInfo = createEventInfo({
       eventType: jsaction.A11y.MAYBE_CLICK_EVENT_TYPE,
-      event: mockEvent,
+      event: mockKeydownEvent,
     });
     queue.push(eventInfo);
     mockControl.createMethodMock(jsaction.event, 'isActionKeyEvent');
     mockControl.createMethodMock(jsaction.event, 'isSpaceKeyEvent');
-    jsaction.event.isActionKeyEvent(mockEvent).$returns(true);
-    jsaction.event.isSpaceKeyEvent(mockEvent).$returns(true);
+    jsaction.event.isActionKeyEvent(mockKeydownEvent).$returns(true);
+    jsaction.event.isSpaceKeyEvent(mockKeydownEvent).$returns(true);
     mockControl.$replayAll();
 
     const clonedQueue = dispatcher.cloneEventInfoQueue(queue);
@@ -306,28 +286,28 @@ goog.testing.testSuite({
     assertEquals('click', clonedQueue[0]['eventType']);
   },
 
-  testCloneEventInfoQueue_removesNonActionKeyA11yEvents() {
+  testCloneEventInfoQueue_removesAndRetriggersNonActionKeyA11yEvents() {
     const dispatcher = new jsaction.Dispatcher();
-    const mockEvent = {'type': 'keydown'};
     const queue = [];
     const numEventsToSimulate = 2;
-    const mockTriggerEvent =
-        mockControl.createMethodMock(jsaction, 'triggerEvent');
-    mockTriggerEvent(_, _).$times(numEventsToSimulate);
+    const mockReplayEvent =
+        mockControl.createMethodMock(jsaction, 'replayEvent');
+    mockReplayEvent(_).$times(numEventsToSimulate);
     mockControl.createMethodMock(jsaction.event, 'isActionKeyEvent');
     for (let i = 0; i < numEventsToSimulate; i++) {
-      queue.push(createEventInfo(
-          {eventType: jsaction.A11y.MAYBE_CLICK_EVENT_TYPE, event: mockEvent}));
-      jsaction.event.isActionKeyEvent(mockEvent).$returns(false);
+      queue.push(createEventInfo({
+        eventType: jsaction.A11y.MAYBE_CLICK_EVENT_TYPE,
+        event: mockKeydownEvent
+      }));
+      jsaction.event.isActionKeyEvent(mockKeydownEvent).$returns(false);
     }
     mockControl.$replayAll();
 
     const clonedQueue = dispatcher.cloneEventInfoQueue(queue);
-    mockClock.tick();
 
     assertEquals(0, clonedQueue.length);
     mockControl.$verifyAll();
-  }
+  },
 });
 
 /**

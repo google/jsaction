@@ -49,7 +49,8 @@ goog.require('jsaction.dom');
  *   targetElement: !Element,
  *   action: string,
  *   actionElement: Element,
- *   timeStamp: number
+ *   timeStamp: number,
+ *   needsRetrigger: (boolean|undefined),
  * }}
  */
 jsaction.EventInfo;

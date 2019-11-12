@@ -144,14 +144,16 @@ jsaction.Dispatcher = function(opt_flowFactory, opt_getHandler, opt_isWiz) {
  * under jscompiler processing (Function and Array, as opposed to a custom type
  * with method names).
  *
- * @param {(jsaction.EventInfo|!Array.<jsaction.EventInfo>)} eventInfo
+ * @param {(!jsaction.EventInfo|!Array<!jsaction.EventInfo>)} eventInfo
  *    The info for the event that triggered this call or the queue of events
  *    from EventContract.
- * @param {boolean=} opt_globalDispatch If true, dispatches a global event
+ * @param {boolean=} isGlobalDispatch If true, dispatches a global event
  *    instead of a regular jsaction handler.
+ * @return {!Event|undefined} Returns an event for the event contract to handle
+ *     again IFF we tried to resolve an a11y event that can't be casted to a
+ *     click.
  */
-jsaction.Dispatcher.prototype.dispatch = function(
-    eventInfo, opt_globalDispatch) {
+jsaction.Dispatcher.prototype.dispatch = function(eventInfo, isGlobalDispatch) {
   if (goog.isArray(eventInfo)) {
     // We received the queued events from EventContract. Copy them and try to
     // replay.
@@ -161,14 +163,13 @@ jsaction.Dispatcher.prototype.dispatch = function(
   }
 
   const resolvedA11yEvent =
-      this.maybeResolveA11yEvent(eventInfo, opt_globalDispatch);
-  if (!resolvedA11yEvent) {
-    return;
-  } else {
-    eventInfo = /** @type {!jsaction.EventInfo} */ (resolvedA11yEvent);
+      this.maybeResolveA11yEvent(eventInfo, isGlobalDispatch);
+  if (resolvedA11yEvent['needsRetrigger']) {
+    return resolvedA11yEvent['event'];
   }
+  eventInfo = resolvedA11yEvent;
 
-  if (opt_globalDispatch) {
+  if (isGlobalDispatch) {
     // Skip everything related to jsaction handlers, and execute the global
     // handlers.
     const ev = eventInfo['event'];
@@ -202,7 +203,7 @@ jsaction.Dispatcher.prototype.dispatch = function(
 
   if (handler) {
     const stats = this.flowFactory_(
-        /** @type {jsaction.EventInfo} */ (eventInfo));
+        /** @type {!jsaction.EventInfo} */ (eventInfo));
     handler(stats);
     stats.done(jsaction.Branch.MAIN);
     return;
@@ -245,23 +246,20 @@ jsaction.Dispatcher.prototype.cloneEventInfoQueue = function(eventInfoQueue) {
  * experimental version of the event contract is loaded while the experimental
  * dispatcher isn't. This is not a normal case in production, but may be
  * triggered through experiments to isolate the effects to event contract. In
- * this case, we will swallow the event, as that most closely matches the
- * behavior of not having a11y support enabled on mobile. Consequently, this
- * means all keydown events are ignored by the dispatcher.
+ * this case, treat the event as a keydown.
  *
  * @param {!jsaction.EventInfo} eventInfo
  * @param {boolean=} isGlobalDispatch Whether the eventInfo is meant to be
  *     dispatched to the global handlers.
- * @return {?jsaction.EventInfo}
+ * @return {!jsaction.EventInfo}
  * @package
  */
 jsaction.Dispatcher.prototype.maybeResolveA11yEvent = function(
     eventInfo, isGlobalDispatch = false) {
   if (eventInfo['eventType'] === jsaction.A11y.MAYBE_CLICK_EVENT_TYPE) {
-    return null;
-  } else {
-    return eventInfo;
+    eventInfo['eventType'] = 'keydown';
   }
+  return eventInfo;
 };
 
 

@@ -1856,7 +1856,8 @@ function testEventContractGetNamespace_Undefined() {
   assertNull(jsaction.Cache.getNamespace(elem));
 }
 
-function testCustomEvents_DispatchedCorrectly() {
+
+function testCustomEvents_dispatchedCorrectly() {
   if (goog.userAgent.IE && !goog.userAgent.isVersionOrHigher('9')) {
     // IE8 does not support custom events at all.
     return;
@@ -1900,3 +1901,30 @@ function testCustomEvents_DispatchedCorrectly() {
   mockControl_.$verifyAll();
 }
 
+
+function testHandler_handlesEventsWithNeedsRetriggerFlagTwice() {
+  const container = elem('container14');
+  const target = elem('target14');
+  const mockEvent =
+      jsaction.createEvent(/** @type {!Event} */ ({type: 'keydown'}));
+  let dispatchCount = 0;
+  const dispatchCallback = function(ei) {
+    dispatchCount++;
+    mockEvent['needsTrigger'] = true;
+    mockEvent[jsaction.A11y.SKIP_A11Y_CHECK] = true;
+    return mockEvent;
+  };
+
+  const e = new jsaction.EventContract;
+  e.addContainer(container);
+  e.addEvent(jsaction.EventType.CLICK);
+  e.dispatchTo(dispatchCallback);
+  // Replay a fake modified mouse button click event to trigger a DOM event on
+  // the target element.
+  jsaction.triggerEvent(target, mockEvent);
+
+  // Global and local dispatch on first pass, then just global on next
+  // recursion. Local dispatch will be skipped because we didn't find an
+  // actionElement.
+  assertEquals(3, dispatchCount);
+}
