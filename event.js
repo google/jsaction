@@ -461,7 +461,7 @@ jsaction.event.shouldCallPreventDefaultOnNativeHtmlControl = function(e) {
  * @return {boolean} True, if the event emulates a DOM click.
  */
 jsaction.event.isActionKeyEvent = function(e) {
-  let key = e.which || e.keyCode || e.key;
+  let key = e.which || e.keyCode;
   if (jsaction.event.isWebKit && key == jsaction.KeyCodes.MAC_ENTER) {
     key = jsaction.KeyCodes.ENTER;
   }
@@ -546,7 +546,7 @@ jsaction.event.NATIVELY_FOCUSABLE_ELEMENTS_ = {
  * @return {boolean} True, if the Space key was pressed.
  */
 jsaction.event.isSpaceKeyEvent = function(e) {
-  const key = e.which || e.keyCode || e.key;
+  const key = e.which || e.keyCode;
   const el = jsaction.event.getTarget(e);
   const elementName = (el.type || el.tagName).toUpperCase();
   return key == jsaction.KeyCodes.SPACE && elementName != 'CHECKBOX';
