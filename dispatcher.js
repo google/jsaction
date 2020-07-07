@@ -157,16 +157,17 @@ jsaction.Dispatcher = function(opt_flowFactory, opt_getHandler, opt_isWiz) {
  *     click.
  */
 jsaction.Dispatcher.prototype.dispatch = function(eventInfo, isGlobalDispatch) {
-  if (goog.isArray(eventInfo)) {
+  if (goog.isArrayLike(eventInfo)) {
     // We received the queued events from EventContract. Copy them and try to
     // replay.
-    this.queue_ = this.cloneEventInfoQueue(eventInfo);
+    this.queue_ = this.cloneEventInfoQueue(
+        /** @type {!Array<jsaction.EventInfo>} */ (eventInfo));
     this.replayQueuedEvents_();
     return;
   }
 
-  const resolvedA11yEvent =
-      this.maybeResolveA11yEvent(eventInfo, isGlobalDispatch);
+  const resolvedA11yEvent = this.maybeResolveA11yEvent(
+      /** @type {jsaction.EventInfo} */ (eventInfo), isGlobalDispatch);
   if (resolvedA11yEvent['needsRetrigger']) {
     return resolvedA11yEvent['event'];
   }
