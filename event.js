@@ -663,7 +663,7 @@ jsaction.event.recreateTouchEventAsClick = function(event) {
   click['type'] = jsaction.EventType.CLICK;
   for (const p in event) {
     const v = event[p];
-    if (p != 'type' && p != 'srcElement' && !goog.isFunction(v)) {
+    if (p != 'type' && p != 'srcElement' && !(typeof v === 'function')) {
       click[p] = v;
     }
   }
